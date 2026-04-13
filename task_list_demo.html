@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>待处理任务列表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body { 
+            background-color: #f7f8fa; /* 护卫军H5常用的灰白背景 */
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", STHeiti, "Microsoft Yahei", Tahoma, Simsun, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        /* 东风红主题色 */
+        .theme-red { color: #e60012; }
+        .bg-theme-red { background-color: #e60012; }
+        .border-theme-red { border-color: #e60012; }
+        
+        /* 顶部导航吸顶 */
+        .header-fixed { position: sticky; top: 0; z-index: 50; background: white; }
+        
+        /* 平滑过渡 */
+        .tab-item { transition: all 0.3s ease; }
+        .card-enter-active, .card-leave-active { transition: all 0.4s ease; }
+        .card-enter-from, .card-leave-to { opacity: 0; transform: translateY(10px); }
+    </style>
+</head>
+<body>
+    <div id="app" class="min-h-screen pb-10">
+        <!-- 头部区域与Tabs -->
+        <div class="header-fixed shadow-sm">
+            <!-- 模拟顶部状态栏与标题 -->
+            <div class="flex items-center justify-between px-4 py-3 relative">
+                <div class="w-6 h-6 flex items-center justify-center" @click="goBack">
+                    <svg class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M716.608 1010.112L218.88 512.384 717.312 13.888l45.248 45.248-453.12 453.184 452.48 452.544-45.312 45.248z" fill="#333333"></path></svg>
+                </div>
+                <div class="text-lg font-medium text-gray-800 absolute left-1/2 transform -translate-x-1/2">
+                    待处理作业
+                </div>
+                <div class="w-6 h-6"></div> <!-- 占位保持居中 -->
+            </div>
+
+            <!-- 通知横幅提示 -->
+            <div class="bg-red-50 px-4 py-2 flex items-start text-xs text-red-600 line-clamp-2 leading-relaxed">
+                <svg class="w-4 h-4 mr-1 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>来自微信通知提醒：您有未处理的东风专属作业，快去赚取积分吧！</span>
+            </div>
+
+            <!-- 选项卡 Tabs -->
+            <div class="flex border-b border-gray-100">
+                <div 
+                    v-for="(tab, index) in tabs" :key="index"
+                    @click="currentTab = tab.id"
+                    class="tab-item flex-1 text-center py-3 text-sm relative cursor-pointer"
+                    :class="currentTab === tab.id ? 'theme-red font-bold' : 'text-gray-500 font-medium'">
+                    {{ tab.name }} ({{ getListByTab(tab.id).length }})
+                    <div 
+                        v-if="currentTab === tab.id" 
+                        class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-theme-red rounded-full">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 任务列表区域 -->
+        <div class="p-4 space-y-4">
+            <transition-group name="card">
+                <div 
+                    v-for="task in activeList" 
+                    :key="task.id"
+                    class="bg-white rounded-xl p-3 shadow-sm border border-gray-50 flex"
+                >
+                    <!-- 左侧图片 -->
+                    <div class="w-24 h-24 bg-blue-50 rounded-lg overflow-hidden flex-shrink-0 flex flex-col justify-center items-center relative">
+                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-500">
+                            <!-- 默认图片Svg占位 -->
+                            <svg class="w-10 h-10 text-white opacity-80" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path></svg>
+                        </div>
+                        <div v-if="task.isUrgent" class="absolute top-0 left-0 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-br-lg rounded-tl-lg">加急</div>
+                    </div>
+
+                    <!-- 右侧内容区 -->
+                    <div class="ml-3 flex-1 flex flex-col justify-between py-0.5 relative">
+                        
+                        <!-- 标题区域 -->
+                        <div class="text-sm font-bold text-gray-800 leading-tight line-clamp-2 pr-2">
+                            {{ task.title }}
+                        </div>
+
+                        <!-- 奖励区域 -->
+                        <div class="mt-1.5 text-xs text-gray-500 flex items-center">
+                            奖励 <span class="theme-red font-bold text-sm ml-1">{{ task.reward }}</span>
+                            <span v-if="currentTab === 'unclaimed'" class="ml-auto text-gray-400 text-[10px]">{{ task.remainLabel }}</span>
+                        </div>
+
+                        <!-- 平台与类型 / 按钮区 -->
+                        <div class="mt-2 flex items-end justify-between">
+                            <div class="flex items-center text-xs text-gray-500 bg-gray-50 pr-2 pl-1 py-1 rounded">
+                                <svg v-if="task.platform === 'wechat'" class="w-3.5 h-3.5 text-green-500 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8.2,14.6c-2.9,0-5.3-2-5.3-4.5c0-2.5,2.4-4.5,5.3-4.5c2.9,0,5.3,2,5.3,4.5C13.5,12.6,11.1,14.6,8.2,14.6z M16.7,18.2 c-2.3,0-4.2-1.6-4.2-3.6c0-2,1.9-3.6,4.2-3.6c2.3,0,4.2,1.6,4.2,3.6C20.9,16.6,19,18.2,16.7,18.2z"></path></svg>
+                                <span>{{ task.typeLabel }}</span>
+                            </div>
+
+                            <!-- 按钮状态切换 -->
+                            <button 
+                                v-if="currentTab === 'unclaimed'" 
+                                @click="handleAction(task, '领取')"
+                                class="bg-theme-red text-white text-xs px-3 py-1.5 rounded-full font-medium active:scale-95 transition-transform"
+                            >
+                                立即领取
+                            </button>
+                            <button 
+                                v-else 
+                                @click="handleAction(task, '完成')"
+                                class="border border-theme-red theme-red text-xs px-3 py-1.5 rounded-full font-medium active:bg-red-50 transition-colors"
+                            >
+                                去完成作业
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </transition-group>
+
+            <!-- 空状态 -->
+            <div v-if="activeList.length === 0" class="pt-20 flex flex-col items-center justify-center">
+                <svg class="w-20 h-20 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M20 7h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM10 4h4v3h-4V4zm10 16H4V9h16v11z"></path><path d="M11 14h2v2h-2zM11 11h2v2h-2z"></path></svg>
+                <div class="mt-4 text-sm text-gray-400">目前没有该类待处理任务哦~</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue
+
+        createApp({
+            setup() {
+                const tabs = ref([
+                    { id: 'unclaimed', name: '待领取' },
+                    { id: 'uncompleted', name: '待完成' }
+                ])
+                const currentTab = ref('unclaimed')
+
+                const taskList = ref([
+                    { id: 1, state: 'unclaimed', title: '#追求卓越！全能纯电ARIYA (未领取)', reward: '5~15积分', platform: 'wechat', typeLabel: '转发作业', isUrgent: true, remainLabel: '剩余 108个' },
+                    { id: 2, state: 'unclaimed', title: '直面挑战！东风猛士越野征服测评首发', reward: '10~50积分', platform: 'douyin', typeLabel: '原创首发', isUrgent: false, remainLabel: '剩余 2000个' },
+                    { id: 3, state: 'uncompleted', title: '#东风奕派 直播互动之夜 (已领取)', reward: '20积分', platform: 'wechat', typeLabel: '直播作业', isUrgent: true, remainLabel: '今晚 20:00 开播' },
+                    { id: 4, state: 'uncompleted', title: '寻找最美车主视频混剪活动', reward: '至高300积分', platform: 'douyin', typeLabel: '原创视频', isUrgent: false, remainLabel: '明天 12:00 截止' }
+                ])
+
+                const getListByTab = (tabId) => taskList.value.filter(t => t.state === tabId)
+                const activeList = computed(() => getListByTab(currentTab.value))
+
+                const goBack = () => alert("返回微信主页")
+                
+                const handleAction = (task, actionType) => {
+                    alert(`执行【${actionType}】操作 -> 任务：${task.title}\n此时在生产环境可唤起 <wx-open-subscribe> 或进跳转。`)
+                }
+
+                return { tabs, currentTab, activeList, getListByTab, goBack, handleAction }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

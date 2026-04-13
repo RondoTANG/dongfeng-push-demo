@@ -1,0 +1,28 @@
+# GitHub Pages 部署方案 (浏览器辅助版)
+
+由于当前终端环境未安装 `gh` (GitHub CLI) 指令，直接运行 `github-pages-deploy` 脚本受阻。为确保完成部署，我将通过“浏览器 subagent”协助您完成手动/半自动部署。
+
+## 用户评审要求
+- **登录确认**：我需要您在打开的 GitHub 页面中完成登录（及 2FA 验证），以便 subagent 拥有操作权限。
+- **仓库命名**：默认使用 `dongfeng-push-demo`，如有冲突将自动加后缀。
+
+## 提议的变更步骤
+
+### 第一阶段：准备工作
+- [x] 已在 `/Users/RondoT/.gemini/antigravity/scratch/dongfeng-push-demo` 目录下准备好 `index.html`。
+
+### 第二阶段：浏览器自动化部署
+1. **创建仓库**：导航至 `github.com/new` 创建公开仓库。
+2. **文件上传**：使用 GitHub 网页端的 "Upload files" 功能，将本地的 `index.html` 上传至主分支。
+3. **启用 Pages**：前往 `Settings -> Pages`，确保部署来源设为 `Deploy from a branch` 并指向 `main` 分支。
+
+### 第三阶段：链接生成
+- 获取 GitHub Pages 生成后的链接（通常为 `https://<username>.github.io/dongfeng-push-demo/`）。
+
+## 开放性问题
+- 您是否已经在浏览器中登录了 GitHub？（如果未登录，subagent 将引导您至登录界面）。
+
+## 验证计划
+- 确认仓库已创建并包含 `index.html`。
+- 确认 Pages 设置已激活。
+- 最终访问生成的在线 URL 进行真机/外网访问测试。

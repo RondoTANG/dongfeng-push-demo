@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "完整任务结项报告：\n1. 推送看板重构：实现了可折叠统计、可用余额上移及 3 个月日期筛选逻辑。\n2. GitHub Pages 部署：在本地配置 gh 工具并协助用户完成认证，成功上线演示页面。\n3. 环境紧急恢复：重构了误操作覆盖的 .zshrc，确保了 Python、MacPorts 及 gh 路径的有效性。",
+  "updatedAt": "2026-04-12T16:21:36.211045Z",
+  "version": "3"
+}

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>护卫军消息推送全栈操作系统 Demo</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Mermaid.js -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft Yahei", sans-serif; background-color: #f3f4f6; }
+        .theme-red { color: #e60012; }
+        .bg-theme-red { background-color: #e60012; }
+        .tab-item { transition: all 0.3s ease; }
+        .card-enter-active, .card-leave-active { transition: all 0.4s ease; }
+        .card-enter-from, .card-leave-to { opacity: 0; transform: translateY(10px); }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { border-radius: 3px; background: #cbd5e1; }
+        ::-webkit-scrollbar-track { background: transparent; }
+
+        .mobile-mockup {
+            width: 375px; height: 667px; 
+            border: 12px solid #1f2937; border-radius: 40px;
+            overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            background-color: #f7f8fa; position: relative;
+        }
+    </style>
+</head>
+<body class="h-screen w-full flex overflow-hidden">
+    <div id="app" class="w-full flex h-full">
+        
+        <!-- =================== 左侧侧边栏导航 =================== -->
+        <div class="w-72 bg-gray-900 text-white flex flex-col shadow-2xl z-20">
+            <div class="p-6">
+                <div class="text-xl font-bold tracking-wider text-red-500">东风护卫军</div>
+                <div class="text-xs text-gray-400 mt-1">智能路由推送模拟中台 Demo</div>
+            </div>
+            <nav class="flex-1 mt-2">
+                <ul>
+                    <li v-for="menu in menus" :key="menu.id" 
+                        @click="activeMenu = menu.id"
+                        class="px-6 py-4 cursor-pointer transition-colors border-l-4"
+                        :class="activeMenu === menu.id ? 'border-red-500 bg-gray-800 text-white' : 'border-transparent text-gray-400 hover:bg-gray-800 hover:text-gray-200'">
+                        <div class="font-bold text-[15px]">{{ menu.title }}</div>
+                        <div class="text-[11px] mt-1 opacity-60">{{ menu.sub }}</div>
+                    </li>
+                </ul>
+            </nav>
+            <div class="p-4 text-[10px] text-gray-600 text-center uppercase tracking-wider">
+                Full-Stack Architecture Demo
+            </div>
+        </div>
+
+        <!-- =================== 右侧内容展示区 =================== -->
+        <div class="flex-1 overflow-y-auto bg-gray-50 p-8 relative">
+            
+            <!-- 模块 1：前端 - 详情页领取与防刷订阅 -->
+            <div v-show="activeMenu === 'frontend_detail'" class="flex items-start justify-center gap-12 h-full">
+                <!-- 左侧手机预览模拟 (详情页) -->
+                <div class="mobile-mockup flex flex-col relative bg-white transform transition-transform hover:scale-[1.02]">
+                    <div class="bg-white h-12 flex items-center justify-center font-bold border-b text-gray-800 relative z-10 text-[15px]">作业详情</div>
+                    <div class="h-48 bg-gradient-to-br from-blue-400 to-indigo-500 flex flex-col items-center justify-center text-white font-bold text-xl relative shadow-inner">
+                        <svg class="w-12 h-12 mb-2 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        重磅原创：最强车评人招募！
+                    </div>
+                    
+                    <div class="p-4 flex-1 flex flex-col">
+                        <div class="text-xs text-gray-500 mb-4 bg-gray-50 border border-gray-100 p-3 rounded-lg shadow-sm space-y-1">
+                            <div class="flex justify-between"><span class="text-gray-400">任务类型</span><span class="font-bold text-gray-700">原创视频类作业</span></div>
+                            <div class="flex justify-between"><span class="text-gray-400">最高奖励</span><span class="font-bold text-red-500">300.00 积分</span></div>
+                            <div class="flex justify-between"><span class="text-gray-400">截止时间</span><span class="text-gray-700">2026-12-31</span></div>
+                        </div>
+                        <div class="text-sm text-gray-600 leading-relaxed flex-1 mt-2 px-1">
+                            【内容规则】<br>
+                            1. 重点拍摄带有东风标致的实拍视频...<br>
+                            2. 内容需体现品牌特质，谢绝敷衍水帖内容...
+                        </div>
+                        
+                        <!-- 底部按钮 -->
+                        <div class="mt-auto border-t border-gray-100 pt-4 px-2 pb-2">
+                            <button @click="triggerSubscribe" class="w-full bg-theme-red text-white py-3.5 rounded-full font-bold shadow-md hover:bg-red-700 active:scale-95 transition-all text-sm flex items-center justify-center">
+                                当前动作：【立即领取作业】
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 微信原生弹窗模拟 (只有未静默前显示) -->
+                    <div v-if="showWxPopup" class="absolute inset-0 bg-black bg-opacity-60 flex items-end justify-center z-50">
+                        <div class="bg-white w-full rounded-t-2xl p-5 transform transition-transform box-border pb-10">
+                            <div class="flex items-center mb-4">
+                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white mr-2 text-xs font-bold">微</div>
+                                <div class="font-bold text-sm text-gray-800">东风公司党建 申请</div>
+                            </div>
+                            <div class="text-[16px] font-extrabold text-gray-900 mb-2">“护卫军作业通知” 等多次关注</div>
+                            <div class="text-xs text-gray-400 mb-6 pb-4 border-b border-gray-100 space-y-1">
+                                <div>· 任务未领取合并通知</div>
+                                <div>· 任务未完成超时通知</div>
+                                <div>· 预约直播提前开播通知</div>
+                            </div>
+                            <label class="flex items-center text-sm text-gray-700 mb-6 cursor-pointer bg-gray-50 px-3 py-2 rounded">
+                                <input type="checkbox" v-model="alwaysKeepSelection" class="w-4 h-4 text-green-500 rounded border-gray-300 mr-2 focus:ring-0">
+                                总是保持以上选择，不再询问 (极为关键)
+                            </label>
+                            <div class="flex gap-3">
+                                <button @click="showWxPopup = false" class="flex-1 py-2.5 rounded text-gray-600 bg-gray-200 font-bold active:bg-gray-300">取消</button>
+                                <button @click="confirmSubscribe" class="flex-1 py-2.5 rounded text-white bg-green-500 font-bold active:bg-green-600">允许</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 监控面板 -->
+                <div class="bg-white rounded-xl shadow border border-gray-100 p-6 w-[420px]">
+                    <div class="flex items-center border-b pb-3 mb-6 border-red-100">
+                        <div class="w-2 h-6 bg-red-500 mr-3 rounded-full"></div>
+                        <h2 class="text-lg font-bold text-gray-800">数据库状态观测仪</h2>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="bg-gray-50 px-4 py-3 rounded border border-gray-200 flex justify-between items-center">
+                            <div class="text-xs text-gray-500">模拟用户</div>
+                            <div class="font-bold text-sm text-gray-800"> UID: 9527 (张三)</div>
+                        </div>
+                        
+                        <div class="bg-indigo-50 p-5 rounded-lg border border-indigo-100 relative overflow-hidden transition-all duration-300">
+                            <div class="text-sm font-bold text-indigo-800 mb-1">【一次性专属红利余额】</div>
+                            <div class="flex items-baseline mt-2">
+                                <span class="text-5xl font-black text-indigo-600 tracking-tighter">{{ userSubQuota }}</span>
+                                <span class="text-indigo-400 ml-2 font-bold">次</span>
+                            </div>
+                            <div class="text-[11px] text-indigo-600 opacity-80 mt-3 font-medium">✨ 完全脱离公众号10W额度限制！每次只要授权就会在此后台无限正向叠加额度。</div>
+                        </div>
+
+                        <div class="pt-4 mt-6">
+                            <div class="text-sm font-bold text-gray-600 mb-2">测试说明：</div>
+                            <p class="text-xs text-gray-500 leading-relaxed bg-yellow-50 text-yellow-800 p-3 rounded">
+                                请在左边收集一次弹窗授权（<strong>务必勾选保持选择</strong>）。<br>后续当你再次点击“立即领取”时（模拟网评员日常疯狂抢接任务），你看不到任何多余冗杂提示，但此处的余额将伴随每一次点击无感光速飙升！
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 模块 2：前端 - T+1 合并列表落地页 -->
+            <div v-show="activeMenu === 'frontend_list'" class="flex items-start justify-center h-full pt-4">
+                <div class="mobile-mockup flex flex-col relative" style="background-color: #f7f8fa;">
+                    <!-- 顶部吸顶 -->
+                    <div class="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
+                        <div class="h-12 flex items-center justify-between px-4">
+                            <div class="w-6"><svg viewBox="0 0 1024 1024" width="20" height="20"><path d="M716.608 1010.112L218.88 512.384 717.312 13.888l45.248 45.248-453.12 453.184 452.48 452.544-45.312 45.248z" fill="#333"></path></svg></div>
+                            <div class="text-[16px] font-bold text-gray-800">待处理作业包</div>
+                            <div class="w-6"></div>
+                        </div>
+                        
+                        <div class="bg-red-50 px-3 py-2 flex items-start text-[11px] text-red-600 leading-tight">
+                            <span class="mr-1">💬</span> 这个单页展示了：当用户点击了T+1发出的那条“您有未处理的作业合并通知”提醒消息后，一键直达拉起的任务池罗列视图。
+                        </div>
+
+                        <!-- Tabs 切换 -->
+                        <div class="flex">
+                            <div v-for="tab in taskTabs" :key="tab.id" @click="currentTaskTab = tab.id"
+                                class="tab-item flex-1 text-center py-3 text-[13px] relative cursor-pointer"
+                                :class="currentTaskTab === tab.id ? 'theme-red font-bold' : 'text-gray-500 font-medium'">
+                                {{ tab.name }} <span class="opacity-80">({{ getTaskList(tab.id).length }})</span>
+                                <div v-if="currentTaskTab === tab.id" class="absolute bottom-0 left-0 w-full h-[3px] bg-theme-red rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 卡片列表滚动容 -->
+                    <div class="flex-1 overflow-y-auto p-3 space-y-3 pb-8">
+                        <transition-group name="card">
+                            <div v-for="task in activeTaskList" :key="task.id" class="bg-white rounded-xl p-3 shadow-sm flex flex-col">
+                                <div class="flex">
+                                    <!-- 占位图 -->
+                                    <div class="w-20 h-20 bg-blue-100 rounded-md overflow-hidden relative flex-shrink-0">
+                                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-tr from-cyan-400 to-blue-500 text-white opacity-90"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path></svg></div>
+                                        <div v-if="task.isUrgent" class="absolute top-0 left-0 bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-br font-bold">必接加急</div>
+                                    </div>
+                                    <!-- 内容 -->
+                                    <div class="ml-3 flex-1 flex flex-col justify-between py-0.5">
+                                        <div class="text-[13px] font-bold text-gray-800 leading-tight line-clamp-2">{{ task.title }}</div>
+                                        <div class="text-[11px] text-gray-500 mt-1">
+                                            佣金/奖励 <span class="theme-red font-extrabold text-[14px] ml-0.5">{{ task.reward }}</span>
+                                        </div>
+                                        <div class="mt-2 flex items-center justify-between text-[10px]">
+                                            <span class="text-gray-400 bg-gray-50 px-1 py-0.5 rounded">{{ task.typeLabel }}</span>
+                                            <span v-if="currentTaskTab==='unclaimed'" class="text-orange-400 font-medium">{{ task.remainLabel }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-50 mt-3 pt-3 flex justify-end">
+                                    <button v-if="currentTaskTab === 'unclaimed'" class="bg-theme-red text-white text-[12px] px-5 py-1.5 rounded-full font-bold active:scale-95 shadow-sm">锁定领取名额</button>
+                                    <button v-else class="border border-theme-red text-theme-red text-[12px] px-5 py-1.5 rounded-full font-bold active:bg-gray-50">马上执行</button>
+                                </div>
+                            </div>
+                        </transition-group>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 模块 3：后台 - 额度路由调度台 -->
+            <div v-show="activeMenu === 'backend'" class="h-full flex flex-col bg-white rounded-xl shadow border border-gray-100">
+                <div class="p-6 border-b flex justify-between items-center bg-gray-50 rounded-t-xl text-gray-800">
+                    <div class="flex items-center"><div class="w-1.5 h-6 bg-red-600 mr-3 rounded-full"></div><h2 class="text-xl font-bold">10w大盘·公共预定流向监控台</h2></div>
+                    <div class="text-sm font-medium tracking-wide">今日法定量：100,000 条</div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-6 p-6">
+                    <div class="bg-emerald-50 rounded p-4 border border-emerald-100 bg-opacity-70">
+                        <div class="text-xs font-bold text-emerald-800 mb-1">【B类基底】系统固定预付款</div>
+                        <div class="text-2xl font-black text-emerald-600">{{ quota.classB }}</div>
+                        <div class="text-[11px] text-emerald-600 mt-1">T+1未领取/未完成 专用防发干底线</div>
+                    </div>
+                    <div class="bg-amber-50 rounded p-4 border border-amber-100 bg-opacity-70">
+                        <div class="text-xs font-bold text-amber-800 mb-1">【C类预锁】下级子品牌直播垫付</div>
+                        <div class="text-2xl font-black text-amber-600">{{ quota.reserved }}</div>
+                        <div class="text-[11px] text-amber-600 mt-1">审批锁定后，强制划转为该场推流专用</div>
+                    </div>
+                    <div class="bg-blue-50 rounded p-4 border border-blue-100 shadow-inner">
+                        <div class="text-xs font-bold text-blue-800 mb-1">【A类流通】目前大盘真实自由现金</div>
+                        <div class="text-3xl font-black text-blue-600">{{ quota.available }}</div>
+                        <div class="text-[11px] text-blue-600 mt-1 font-bold">这是留给任何突发新建新闻作业可用的池子</div>
+                    </div>
+                    
+                    <div class="col-span-3 pb-2">
+                        <div class="text-xs font-bold text-gray-500 mb-1">10W额度实时物理切割占比</div>
+                        <div class="h-4 w-full bg-gray-100 rounded-full overflow-hidden flex ring-1 ring-gray-200">
+                            <div class="bg-emerald-400 h-full flex items-center justify-center text-[9px] text-white font-bold" :style="{ width: (quota.classB/100000)*100 + '%' }">B</div>
+                            <div class="bg-amber-400 h-full flex items-center justify-center text-[9px] text-white font-bold transition-all duration-700 ease-in-out" :style="{ width: (quota.reserved/100000)*100 + '%' }">C(预占池)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-6 flex-1 overflow-auto pb-6">
+                    <h3 class="font-bold text-gray-700 text-sm mb-3">子品牌/直播预约审批排期台</h3>
+                    <div class="rounded border overflow-hidden shadow-sm">
+                        <table class="min-w-full divide-y divide-gray-200 text-sm text-left">
+                            <thead class="bg-gray-50 text-gray-600 font-bold">
+                                <tr>
+                                    <th class="px-4 py-3">节点/子品牌</th>
+                                    <th class="px-4 py-3">执行时机</th>
+                                    <th class="px-4 py-3">预估需求量</th>
+                                    <th class="px-4 py-3">单号状态</th>
+                                    <th class="px-4 py-3 text-right">人工风控操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <tr v-for="req in reservations" :key="req.id" class="hover:bg-gray-50">
+                                    <td class="px-4 py-3">
+                                        <div class="font-bold text-gray-800">{{!req.brand}}</div>
+                                        <div class="text-[11px] text-gray-400 mt-0.5">{{req.taskName}}</div>
+                                    </td>
+                                    <td class="px-4 py-3 font-mono text-gray-600 text-xs">{{req.time}}</td>
+                                    <td class="px-4 py-3 font-bold text-indigo-700">{{req.amount.toLocaleString()}} <span class="text-[10px] text-gray-400 font-normal">额度</span></td>
+                                    <td class="px-4 py-3">
+                                        <span v-if="req.status === 'pending'" class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-[11px] font-bold">等待占坑</span>
+                                        <span v-if="req.status === 'approved'" class="bg-red-50 border border-red-100 text-red-700 px-2 py-1 rounded text-[11px] font-bold shadow-sm">合法锁定中</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-right space-x-2">
+                                        <button v-if="req.status === 'pending'" @click="approve(req)" class="bg-gray-800 text-white px-3 py-1.5 rounded text-[11px] font-bold hover:bg-black transition shadow-sm">许可占用</button>
+                                        <button v-if="req.status === 'approved'" @click="cancel(req)" class="border border-red-500 text-red-600 px-3 py-1.5 rounded text-[11px] font-bold hover:bg-red-50 transition">突发强行释放</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 模块 4：架构 - 流程时序解析 -->
+            <div v-show="activeMenu === 'logic'" class="h-full flex flex-col w-full text-center items-center">
+                <div class="w-full max-w-4xl bg-white p-6 shadow border border-gray-100 text-left mb-6 rounded-lg border-t-4 border-t-red-600">
+                    <h2 class="text-[18px] font-bold text-gray-900 mb-3">系统 3 大分流判定标准说明 (System Routing Rules)</h2>
+                    <div class="space-y-3 text-[13px] text-gray-600 leading-relaxed bg-gray-50 p-4 rounded">
+                        <p><strong class="text-gray-800 underline uppercase">A. 【新建作业/首发/突发通知】</strong><br>
+                        当后台新建发出时：直接查询每个UserId。如果有[自身无尽订阅额度]，则暗中采用专属接口，0扣减总盘耗损顺利发走。如果自身池子已经败干，就去系统 [A类剩余公共流通余量，如7万] 中抢夺资源，先到先扣，无库则爆阻断预警阻截。</p>
+                        <p><strong class="text-gray-800 underline uppercase">B. 【昨日未完成/未领取（组合任务）】</strong><br>
+                        无论用户身上积攒了几通未领几笔未完，均被聚合拦截在 T+1 时段用单一文字拼合发送。（依然是该用户的专属无限订阅额度起主优先保障）若某户订阅清空，立刻转移去专供该模块硬保盘的 [B类基础预留库，即硬割后的2万] 中进行稳健配额消化，杜绝被刚发布的突发红头文件占去频段。</p>
+                        <p><strong class="text-gray-800 underline uppercase">C. 【开播预约与特定日程占优】</strong><br>
+                        提前在系统中提出定点推送审核，审核人员同意意味着该 [预估数额已被预占且强行在10W大库中硬割封存扣缴到了C预约池]。到开播那一刻时点，对被触达的用户仍是“优先使用他们个体已有的专属订阅”。因此发完之后存在巨量**【没有因为发送服务号模板而核销出的，原用来保释开播预约而占得数额】**。引擎结算后系统秒释这批占坑余额逆流回归 A类总系统循环流通里供别处随意花用。</p>
+                    </div>
+                </div>
+                
+                <!-- Mermaid 渲染容器 -->
+                <!-- 利用 v-html 以确保内容是在显示之后被强制精准初始化渲染的 -->
+                <div class="max-w-4xl w-full bg-white p-8 rounded shadow text-left overflow-auto border border-gray-100 flex-1">
+                    <h3 class="font-extrabold text-gray-800 text-center mb-6 text-lg tracking-widest"><span class="bg-gray-100 px-3 py-1 rounded">QuotaRouter 推发中枢决策时序引擎架构</span></h3>
+                    <div id="mermaid-container" class="flex justify-center"></div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- 逻辑脚本 -->
+    <script>
+        const { createApp, ref, watch, onMounted, nextTick } = Vue
+        
+        // 剥离 Mermaid 图谱原文
+        const graphData = `
+        sequenceDiagram
+            participant O as 子品牌/运营方
+            participant C as Cron发号引擎
+            participant R as QuotaRouter分轨系统
+            participant D as 全局及用户DB统筹账本
+            participant W as 微信终端接口方
+
+            %% 人工预审锁额段落
+            O->>+D: 1. 提交预约(申请8000额上限)并审批通过锁坑
+            D-->>-O: 日常大盘切8000注入C类私槽
+            O->>D: 突发场景撤回: 手工点击[剥除]暴力原路返还大盘
+            
+            %% T+1及定时下发段落
+            C->>+R: 2. 定点/触发：读取人群发起请求(传人头+合并文案)
+            R->>+D: 一次性鉴出人群专属订阅额存量与类型
+            
+            loop 针对名单内的个体发信逻辑循环甄判
+                alt 判定为：这网评员拥有个人的订阅累积配额(>0)
+                    R->>D: [自身独立本不干涉公众流] 该体配额独立账期-1
+                    R->>+W: 调用独立一次性免死金牌信道下推信件
+                    W-->>-R: 返回下发结果
+                else 判定为：该网评员的配额已被磨空=0
+                    R->>D: 判断该业务隶属于什么分类(ABC槽归属)
+                    alt 业务落槽资金 > 0
+                        R->>D: 对应的公用总盘大流水 - 1 个量目
+                        R->>+W: 调用官方服务号模板公共限制级(10W单体)下发通道
+                        W-->>-R: 返回下发结果
+                    else 该槽水干（如遇到公用流崩塌或限死）
+                        R->>R: 直接废除这条信令(截断流抛出超挂发文异常入列日志)
+                    end
+                end
+            end
+            R-->>-C: 3. 终结此番整体业务群推活动信号
+            
+            %% 未花完的回撤池补救释放反流段落
+            C->>R: 4. [特定对于预约任务发车结束后]
+            R->>+D: 核算执行完这波后实际走入(服务号模板核销路)的是否填满当初预定锁上限
+            D->>D: 退！将该车原配定-使用数的死账瞬时化水退还涌向公共闲散总池
+            D-->>-O: 全案闭环写入终局数据库形成漏斗数据展示面板供调阅
+        `;
+
+        createApp({
+            setup() {
+                // =========== Tab控制机制 ===========
+                const activeMenu = ref('frontend_detail');
+                const menus = ref([
+                    { id: 'frontend_detail', title: '1. 任务领取引擎 (防刷)', sub: 'Interaction Detail + WeChat Popup' },
+                    { id: 'frontend_list', title: '2. T+1 合并页 (落地视图)', sub: 'Unclaimed & Undone Merge Page' },
+                    { id: 'backend', title: '3. 空管调度中心 (池配控制)', sub: 'Admin 10w-Quota Controllers' },
+                    { id: 'logic', title: '4. 系统内核时序图 (架构全景)', sub: 'Mermaid System Run Logics' }
+                ]);
+
+                // =========== 模块1：前端防弹机制 ===========
+                const isSubscribed = ref(false);
+                const showWxPopup = ref(false);
+                const alwaysKeepSelection = ref(false);
+                const userSubQuota = ref(0); // 这个只累加不归零了！
+
+                const triggerSubscribe = () => {
+                    // 若以前保持同意，这次点击就不弹并自动加算！这就是业务核心要求
+                    if (isSubscribed.value && alwaysKeepSelection.value) {
+                        userSubQuota.value += 1;
+                    } else {
+                        showWxPopup.value = true;
+                    }
+                }
+
+                const confirmSubscribe = () => {
+                    showWxPopup.value = false;
+                    isSubscribed.value = true;
+                    userSubQuota.value += 1; // 首次也加算
+                }
+
+                // =========== 模块2：前端任务卡片页 ===========
+                const currentTaskTab = ref('unclaimed');
+                const taskTabs = ref([{id:'unclaimed',name:'待你领取'}, {id:'uncompleted',name:'待你完结'}]);
+                const taskList = ref([
+                    { id: 1, state: 'unclaimed', title: '#追求卓越！全能纯电ARIYA首测', reward: '5~15积分', typeLabel: '转发作业', isUrgent: true, remainLabel: '余80个' },
+                    { id: 2, state: 'unclaimed', title: '直面挑战！奕派越野征服测评稿件', reward: '500积分', typeLabel: '首发重活', isUrgent: false, remainLabel: '余20个' },
+                    { id: 3, state: 'uncompleted', title: '寻找最美东风人视频随手拍', reward: '100积分', typeLabel: '抖音连线', isUrgent: false },
+                ]);
+                const getTaskList = (type) => taskList.value.filter(t => t.state === type);
+                const activeTaskList = computed(() => getTaskList(currentTaskTab.value));
+
+                // =========== 模块3：后台审批大池机制 ===========
+                const quota = ref({ classB: 20000, reserved: 0, available: 80000 });
+                const reservations = ref([
+                    { id: 1, brand: '岚图知音运营', taskName: '秋季直销宣发弹窗推送', time: '明日 20:00 分', amount: 8000, status: 'pending' },
+                    { id: 2, brand: '东风雪铁龙部', taskName: '重要活动开幕前倒数提醒', time: '后天 10:00 分', amount: 15600, status: 'pending' }
+                ]);
+
+                const approve = (req) => {
+                    if (quota.value.available < req.amount) {
+                         alert(`阻截预警：请求所需池容[${req.amount}] 大于目前可流通剩余盘[${quota.value.available}]，不容超发，请驳回申请！`);
+                    } else {
+                        req.status = 'approved';
+                        quota.value.available -= req.amount;
+                        quota.value.reserved += req.amount;
+                    }
+                };
+
+                const cancel = (req) => {
+                    req.status = 'pending';
+                    quota.value.reserved -= req.amount;
+                    quota.value.available += req.amount; //撤回池容量复原！
+                };
+                
+                // =========== 模块4：时序绘图 ===========
+                watch(activeMenu, async (newVal) => {
+                    if (newVal === 'logic') {
+                        // 利用 Nexttick 等待v-show使得容器取得正确的物理宽度进行 svg 的适配化绘制，避免压缩
+                        await nextTick();
+                        mermaid.initialize({ startOnLoad: false, theme: 'base', securityLevel: 'loose' });
+                        try {
+                            const { svg } = await mermaid.render('mermaid-graph-target', graphData);
+                            document.getElementById('mermaid-container').innerHTML = svg;
+                        } catch(e) { console.error('Mermaid 描绘异常', e); }
+                    }
+                });
+
+                return {
+                    activeMenu, menus,
+                    isSubscribed, showWxPopup, alwaysKeepSelection, userSubQuota, triggerSubscribe, confirmSubscribe,
+                    currentTaskTab, taskTabs, activeTaskList, getTaskList,
+                    quota, reservations, approve, cancel
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
