@@ -1,0 +1,2735 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>护卫军作业推送系统 - 调度控制台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: { colors: { dfred: '#e60012', dfdark: '#1e293b' } }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+
+        body {
+            font-family: "Inter", "Noto Sans SC", -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f1f5f9;
+            color: #334155;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        [v-cloak] {
+            display: none;
+        }
+
+        /* PRD Editorial Styles */
+        .prd-sec-title {
+            position: relative;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 1.5rem;
+            font-weight: 900;
+            color: #0f172a;
+            letter-spacing: -0.025em;
+        }
+
+        .prd-sec-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            width: 60px;
+            height: 2px;
+            background: #3b82f6;
+        }
+
+        .device-frame {
+            width: 375px;
+            height: 740px;
+            background: #ffffff;
+            border-radius: 44px;
+            box-shadow: 0 0 0 12px #0f172a, 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 30px;
+            background: #0f172a;
+            border-radius: 0 0 16px 16px;
+            z-index: 50;
+        }
+
+        .modal-enter-active,
+        .modal-leave-active {
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-enter-from,
+        .modal-leave-to {
+            opacity: 0;
+        }
+
+        .arrow-down {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 10px solid #cbd5e1;
+        }
+
+        .arrow-right {
+            width: 0;
+            height: 0;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-left: 10px solid #cbd5e1;
+        }
+
+        @keyframes fadeInSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInSlide 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body class="h-screen w-full flex overflow-hidden text-sm">
+    <div id="app" class="w-full flex h-full" v-cloak>
+
+        <!-- ============================== 左侧主菜单导航 ============================== -->
+        <div class="w-[260px] bg-dfdark text-white flex flex-col shadow-xl z-20 flex-shrink-0 relative">
+            <div class="p-6 border-b border-gray-800">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6 text-dfred" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                    <span class="font-bold tracking-wide text-base">护卫军系统</span>
+                </div>
+            </div>
+
+            <nav class="flex-1 py-6 space-y-6 overflow-y-auto hide-scrollbar">
+                <!-- 文档解析 -->
+                <div>
+                    <div
+                        class="px-6 text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3 border-l-2 border-indigo-500 ml-4 pl-2">
+                        先导查阅</div>
+                    <ul class="space-y-1">
+                        <li @click="activePane = 'prd_doc'"
+                            class="px-5 py-3 mx-2 rounded-lg cursor-pointer flex items-center gap-3 transition-colors"
+                            :class="activePane === 'prd_doc' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-white/5'">
+                            <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
+                            <span class="font-bold text-[13px] tracking-wide">推送需求分析 (PRD)</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 终端前端 -->
+                <div>
+                    <div
+                        class="px-6 text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3 border-l-2 border-gray-600 ml-4 pl-2">
+                        H5 移动端体验</div>
+                    <ul class="space-y-1">
+                        <li @click="activePane = 'claim_task'"
+                            class="px-5 py-3 mx-2 rounded-lg cursor-pointer flex items-center gap-3 transition-colors"
+                            :class="activePane === 'claim_task' ? 'bg-dfred text-white shadow' : 'text-gray-400 hover:text-white hover:bg-white/5'">
+                            <span class="font-medium text-[13px]">任务领取与订阅鉴权</span>
+                        </li>
+                        <li @click="activePane = 'list_task'"
+                            class="px-5 py-3 mx-2 rounded-lg cursor-pointer flex items-center gap-3 transition-colors"
+                            :class="activePane === 'list_task' ? 'bg-dfred text-white shadow' : 'text-gray-400 hover:text-white hover:bg-white/5'">
+                            <span class="font-medium text-[13px]">T+1 通知任务聚合页</span>
+                        </li>
+                        <li @click="activePane = 'audit_failure'"
+                            class="px-5 py-3 mx-2 rounded-lg cursor-pointer flex items-center gap-3 transition-colors"
+                            :class="activePane === 'audit_failure' ? 'bg-dfred text-white shadow' : 'text-gray-400 hover:text-white hover:bg-white/5'">
+                            <span class="font-medium text-[13px]">作业审核失败通知</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 系统大后台 -->
+                <div>
+                    <div
+                        class="px-6 text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3 border-l-2 border-gray-600 ml-4 pl-2">
+                        系统推送架构</div>
+                    <ul class="space-y-1">
+                        <li @click="activePane = 'jobs'"
+                            class="px-5 py-3 mx-2 rounded-lg cursor-pointer flex items-center gap-3 transition-colors"
+                            :class="activePane === 'jobs' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white hover:bg-white/5'">
+                            <span class="font-medium text-[13px]">作业管理 (创建与发布)</span>
+                        </li>
+                        <li @click="activePane = 'backend'"
+                            class="px-5 py-3 mx-2 rounded-lg cursor-pointer flex items-center gap-3 transition-colors"
+                            :class="activePane === 'backend' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white hover:bg-white/5'">
+                            <span class="font-medium text-[13px]">推送额度盘与审核台</span>
+                        </li>
+                        <li @click="activePane = 'reservation_mgmt'"
+                            class="px-5 py-3 mx-2 rounded-lg cursor-pointer flex items-center gap-3 transition-colors"
+                            :class="activePane === 'reservation_mgmt' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white hover:bg-white/5'">
+                            <span class="font-medium text-[13px]">预约管理 (品牌主体)</span>
+                        </li>
+                        <li @click="activePane = 'flowchart'"
+                            class="px-5 py-3 mx-2 rounded-lg cursor-pointer flex items-center gap-3 transition-colors"
+                            :class="activePane === 'flowchart' ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white hover:bg-white/5'">
+                            <span class="font-medium text-[13px]">订阅/推送处理流程图</span>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            <div class="absolute bottom-6 left-6 opacity-30 text-xs text-white">V2.0 PROTOTYPE</div>
+        </div>
+
+        <!-- ============================== 右侧展示容器 ============================== -->
+        <div class="flex-1 overflow-y-auto relative bg-[#f8fafc] flex flex-col p-8 scroll-smooth">
+
+            <!-- ====== [0] 全新设计版：PRD 需求文档阅览室 ====== -->
+            <div v-show="activePane === 'prd_doc'" class="w-full max-w-5xl mx-auto pb-16">
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+
+                    <!-- Cover Header -->
+                    <div class="bg-indigo-950 px-12 py-8 text-white relative overflow-hidden">
+                        <!-- Decorative shapes -->
+                        <div
+                            class="absolute right-[-10%] top-[-20%] w-[400px] h-[150px] bg-indigo-600/30 rounded-full blur-[80px] pointer-events-none">
+                        </div>
+                        <div
+                            class="absolute left-[-10%] bottom-[-50%] w-[200px] h-[150px] bg-blue-400/20 rounded-full blur-[60px] pointer-events-none">
+                        </div>
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-3 mb-3 opacity-80">
+                                <span
+                                    class="tracking-[0.15em] font-bold text-xs bg-white/10 px-3 py-1 rounded backdrop-blur-sm border border-white/10">需求分析文档</span>
+                                <span class="text-xs font-mono">v1.8</span>
+                            </div>
+                            <h1 class="text-2xl md:text-3xl font-black mb-2 tracking-tight leading-tight">
+                                护卫军作业系统 <span
+                                    class="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-indigo-200">消息推送优化方案</span>
+                            </h1>
+                            <p class="text-indigo-300/70 text-sm">针对微信服务号每日 10 万条模板消息上限，通过引入一次性订阅通道与 T+1
+                                聚合推送机制，提升触达覆盖率并降低公共额度消耗。</p>
+                        </div>
+                    </div>
+
+                    <!-- Content Body -->
+                    <div class="p-8 md:p-14 bg-[#FAFAFA]">
+
+                        <!-- 01. 背景与问题 -->
+                        <section class="mb-12">
+                            <h2 class="prd-sec-title text-2xl"><span class="text-blue-500 mr-2">01.</span>需求背景与问题定义</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <div class="w-2 h-6 bg-red-400 rounded-sm"></div>
+                                        <h3 class="font-bold text-slate-800 text-base">当前业务瓶颈</h3>
+                                    </div>
+                                    <p class="text-slate-600 leading-relaxed text-[13px]">
+                                        “护卫军” 系统依托「东风公司党建」微信服务号运营，受平台规则约束，该服务号每日模板消息发送总量上限为
+                                        <b>10
+                                            万条</b>。随着集团及各子品牌推送业务（任务发布通知、未领取/未完成催办、直播预约提醒）并发量持续增长，在现有通道容量不变的前提下，不同业务对公共限额的竞争性占用将导致部分重要提醒无法按时触达目标用户。
+                                    </p>
+                                </div>
+                                <div
+                                    class="bg-indigo-50/50 p-6 rounded-xl border border-indigo-100 shadow-sm relative overflow-hidden">
+                                    <div
+                                        class="absolute right-0 top-0 w-24 h-24 bg-indigo-200/40 rounded-full blur-2xl -mr-6 -mt-6">
+                                    </div>
+                                    <div class="flex items-center gap-2 mb-3 relative z-10">
+                                        <div class="w-2 h-6 bg-indigo-500 rounded-sm"></div>
+                                        <h3 class="font-bold text-indigo-900 text-base">优化思路</h3>
+                                    </div>
+                                    <ul class="text-indigo-800/80 space-y-2.5 text-[13px] relative z-10">
+                                        <li class="flex items-start gap-2">
+                                            <svg class="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span><span
+                                                    class="font-bold text-indigo-900">一次性订阅通道（个人额度）：</span>在用户领取任务的高频场景中嵌入微信官方订阅授权组件，为授权用户建立独立于公共池之外的个人订阅凭证记录，推送时优先消耗该凭证，不占用公共通道限额。</span>
+                                        </li>
+                                        <li class="flex items-start gap-2">
+                                            <svg class="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span><span class="font-bold text-indigo-900">公共池分区管控（推送排期）：</span>将 10
+                                                万条公共限额按业务类型划分为保障池（催办类）与预约池（预定时间推送类），配合审批机制对预约推送任务实施配额管控与序列化调度。</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- 02. 用户角色 -->
+                        <section class="mb-12">
+                            <h2 class="prd-sec-title text-2xl"><span class="text-blue-500 mr-2">02.</span>用户角色与诉求</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
+                                <div class="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+                                    <div
+                                        class="w-9 h-9 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center mb-3">
+                                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <div class="font-bold text-slate-800 text-sm mb-1">网评员（终端用户）</div>
+                                    <p class="text-[12px] text-slate-500 leading-relaxed">
+                                        接受各品牌下发的任务提醒，包括直播观看、未领取/未完成催办等。期望在领取任务时无感完成通知授权，后续能稳定收到相关提醒。</p>
+                                </div>
+                                <div class="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+                                    <div
+                                        class="w-9 h-9 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-3">
+                                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <div class="font-bold text-slate-800 text-sm mb-1">子品牌/集团运营（申请方）</div>
+                                    <p class="text-[12px] text-slate-500 leading-relaxed">
+                                        负责发布作业，针对有明确时间节点的通知（如直播开播）提前发起预约推送申请，填写关联任务、预计人数与触发时间，等待审核通过后系统自动执行。</p>
+                                </div>
+                                <div class="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+                                    <div
+                                        class="w-9 h-9 rounded-full bg-orange-50 border border-orange-100 flex items-center justify-center mb-3">
+                                        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <div class="font-bold text-slate-800 text-sm mb-1">新闻中心运营（审核方）</div>
+                                    <p class="text-[12px] text-slate-500 leading-relaxed">
+                                        负责对各品牌的预约推送申请进行全局审核。审核时参考当日剩余可用预约额度，以及申请主体的历史申请表现，做出通过或拒绝的决策。</p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- 03. 功能场景与验收标准 -->
+                        <section class="mb-12">
+                            <h2 class="prd-sec-title text-2xl"><span class="text-blue-500 mr-2">03.</span>功能场景与验收标准</h2>
+                            <div class="space-y-5 mt-6">
+
+                                <!-- 需求一 -->
+                                <div
+                                    class="group border border-gray-200 rounded-xl bg-white hover:border-blue-400 transition-colors overflow-hidden relative">
+                                    <div
+                                        class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-indigo-600">
+                                    </div>
+                                    <div class="p-6 pl-8">
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <h3 class="text-base font-black text-slate-800">需求一：微信一次性订阅整合改造</h3>
+                                            <span
+                                                class="bg-blue-50 text-blue-600 text-xs font-bold px-2.5 py-1 rounded border border-blue-100">触达提效</span>
+                                        </div>
+                                        <p class="text-[12px] text-slate-400 mb-4 border-b border-gray-100 pb-3">
+                                            在任务领取流程中挂载微信官方订阅组件，通过高频用户行为自然积累个人订阅凭证记录。</p>
+                                        <ul class="space-y-2 text-[13px] text-slate-700">
+                                            <li class="flex gap-2 items-start">
+                                                <div class="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0">
+                                                </div>
+                                                <div>在现有任务领取流程中嵌入微信官方订阅组件 <code
+                                                        class="bg-slate-100 px-1 py-0.5 rounded text-pink-600 text-[11px] font-mono border border-slate-200">&lt;wx-open-subscribe&gt;</code>，在用户领取动作内完成订阅授权引导，降低额外操作成本。
+                                                </div>
+                                            </li>
+                                            <li class="flex gap-2 items-start">
+                                                <div class="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0">
+                                                </div>
+                                                <div>后端建立每个用户的个人订阅凭证计数表（<b>user_subscribe_quota</b>），每次授权成功该用户记录自增
+                                                    1；推送时核销 1 次。</div>
+                                            </li>
+                                            <li class="flex gap-2 items-start">
+                                                <div class="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0">
+                                                </div>
+                                                <div>该订阅凭证记录数<b>无上限</b>，不受平台公共限额约束；未使用则永久保留不清零。</div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- 需求二 -->
+                                <div
+                                    class="group border border-gray-200 rounded-xl bg-white hover:border-indigo-400 transition-colors overflow-hidden relative">
+                                    <div
+                                        class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500 to-purple-600">
+                                    </div>
+                                    <div class="p-6 pl-8">
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <h3 class="text-base font-black text-slate-800">需求二：T+1 催办聚合与公共池分区管控</h3>
+                                            <span
+                                                class="bg-indigo-50 text-indigo-600 text-xs font-bold px-2.5 py-1 rounded border border-indigo-100">额度管控</span>
+                                        </div>
+                                        <p class="text-[12px] text-slate-400 mb-4 border-b border-gray-100 pb-3">
+                                            通过合并同类通知与分区配额管理，控制公共池消耗速率，防止高频催办业务挤占有时间要求的推送场景。</p>
+                                        <ul class="space-y-2 text-[13px] text-slate-700">
+                                            <li class="flex gap-2 items-start">
+                                                <div class="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0">
+                                                </div>
+                                                <div>系统每日在指定时间执行跑批任务，将同一用户当日积压的多条待处理通知（任务未领取及任务未完成两种状态）按 UID
+                                                    合并为<b>单条聚合通知</b>下发，减少单用户单日消耗额度。</div>
+                                            </li>
+                                            <li class="flex gap-2 items-start">
+                                                <div class="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0">
+                                                </div>
+                                                <div>将 10
+                                                    万条公共限额按业务类型划分为「<b>保障池</b>（催办类推送保留额度）」与「<b>预约池</b>（任务发布/直播等预定时间推送、需提前申请并经审批）」；各业务发起推送前必须校验所在池的当日剩余额度，无剩余则不得提交。
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- 需求三 -->
+                                <div
+                                    class="group border border-gray-200 rounded-xl bg-white hover:border-orange-400 transition-colors overflow-hidden relative">
+                                    <div
+                                        class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-orange-400 to-amber-500">
+                                    </div>
+                                    <div class="p-6 pl-8">
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <h3 class="text-base font-black text-slate-800">需求三：预约推送申请、审批与额度配置</h3>
+                                            <span
+                                                class="bg-orange-50 text-orange-600 text-xs font-bold px-2.5 py-1 rounded border border-orange-100">后台管控</span>
+                                        </div>
+                                        <p class="text-[12px] text-slate-400 mb-4 border-b border-gray-100 pb-3">
+                                            为有时间要求的推送任务提供标准化的申请—审批—执行全流程，确保额度使用有序可控。</p>
+                                        <ul class="space-y-2 text-[13px] text-slate-700">
+                                            <li class="flex gap-2 items-start">
+                                                <div class="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0">
+                                                </div>
+                                                <div>
+                                                    <b>申请侧：</b>运营方在后台发起预约推送申请，填写关联任务/直播、预计推送人数、触发时间。系统自动校验该申请所需额度是否超出当日预约池剩余量，超出则拦截，不允许提交。
+                                                </div>
+                                            </li>
+                                            <li class="flex gap-2 items-start">
+                                                <div class="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0">
+                                                </div>
+                                                <div>
+                                                    <b>审核侧：</b>管理员审核申请时，系统展示当日预约池剩余额度，以及申请主体的历史表现（历史申请次数、实际核销推送次数、平均推送人数）。支持一键通过或拒绝，拒绝时应填写原因。
+                                                </div>
+                                            </li>
+                                            <li class="flex gap-2 items-start">
+                                                <div class="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0">
+                                                </div>
+                                                <div><b>额度配置：</b>支持管理员在全局配置页面调整保障池与预约池的初始划分比例，修改后 T+1
+                                                    生效，防止实时调整影响当日已排期任务。</div>
+                                            </li>
+                                            <li class="flex gap-2 items-start">
+                                                <div class="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0">
+                                                </div>
+                                                <div><b>任务状态机：</b>待审核 → 审核通过（待推送）/ 审核拒绝 / 已取消 →
+                                                    已推送。各状态均可在后台列表查看，支持按创建时间、推送时间、申请主体、状态筛选。</div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </section>
+
+                        <!-- 04. 边界约束 -->
+                        <section class="mb-12">
+                            <h2 class="prd-sec-title text-2xl"><span class="text-blue-500 mr-2">04.</span>边界处理与容灾约束</h2>
+                            <div class="bg-[#FFF8F1] border border-orange-200 rounded-xl p-6 mt-6">
+                                <div class="space-y-4">
+                                    <div class="flex gap-3">
+                                        <div
+                                            class="mt-1 bg-orange-200 text-orange-700 rounded-full w-6 h-6 flex justify-center items-center text-xs font-bold shrink-0">
+                                            1</div>
+                                        <div>
+                                            <h4 class="font-bold text-orange-900 text-[14px]">剩余额度回收释放机制</h4>
+                                            <p class="text-[13px] text-orange-800/80 leading-relaxed mt-1">
+                                                预约任务执行完成后，实际消耗的公共限额可能低于审批预占量（如部分用户已通过个人订阅凭证覆盖，或实际触达人数不及预期）。剩余未消耗的公共限额应在当日任务执行完成后<b>由系统自动识别并归还公共池</b>，避免额度占用沉淀。
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-3 border-t border-orange-100/50 pt-4">
+                                        <div
+                                            class="mt-1 bg-orange-200 text-orange-700 rounded-full w-6 h-6 flex justify-center items-center text-xs font-bold shrink-0">
+                                            2</div>
+                                        <div>
+                                            <h4 class="font-bold text-orange-900 text-[14px]">公共池额度耗尽时的熔断保护机制</h4>
+                                            <p class="text-[13px] text-orange-800/80 leading-relaxed mt-1">
+                                                当预约任务目标人群规模超出当日公共池剩余额度时，推送引擎将依对上游业务传入的<b>已按优先级排序的目标列表</b>进行逐个遍历，在剩余额度消耗至零时自动中断并停止后续发送。由于目标列表已由上游业务按业务价値降序排列，该机制可确保在额度不足时优先完成高价値用户的触达。
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-3 border-t border-orange-100/50 pt-4">
+                                        <div
+                                            class="mt-1 bg-orange-200 text-orange-700 rounded-full w-6 h-6 flex justify-center items-center text-xs font-bold shrink-0">
+                                            3</div>
+                                        <div>
+                                            <h4 class="font-bold text-orange-900 text-[14px]">人工主动释放额度（突发响应）</h4>
+                                            <p class="text-[13px] text-orange-800/80 leading-relaxed mt-1">
+                                                后台提供【取消预约】操作入口。若发生突发性重要任务需紧急占用额度，运营人员可手动取消尚未开始推送的预约任务，系统将立即全额释放该任务已预占的公共池额度，供当日其他任务使用。
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- 05. 原型导览 -->
+                        <section>
+                            <h2 class="prd-sec-title text-2xl"><span class="text-blue-500 mr-2">05.</span>系统原型与业务流程图
+                            </h2>
+                            <div
+                                class="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl p-8 text-center shadow-lg relative overflow-hidden mt-6">
+                                <div class="absolute inset-0 opacity-10"
+                                    style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 20px 20px;">
+                                </div>
+                                <div class="relative z-10">
+                                    <h3 class="text-white text-lg font-bold mb-2">交互原型与路由逻辑图</h3>
+                                    <p class="text-slate-400 text-sm mb-6 max-w-md mx-auto">以上需求的 H5
+                                        前端交互、后台审批管理面板与推送引擎路由图均已完整还原，可直接切换体验。</p>
+                                    <div class="flex flex-wrap justify-center gap-4">
+                                        <button @click="activePane = 'backend'"
+                                            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg shadow-md transition-transform active:scale-95 text-sm flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2">
+                                                </path>
+                                            </svg>
+                                            预约推送审批管理后台
+                                        </button>
+                                        <button @click="activePane = 'flowchart'"
+                                            class="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg shadow-md border border-slate-600 transition-transform active:scale-95 text-sm flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                            </svg>
+                                            推送路由双管线逻辑图
+                                        </button>
+                                        <button @click="activePane = 'claim_task'"
+                                            class="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg shadow-md border border-slate-600 transition-transform active:scale-95 text-sm flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z">
+                                                </path>
+                                            </svg>
+                                            H5 前端订阅授权演示
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== [1] H5 详情交互与防刷订阅演示 ====== -->
+            <div v-show="activePane === 'claim_task'" class="flex gap-16 items-center w-full max-w-5xl mx-auto">
+                <!-- 手机壳 -->
+                <div class="device-frame bg-gray-50 flex-shrink-0">
+                    <div class="notch"></div>
+                    <div
+                        class="pt-10 pb-3 px-4 bg-white flex items-center justify-between border-b border-gray-100 z-40 sticky top-0">
+                        <svg class="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+                            </path>
+                        </svg>
+                        <span class="font-semibold text-[15px]">任务详情页</span>
+                        <div class="w-5"></div>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto hide-scrollbar relative bg-gray-100">
+                        <div class="h-48 bg-slate-800 flex items-center justify-center">
+                            <h2 class="text-white text-xl font-bold">神龙标致创意征集任务</h2>
+                        </div>
+
+                        <div class="p-5">
+                            <div class="mb-4 space-y-2">
+                                <span
+                                    class="px-2 py-1 bg-white text-gray-600 rounded text-[10px] font-bold shadow-sm border border-gray-200">视频/文评</span>
+                                <div
+                                    class="bg-white p-4 rounded-lg shadow-sm text-sm border border-gray-200 mt-2 text-gray-600 leading-relaxed">
+                                    【流程演示说明】：<br>
+                                    点击底部领取。它会弹起微信官方【一次性订阅】授权界面。只要勾选“总是”，系统后台将为该用户新增一条个人订阅凭证记录（user_subscribe_quota+1）。用户后续收到任务通知时，推送引擎将优先核销此个人凭证，不占用每日
+                                    10 万条的服务号公共额度。
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 领取底板 -->
+                    <div class="bg-white border-t border-gray-200 p-4 sticky bottom-0 z-40">
+                        <button @click="triggerSubscribe"
+                            class="w-full py-3.5 rounded-full bg-dfred text-white font-bold text-[15px] shadow active:scale-95 transition-transform flex items-center justify-center">
+                            领取任务
+                        </button>
+                    </div>
+
+                    <!-- 微信原生拟真弹窗 -->
+                    <div v-show="showWxPopup" class="absolute inset-0 z-50 bg-black/60 flex items-end">
+                        <div class="w-full bg-[#f2f2f2] rounded-t-2xl pt-2 pb-8 px-5">
+                            <div class="flex items-center gap-3 mb-5 border-b border-gray-300 pb-4 pt-4">
+                                <div
+                                    class="w-6 h-6 rounded bg-[#07c160] flex items-center justify-center text-white text-xs font-bold">
+                                    微</div>
+                                <span class="font-bold text-gray-800 text-sm">东风公司党建 申请及发送</span>
+                            </div>
+
+                            <h3 class="text-base font-bold text-gray-900 mb-2">任务订阅消息</h3>
+
+                            <div class="space-y-3 mb-6 border-b border-gray-300 pb-5">
+                                <div class="text-sm text-gray-500">· 任务待完成通知</div>
+                                <div class="text-sm text-gray-500">· 任务发布和领取通知</div>
+
+                            </div>
+
+                            <label
+                                class="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200 mb-6 cursor-pointer">
+                                <input type="checkbox" v-model="keepSelection"
+                                    class="w-5 h-5 border-gray-300 rounded text-[#07c160]">
+                                <span class="text-sm font-medium text-gray-800">总是保持以上选择，不再询问</span>
+                            </label>
+
+                            <div class="flex gap-3">
+                                <button @click="showWxPopup = false"
+                                    class="flex-1 py-2.5 rounded-lg bg-[#f2f2f2] text-gray-700 font-bold border border-gray-300">拒
+                                    绝</button>
+                                <button @click="processSub"
+                                    class="flex-1 py-2.5 rounded-lg bg-[#07c160] text-white font-bold">允 许</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 额度监控 -->
+                <div class="bg-white rounded-xl shadow-md border border-gray-200 p-8 w-[380px]">
+                    <h2 class="text-base font-bold text-gray-800 mb-4 border-l-4 border-blue-500 pl-2">用户一次性订阅余额 (数据库)
+                    </h2>
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
+                        <div class="text-xs font-medium text-gray-500 mb-2">当前UID专用订阅剩余次数</div>
+                        <div class="flex justify-center items-baseline text-blue-600">
+                            <span class="text-5xl font-black">{{ userQuotaCount }}</span>
+                            <span class="text-sm font-bold ml-1 text-gray-500">次</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== [1.5] H5 作业审核失败通知演示 ====== -->
+            <div v-show="activePane === 'audit_failure'" class="flex gap-16 items-center w-full max-w-5xl mx-auto">
+                <!-- 手机壳 -->
+                <div class="device-frame bg-gray-50 flex-shrink-0 overflow-hidden relative">
+                    <div class="notch"></div>
+
+                    <!-- 模拟微信顶部通知弹窗 -->
+                    <div :key="auditNotifyKey"
+                        class="absolute top-8 left-2 right-2 z-[60] bg-white/95 backdrop-blur shadow-xl rounded-2xl p-4 flex items-start gap-3 border border-gray-100 animate-in fade-in slide-in-from-top-full duration-700 delay-500 fill-mode-both">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-[#07c160] flex items-center justify-center text-white text-lg font-bold shrink-0">
+                            微</div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-0.5">
+                                <span class="font-bold text-gray-900 text-[14px]">服务通知</span>
+                                <span class="text-[10px] text-gray-400">刚刚</span>
+                            </div>
+                            <div class="text-[13px] text-gray-800 font-bold mb-0.5">审核结果通知</div>
+                            <div class="text-[12px] text-gray-500 leading-tight">
+                                您的“#不断追求卓越！全能纯电ARIYA”作业审核未通过，请点击查看详情并重新提交。</div>
+                        </div>
+                    </div>
+
+                    <!-- 微信原生拟真弹窗 (审核反馈专用) -->
+                    <div v-show="showAuditPopup" class="absolute inset-0 z-[70] bg-black/60 flex items-end">
+                        <div
+                            class="w-full bg-[#f2f2f2] rounded-t-2xl pt-2 pb-8 px-5 animate-in slide-in-from-bottom duration-300">
+                            <div class="flex items-center gap-3 mb-5 border-b border-gray-300 pb-4 pt-4">
+                                <div
+                                    class="w-6 h-6 rounded bg-[#07c160] flex items-center justify-center text-white text-xs font-bold">
+                                    微</div>
+                                <span class="font-bold text-gray-800 text-sm">东风公司党建 申请及发送</span>
+                            </div>
+
+                            <h3 class="text-base font-bold text-gray-900 mb-2">作业订阅消息</h3>
+
+                            <div class="space-y-3 mb-6 border-b border-gray-300 pb-5">
+                                <div class="text-sm text-gray-500">· 作业结果通知 (通过/不通过)</div>
+                                <div class="text-sm text-gray-500">· 积分到账通知</div>
+                            </div>
+
+                            <label
+                                class="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200 mb-6 cursor-pointer">
+                                <input type="checkbox" checked class="w-5 h-5 border-gray-300 rounded text-[#07c160]">
+                                <span class="text-sm font-medium text-gray-800">总是保持以上选择，不再询问</span>
+                            </label>
+
+                            <div class="flex gap-3">
+                                <button @click="showAuditPopup = false"
+                                    class="flex-1 py-2.5 rounded-lg bg-[#f2f2f2] text-gray-700 font-bold border border-gray-300">拒
+                                    绝</button>
+                                <button @click="confirmAuditResubmit"
+                                    class="flex-1 py-2.5 rounded-lg bg-[#07c160] text-white font-bold shadow-lg shadow-[#07c160]/20">允
+                                    许</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 页面头部 -->
+                    <div
+                        class="pt-10 pb-3 px-4 bg-white flex items-center justify-between border-b border-gray-100 z-40 sticky top-0">
+                        <svg class="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+                            </path>
+                        </svg>
+                        <span class="font-semibold text-[15px]">作业详情</span>
+                        <div class="w-5"></div>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto hide-scrollbar relative bg-[#f7f7f7]">
+                        <!-- 审核失败红色横幅 -->
+                        <div class="bg-red-500 text-white px-5 py-3 flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                </path>
+                            </svg>
+                            <span class="font-bold text-sm tracking-wide">审核环节：未通过</span>
+                        </div>
+
+                        <div class="p-4">
+                            <!-- 任务标题 -->
+                            <h2 class="text-[17px] font-black text-gray-900 mb-4 leading-tight">#不断追求卓越！全能纯电ARIYA</h2>
+
+                            <!-- 任务主卡片 -->
+                            <div class="bg-[#fce1b5] rounded-2xl p-4 mb-4 relative overflow-hidden shadow-sm">
+                                <div class="flex gap-4">
+                                    <div
+                                        class="w-32 h-20 bg-white/60 rounded-xl flex items-center justify-center border border-white/40 shadow-inner">
+                                        <svg class="w-8 h-8 text-amber-900 opacity-20" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 space-y-2">
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-xs text-amber-900 font-medium">积分奖励:</span>
+                                            <span class="text-xl font-black text-amber-950">100</span>
+                                            <span
+                                                class="text-[10px] bg-amber-950 text-white px-1.5 py-0.5 rounded-sm font-bold scale-90 origin-left">积分</span>
+                                        </div>
+                                        <div class="text-[11px] text-amber-900/70">
+                                            作业途径：<span
+                                                class="bg-white/40 px-1.5 py-0.5 rounded mx-1 text-amber-950 font-bold">平台</span>
+                                            <span class="font-bold text-amber-950 ml-1">互动作业</span>
+                                        </div>
+                                        <div class="text-[11px] text-amber-900/70">
+                                            结束时间：<span class="font-bold text-amber-950">2022.08.24 23:59:59</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 审核意见 -->
+                            <div class="bg-white rounded-xl p-4 border border-red-100 mb-4 shadow-sm">
+                                <div class="flex items-center gap-2 mb-2 text-red-600">
+                                    <span class="text-xs font-black uppercase tracking-widest">审核不通过建议</span>
+                                </div>
+                                <div class="text-sm text-gray-700 leading-relaxed">
+                                    您的作业审核未通过。原因：<br>
+                                    <span
+                                        class="font-bold text-red-600/90 text-[13px] inline-block mt-1">上传的屏幕截图画质过于模糊，无法核实评论内容及互动数据。请重新录制清晰视频或提供高清截图后再提交。</span>
+                                </div>
+                            </div>
+
+                            <!-- Tabs Mockup -->
+                            <div class="flex border-b border-gray-200 mb-4">
+                                <div class="px-3 py-2 text-sm font-bold text-dfred border-b-2 border-dfred">作业要求</div>
+                                <div class="px-3 py-2 text-sm font-bold text-gray-400">积分规则</div>
+                                <div class="px-3 py-2 text-sm font-bold text-gray-400">作业素材</div>
+                                <div class="px-3 py-2 text-sm font-bold text-gray-400">AI辅助</div>
+                            </div>
+
+                            <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm mb-6">
+                                <div
+                                    class="bg-dfred w-20 h-7 flex items-center justify-center text-white text-xs font-bold rounded mb-4">
+                                    作业要求</div>
+                                <div class="text-[13px] text-gray-600 space-y-3 leading-relaxed">
+                                    <p class="font-bold text-gray-800">【积分发放说明】</p>
+                                    <p>1、+50积分：按规则发布抖音视频，回传抖音视频链接即得积分</p>
+                                    <p>2、至高+3050积分：点赞、评论、转发越多，积分奖励越高</p>
+                                    <p class="font-bold text-gray-800 pt-2">【发布内容规则】</p>
+                                    <p>1. 拍摄沉浸式体验爱车分享，秀秀你的爱车细节；创作灵感可在抖音搜索“沉浸式体验汽车”等内容参考。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 重新提交底板 -->
+                    <div class="bg-white border-t border-gray-200 p-4 sticky bottom-0 z-40">
+                        <button @click="handleAuditResubmit"
+                            class="w-full py-3.5 rounded-full bg-orange-500 text-white font-black text-[15px] shadow-lg shadow-orange-200 active:scale-95 transition-transform flex items-center justify-center gap-2">
+                            重新提交作业
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 逻辑说明 -->
+                <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-md w-[420px]">
+                    <h2 class="text-base font-black text-gray-800 mb-6 border-l-4 border-red-500 pl-3">网评员：审核失败推送演示</h2>
+
+                    <div class="space-y-6">
+                        <div class="flex gap-4 items-start">
+                            <div
+                                class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 shrink-0 font-bold text-xs italic">
+                                1</div>
+                            <div>
+                                <h4 class="font-bold text-gray-900 text-sm mb-1">推送触发 (订阅消息)</h4>
+                                <p class="text-[13px] text-gray-500 leading-relaxed">
+                                    当后台审核人员将作业标记为“审核失败”时，系统实时调取该用户的<b>作业结果通知</b>订阅凭证，通过微信下发卡片消息。</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 items-start">
+                            <div
+                                class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 shrink-0 font-bold text-xs italic">
+                                2</div>
+                            <div>
+                                <h4 class="font-bold text-gray-900 text-sm mb-1">详情闭环与重新引导</h4>
+                                <p class="text-[13px] text-gray-500 leading-relaxed">
+                                    用户点击消息后直达详情页，红色横幅和精确的审核意见能有效降低客诉，并引导用户快速完成二次提交。 </p>
+                            </div>
+                        </div>
+
+                        <div
+                            class="bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300 mt-4 text-[12px] text-gray-500 italic leading-relaxed">
+                            注：此场景下的推送同样遵循“订阅凭证优先”策略。若用户在领取任务时已授权订阅，则此次审核失败通知将<b>完全不消耗 10 万条服务号模板消息额度</b>。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== [4] 品牌主体：预约管理面板 ====== -->
+            <div v-show="activePane === 'reservation_mgmt'" class="w-full max-w-7xl mx-auto space-y-8 pb-20">
+                <div class="flex justify-between items-end">
+                    <div>
+                        <h1 class="text-3xl font-black text-slate-800 tracking-tight mb-2">预约额度管理</h1>
+                        <p class="text-slate-500 text-sm">品牌主体：东风雪铁龙 (演示主体) | 提前锁定推送资源，确保触达效率</p>
+                    </div>
+                    <button @click="resDraft = {name:'', date:'', amount:5000, reason:''}; showResModal = true"
+                        class="px-8 py-3 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4">
+                            </path>
+                        </svg>
+                        发起额度申请
+                    </button>
+                </div>
+
+                <!-- 列表与筛选 (移除仪表盘) -->
+                <div
+                    class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col min-h-[500px]">
+                    <!-- 筛选栏 (同步审核台样式) -->
+                    <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+                        <div class="flex flex-col gap-4">
+                            <div class="flex items-center gap-2">
+                                <div class="w-1 h-4 bg-blue-600 rounded-full"></div>
+                                <h3 class="font-black text-slate-800 text-sm italic uppercase tracking-wider">我的额度预约记录列表
+                                </h3>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-6 text-[13px]">
+                                <!-- Status -->
+                                <div class="flex items-center gap-2">
+                                    <span class="text-slate-400 font-bold">业务状态：</span>
+                                    <select v-model="resFilterStatus"
+                                        class="border border-slate-200 rounded-lg px-3 py-1.5 focus:border-blue-500 outline-none w-40 bg-white text-slate-700 font-medium">
+                                        <option value="All">全部状态</option>
+                                        <option value="pending">待审核</option>
+                                        <option value="approved">审核通过 (待发)</option>
+                                        <option value="pushed">已推送</option>
+                                        <option value="canceled">已取消</option>
+                                        <option value="rejected">申请拒绝</option>
+                                    </select>
+                                </div>
+                                <!-- Push Date Range -->
+                                <div class="flex items-center gap-2">
+                                    <span class="text-slate-400 font-bold">推送日期：</span>
+                                    <div
+                                        class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200">
+                                        <input type="date" v-model="resFilterDateStart"
+                                            class="bg-transparent text-[11px] font-bold text-slate-600 outline-none">
+                                        <span class="text-slate-300">-</span>
+                                        <input type="date" v-model="resFilterDateEnd"
+                                            class="bg-transparent text-[11px] font-bold text-slate-600 outline-none">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 列表主体 (对齐字段) -->
+                    <div class="flex-1 overflow-x-auto">
+                        <table class="w-full text-left whitespace-nowrap">
+                            <thead>
+                                <tr
+                                    class="bg-slate-50/30 text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                    <th class="px-6 py-4">任务申请主体</th>
+                                    <th class="px-6 py-4">任务名称 / 预约事由</th>
+                                    <th class="px-6 py-4">创建日期</th>
+                                    <th class="px-6 py-4 text-blue-600">预定推送日期</th>
+                                    <th class="px-6 py-4 text-right">申请额度</th>
+                                    <th class="px-6 py-4 text-right">实际推送人数</th>
+                                    <th class="px-6 py-4 text-center">业务状态</th>
+                                    <th class="px-6 py-4 text-center">关联状态</th>
+                                    <th class="px-6 py-4 text-center">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50 text-slate-700">
+                                <tr v-for="res in displayReservations" :key="res.id"
+                                    class="hover:bg-slate-50/50 transition-colors group">
+                                    <td class="px-6 py-4 font-bold text-slate-500 text-xs italic">{{ res.brand }}</td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-[13px] font-bold text-slate-800 leading-tight mb-0.5">{{
+                                            res.taskName }}</div>
+                                        <div class="text-[10px] text-slate-400 truncate max-w-[180px]"
+                                            :title="res.reason">{{ res.reason }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 font-mono text-[11px] text-slate-400">{{ res.created }}</td>
+                                    <td class="px-6 py-4 font-mono text-xs font-black text-slate-800 tracking-tight">{{
+                                        res.time }}</td>
+                                    <td class="px-6 py-4 text-right">
+                                        <span class="text-sm font-black text-slate-800 tracking-tighter">{{
+                                            res.reqData.toLocaleString() }}</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <span v-if="res.state === 'pushed' || res.actualPush > 0"
+                                            class="text-sm font-black text-blue-600 tracking-tighter">{{
+                                            res.actualPush.toLocaleString() }}</span>
+                                        <span v-else class="text-slate-200">-</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <span v-if="res.state === 'pending'"
+                                            class="text-[10px] font-black bg-orange-50 text-orange-600 px-2.5 py-1 rounded-full border border-orange-100 uppercase tracking-tighter">待审核</span>
+                                        <span v-if="res.state === 'approved'"
+                                            class="text-[10px] font-black bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full border border-emerald-100 uppercase tracking-tighter">审核通过
+                                            (待发)</span>
+                                        <span v-if="res.state === 'pushed'"
+                                            class="text-[10px] font-black bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full border border-blue-100 uppercase tracking-tighter">已推送</span>
+                                        <span v-if="res.state === 'canceled'"
+                                            class="text-[10px] font-black bg-slate-100 text-slate-500 px-2.5 py-1 rounded-full border border-slate-200 uppercase tracking-tighter">已取消</span>
+                                        <span v-if="res.state === 'rejected'"
+                                            class="text-[10px] font-black bg-red-50 text-red-600 px-2.5 py-1 rounded-full border border-red-100 uppercase tracking-tighter">审核拒绝</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <div v-if="res.linkedJob" class="flex flex-col items-center">
+                                            <span
+                                                class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 mb-1">已关联作业</span>
+                                            <span class="text-[9px] font-mono text-slate-400 italic">ID: {{
+                                                res.linkedJob }}</span>
+                                        </div>
+                                        <span v-else class="text-[10px] font-bold text-slate-300 italic">未关联</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <button
+                                            class="text-[11px] font-black text-blue-600 hover:text-blue-800 flex items-center gap-1 mx-auto group-hover:scale-105 transition-transform">
+                                            查看详情
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 5l7 7-7 7"></path>
+                                            </svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr v-if="displayReservations.length === 0">
+                                    <td colspan="9" class="text-center py-20">
+                                        <div class="flex flex-col items-center opacity-20">
+                                            <svg class="w-16 h-16 mb-2" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z">
+                                                </path>
+                                            </svg>
+                                            <span class="text-xs font-black uppercase tracking-widest">暂无匹配的预约记录</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== [弹窗层] 独立发起预约申请 ======= -->
+            <div v-if="showResModal"
+                class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/50 backdrop-blur-sm">
+                <div
+                    class="bg-white rounded-2xl shadow-2xl w-[500px] overflow-hidden border border-gray-100 flex flex-col">
+                    <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                        <h3 class="text-lg font-black text-slate-800">发起额度预约申请</h3>
+                        <button @click="showResModal = false" class="text-gray-400 hover:text-gray-600"><svg
+                                class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg></button>
+                    </div>
+                    <div class="p-8 space-y-6">
+                        <div class="space-y-2">
+                            <label class="text-xs font-black text-slate-700 uppercase tracking-wider">预约名称</label>
+                            <input v-model="resDraft.name" type="text"
+                                class="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-blue-500 bg-gray-50/30"
+                                placeholder="例如：新车上市直播提醒">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-xs font-black text-slate-700 uppercase tracking-wider">预约日期</label>
+                                <input v-model="resDraft.date" type="date"
+                                    class="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-blue-500 bg-gray-50/30">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-black text-slate-700 uppercase tracking-wider">申请额度</label>
+                                <input v-model="resDraft.amount" type="number"
+                                    class="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-blue-500 bg-gray-50/30">
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-black text-slate-700 uppercase tracking-wider">业务事由</label>
+                            <textarea v-model="resDraft.reason"
+                                class="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-blue-500 bg-gray-50/30 h-24"
+                                placeholder="请简述推送计划及必要性..."></textarea>
+                        </div>
+                    </div>
+                    <div class="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+                        <button @click="showResModal = false"
+                            class="px-6 py-2.5 rounded-xl font-bold text-gray-500 hover:text-gray-700">取消</button>
+                        <button @click="submitReservation"
+                            class="px-8 py-2.5 rounded-xl bg-blue-600 text-white font-black shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all">提交申请</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== [2] H5 通知任务列表(聚合页)演示 ====== -->
+            <div v-show="activePane === 'list_task'" class="flex gap-16 items-start w-full max-w-5xl mx-auto">
+                <!-- 手机展示 -->
+                <div class="device-frame bg-gray-50 flex-shrink-0">
+                    <div class="notch"></div>
+                    <div class="pt-10 pb-4 bg-white border-b border-gray-200 px-5 flex flex-col z-40 sticky top-0">
+                        <div class="flex justify-between items-center mb-4">
+                            <svg class="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            <span class="font-bold text-[16px] text-gray-800">通知任务聚合页</span>
+                            <div class="w-5"></div>
+                        </div>
+
+                        <!-- UI 选项卡 -->
+                        <div class="flex bg-gray-100 p-1 rounded-lg relative">
+                            <div class="absolute inset-y-1 w-1/2 bg-white rounded shadow-sm transition-transform duration-200 ease-out"
+                                :class="listTab === 'uncompleted' ? 'translate-x-[97%]' : 'translate-x-0'"></div>
+                            <button @click="listTab = 'unclaimed'" class="relative flex-1 py-1.5 text-sm font-bold z-10"
+                                :class="listTab === 'unclaimed' ? 'text-gray-900' : 'text-gray-500'">待领取 (2)</button>
+                            <button @click="listTab = 'uncompleted'"
+                                class="relative flex-1 py-1.5 text-sm font-bold z-10"
+                                :class="listTab === 'uncompleted' ? 'text-gray-900' : 'text-gray-500'">待完成 (1)</button>
+                        </div>
+                    </div>
+
+                    <!-- 列表内容 -->
+                    <div class="flex-1 overflow-y-auto hide-scrollbar p-4 space-y-4">
+                        <div v-for="t in filteredList" :key="t.id"
+                            class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col hover:border-blue-300">
+                            <div class="text-[14px] font-bold text-gray-800 leading-tight mb-3">{{ t.title }}</div>
+                            <div class="flex justify-between items-center mt-auto border-t border-gray-100 pt-3">
+                                <span class="bg-gray-50 px-2 py-0.5 rounded text-[11px] text-gray-400 font-mono">ID: {{
+                                    t.id }}</span>
+                                <button
+                                    class="bg-dfred text-white text-[12px] px-4 py-1.5 rounded-full font-bold active:bg-red-700">
+                                    {{ listTab === 'unclaimed' ? '去领取' : '去完成' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-md max-w-sm mt-10">
+                    <h3 class="font-bold text-base mb-3 text-gray-800 border-l-4 border-blue-500 pl-2">聚合页面说明</h3>
+                    <p class="text-sm leading-relaxed text-gray-600 bg-gray-50 p-4 rounded border border-gray-100">
+                        当系统根据不同业务合并同类项，或者T+1日清算核算出某个 UID 拥有【多条】未完成可聚合任务时，系统会合并推送一条“任务处理提醒”通知。<br><br>
+                        网评员点击该单条微信推送后，将统一跳转至此页面<strong>「通知任务聚合页」</strong>进行接单和履约处理，防消息轰炸并极大地节约下发额度。
+                    </p>
+                </div>
+            </div>
+
+            <!-- ====== [3] PC 大盘推送额度管理 ====== -->
+            <div v-show="activePane === 'backend'"
+                class="w-full max-w-7xl mx-auto flex flex-col min-h-full bg-white rounded-xl shadow-lg border border-slate-200">
+                <div class="px-6 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                    <h1 class="text-xl font-bold text-gray-800">推送额度管理</h1>
+                    <div class="flex gap-3">
+                        <button @click="showConfig = true"
+                            class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded font-medium hover:bg-gray-50 transition-colors text-sm flex items-center gap-2">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            全局系统额度配置 (T+1生效)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- [新] 当日实时监控：标题并联大盘余额 -->
+                <div class="px-6 py-5 bg-gray-50/50 border-b border-gray-200">
+                    <div class="flex justify-between items-center mb-5">
+                        <div class="flex items-center gap-2">
+                            <div class="w-1 h-5 bg-blue-600 rounded-full"></div>
+                            <h2 class="text-base font-black text-slate-800 tracking-tight">当日实时监控</h2>
+                        </div>
+                        <!-- 大盘可用余额上移至此 -->
+                        <div
+                            class="flex items-center gap-3 bg-blue-600 text-white px-4 py-2 rounded-xl shadow-lg shadow-blue-200/50 group transition-all">
+                            <div class="flex flex-col items-end border-r border-white/20 pr-3 mr-1">
+                                <span
+                                    class="text-[10px] font-bold opacity-70 uppercase tracking-widest text-blue-100">今日大盘可用余额</span>
+                                <div class="text-lg font-black leading-none">{{ quota.available.toLocaleString() }}
+                                </div>
+                            </div>
+                            <svg class="w-5 h-5 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-6">
+                        <!-- 催办保障 -->
+                        <div
+                            class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col group transition-all hover:shadow-md">
+                            <div
+                                class="text-[11px] font-bold text-gray-400 mb-2 whitespace-nowrap uppercase tracking-widest">
+                                催办保障额度池</div>
+                            <div class="text-3xl font-black text-slate-700 tracking-tighter">{{
+                                quota.bClass.toLocaleString() }}</div>
+                        </div>
+                        <!-- 今日锁定 -->
+                        <div
+                            class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col group transition-all hover:shadow-md">
+                            <div
+                                class="text-[11px] font-bold text-gray-400 mb-2 whitespace-nowrap uppercase tracking-widest">
+                                今日已锁定预约量</div>
+                            <div class="text-3xl font-black text-slate-700 tracking-tighter">{{
+                                quota.reserved.toLocaleString() }} <span
+                                    class="text-xs font-normal text-gray-400 font-mono ml-1">/ {{
+                                    quota.maxReserve.toLocaleString() }}</span></div>
+                        </div>
+                        <!-- 今日实推（触发器） -->
+                        <div @click="showTodayDetail = !showTodayDetail"
+                            class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col cursor-pointer transition-all hover:shadow-md hover:border-indigo-300 relative group overflow-hidden"
+                            :class="showTodayDetail ? 'ring-2 ring-indigo-500/20 border-indigo-200' : ''">
+                            <div
+                                class="text-[11px] font-bold text-gray-400 mb-2 whitespace-nowrap uppercase tracking-widest flex items-center gap-2">
+                                今日累计已推送量统计
+                                <svg class="w-3.5 h-3.5 text-indigo-400 transition-transform duration-300"
+                                    :class="showTodayDetail ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                            <div class="text-3xl font-black text-indigo-600 tracking-tighter">{{
+                                (quota.pushedTodayTemplate + quota.pushedTodaySub).toLocaleString() }}</div>
+                            <div
+                                class="absolute right-4 bottom-4 opacity-10 transform group-hover:scale-110 transition-transform">
+                                <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 今日细分明细层 (Collapsible) -->
+                    <transition enter-active-class="transition duration-300 ease-out"
+                        enter-from-class="transform -translate-y-4 opacity-0"
+                        enter-to-class="transform translate-y-0 opacity-100"
+                        leave-active-class="transition duration-200 ease-in"
+                        leave-from-class="transform translate-y-0 opacity-100"
+                        leave-to-class="transform -translate-y-4 opacity-0">
+                        <div v-show="showTodayDetail" class="mt-4 grid grid-cols-2 gap-4">
+                            <div
+                                class="bg-indigo-50/50 border border-indigo-100/50 p-4 rounded-xl flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="w-9 h-9 rounded-lg bg-white flex items-center justify-center text-blue-500 shadow-sm">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                                        </svg>
+                                    </div>
+                                    <span
+                                        class="text-[13px] font-bold text-indigo-900/60 transition-all">模板消息实推渠道</span>
+                                </div>
+                                <div class="text-xl font-black text-indigo-800">{{
+                                    quota.pushedTodayTemplate.toLocaleString() }}</div>
+                            </div>
+                            <div
+                                class="bg-indigo-50/50 border border-indigo-100/50 p-4 rounded-xl flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="w-9 h-9 rounded-lg bg-white flex items-center justify-center text-indigo-500 shadow-sm">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <span
+                                        class="text-[13px] font-bold text-indigo-900/60 transition-all">订阅凭证实推渠道</span>
+                                </div>
+                                <div class="text-xl font-black text-indigo-800">{{ quota.pushedTodaySub.toLocaleString()
+                                    }}</div>
+                            </div>
+                        </div>
+                    </transition>
+                </div>
+
+                <!-- [新] 历史推送统计汇总：逻辑解构 -->
+                <div class="px-6 py-6 border-b border-gray-200 bg-white shadow-inner">
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center gap-2">
+                            <div class="w-1 h-5 bg-indigo-600 rounded-full"></div>
+                            <h2 class="text-base font-black text-slate-800 tracking-tight">推送历程汇总统计</h2>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <!-- 已推送总量显示 -->
+                            <div
+                                class="bg-slate-100 px-4 py-1.5 rounded-full border border-slate-200 flex items-center gap-3 pointer-events-none">
+                                <span
+                                    class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">历史总推量</span>
+                                <span class="text-base font-black text-slate-900 tracking-tight">{{
+                                    historyStats.total.toLocaleString() }}</span>
+                            </div>
+                            <!-- 日期筛选器 -->
+                            <div
+                                class="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm h-10">
+                                <input type="date" v-model="statDateStart"
+                                    class="bg-transparent text-[11px] font-bold text-slate-600 outline-none">
+                                <span class="text-slate-300">-</span>
+                                <input type="date" v-model="statDateEnd"
+                                    class="bg-transparent text-[11px] font-bold text-slate-600 outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-8 relative">
+                        <!-- Vertical Divider -->
+                        <div
+                            class="absolute left-1/2 top-4 bottom-4 w-px bg-slate-100 -translate-x-1/2 hidden md:block">
+                        </div>
+
+                        <!-- 类别 A：触达渠道统计 -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-6 h-px bg-slate-200"></span>
+                                <span
+                                    class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">按触达渠道统计</span>
+                                <span class="flex-1 h-px bg-slate-100"></span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div
+                                    class="bg-slate-50 border border-slate-100 p-4 rounded-xl hover:border-indigo-200 transition-colors">
+                                    <div class="text-[10px] font-bold text-slate-400 mb-1">模板汇总 (公共池)</div>
+                                    <div class="text-xl font-black text-slate-800">{{
+                                        historyStats.template.toLocaleString() }}</div>
+                                </div>
+                                <div
+                                    class="bg-slate-50 border border-slate-100 p-4 rounded-xl hover:border-indigo-200 transition-colors">
+                                    <div class="text-[10px] font-bold text-slate-400 mb-1">订阅汇总 (个人凭证)</div>
+                                    <div class="text-xl font-black text-slate-800">{{
+                                        historyStats.subscription.toLocaleString() }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 类别 B：业务场景统计 -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-6 h-px bg-slate-200"></span>
+                                <span
+                                    class="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]">按业务场景统计</span>
+                                <span class="flex-1 h-px bg-slate-100"></span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div
+                                    class="bg-slate-50 border border-slate-100 p-4 rounded-xl hover:border-amber-200 transition-colors">
+                                    <div class="text-[10px] font-bold text-slate-400 mb-1">催办业务累计实推</div>
+                                    <div class="text-xl font-black text-slate-800">{{
+                                        historyStats.remind.toLocaleString() }}</div>
+                                </div>
+                                <div
+                                    class="bg-slate-50 border border-slate-100 p-4 rounded-xl hover:border-amber-200 transition-colors">
+                                    <div class="text-[10px] font-bold text-slate-400 mb-1">预约业务累计实推</div>
+                                    <div class="text-xl font-black text-slate-800">{{
+                                        historyStats.reserve.toLocaleString() }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-6 py-4 flex-1 flex flex-col">
+                    <div class="flex flex-col mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        <div class="font-semibold text-[13px] text-gray-700 mb-3 border-b border-gray-200 pb-2">推送任务筛选
+                        </div>
+                        <div class="flex flex-wrap items-center gap-4 text-[13px]">
+                            <!-- Status -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-500">业务状态：</span>
+                                <select v-model="filterStatus"
+                                    class="border border-gray-300 rounded px-2 py-1.5 focus:border-blue-500 outline-none w-40">
+                                    <option value="All">全部</option>
+                                    <option value="pending">待审核</option>
+                                    <option value="approved">审核通过 (待推)</option>
+                                    <option value="pushed">已推送</option>
+                                    <option value="canceled">已取消</option>
+                                    <option value="rejected">申请拒绝</option>
+                                </select>
+                            </div>
+                            <!-- Brand -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-500">申请主体：</span>
+                                <select v-model="filterBrand"
+                                    class="border border-gray-300 rounded px-2 py-1.5 focus:border-blue-500 outline-none w-40">
+                                    <option>全部主体</option>
+                                    <option>东风岚图</option>
+                                    <option>东风雪铁龙</option>
+                                    <option>集团总部</option>
+                                    <option>猛士科技</option>
+                                    <option>东风标致</option>
+                                </select>
+                            </div>
+                            <!-- Create Date -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-500">创建日期：</span>
+                                <input type="date" v-model="filterCreateStart"
+                                    class="border border-gray-300 rounded px-2 py-1 outline-none text-gray-600">
+                                <span class="text-gray-400">-</span>
+                                <input type="date" v-model="filterCreateEnd"
+                                    class="border border-gray-300 rounded px-2 py-1 outline-none text-gray-600">
+                            </div>
+                            <!-- Push Date -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-500">推送日期：</span>
+                                <input type="date" v-model="filterPushStart"
+                                    class="border border-gray-300 rounded px-2 py-1 outline-none text-gray-600">
+                                <span class="text-gray-400">-</span>
+                                <input type="date" v-model="filterPushEnd"
+                                    class="border border-gray-300 rounded px-2 py-1 outline-none text-gray-600">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg bg-white relative">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead
+                                class="bg-gray-50 border-b border-gray-200 text-xs text-gray-600 font-semibold sticky top-0 z-10">
+                                <tr>
+                                    <th class="px-5 py-3">任务申请主体</th>
+                                    <th class="px-5 py-3 text-blue-800">任务名称 / 预约事由</th>
+                                    <th class="px-5 py-3">创建日期</th>
+                                    <th class="px-5 py-3 text-blue-700">预定推送日期</th>
+                                    <th class="px-5 py-3 text-right">申请额度</th>
+                                    <th class="px-5 py-3 text-right">实际推送人数</th>
+                                    <th class="px-5 py-3">业务状态</th>
+                                    <th class="px-5 py-3 text-center">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-gray-700">
+                                <tr v-for="r in displayQueue" :key="r.id" class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-5 py-3 font-medium text-gray-800 italic text-xs">{{ r.brand }}</td>
+                                    <td class="px-5 py-3 truncate max-w-[200px]">
+                                        <div class="text-[13px] font-bold text-gray-700 leading-tight">{{ r.taskName }}
+                                        </div>
+                                        <div class="text-[11px] text-gray-400 truncate mt-0.5" :title="r.reason">{{
+                                            r.reason }}</div>
+                                    </td>
+                                    <td class="px-5 py-3 font-mono text-[11px] text-gray-500">{{ r.created }}</td>
+                                    <td class="px-5 py-3 font-mono text-xs font-semibold text-gray-800">{{ r.time }}
+                                    </td>
+
+                                    <td class="px-5 py-3 text-right font-semibold">{{ r.reqData.toLocaleString() }}</td>
+
+                                    <td class="px-5 py-3 text-right">
+                                        <span v-if="r.state === 'pushed'" class="font-bold text-gray-800">{{
+                                            r.actualPush?.toLocaleString() || 0 }}</span>
+                                        <span v-else class="text-gray-300">-</span>
+                                    </td>
+
+                                    <td class="px-5 py-3">
+                                        <span v-if="r.state === 'pending'"
+                                            class="text-orange-600 bg-orange-50 px-2.5 py-1 rounded border border-orange-100 text-xs">待审核</span>
+                                        <span v-if="r.state === 'approved'"
+                                            class="text-blue-600 bg-blue-50 px-2.5 py-1 rounded border border-blue-100 text-xs">审核通过
+                                            (待推)</span>
+                                        <span v-if="r.state === 'pushed'"
+                                            class="text-green-600 bg-green-50 px-2.5 py-1 rounded border border-green-100 text-xs">已推送</span>
+                                        <span v-if="r.state === 'canceled'"
+                                            class="text-gray-500 bg-gray-100 px-2.5 py-1 rounded border border-gray-200 text-xs">已取消</span>
+                                        <span v-if="r.state === 'rejected'"
+                                            class="text-red-600 bg-red-50 px-2.5 py-1 rounded border border-red-100 text-xs">审核拒绝</span>
+                                    </td>
+
+                                    <td class="px-5 py-3 text-center">
+                                        <button v-if="r.state === 'pending'" @click="openApprovalModal(r)"
+                                            class="text-blue-600 hover:text-blue-800 font-medium text-xs px-2 py-1">审核</button>
+                                        <button v-if="r.state === 'approved'" @click="handleRevoke(r)"
+                                            class="text-red-500 hover:text-red-700 font-medium text-xs px-2 py-1">取消并释放额度</button>
+                                        <span v-if="r.state === 'pushed'" class="text-xs text-gray-400">已闭环</span>
+                                        <span v-if="r.state === 'canceled' || r.state === 'rejected'"
+                                            class="text-xs text-gray-400">-</span>
+                                    </td>
+                                </tr>
+                                <tr v-if="displayQueue.length === 0">
+                                    <td colspan="8" class="text-center py-10 text-gray-400">没有匹配筛选条件的数据</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== [新增] 作业管理：作业列表与创建发布入口 ====== -->
+            <div v-show="activePane === 'jobs'"
+                class="w-full max-w-7xl mx-auto flex flex-col min-h-full bg-white rounded-xl shadow-lg border border-slate-200">
+                <div class="px-6 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                    <h1 class="text-xl font-bold text-gray-800">作业管理</h1>
+                    <div class="flex gap-3">
+                        <button @click="openCreateJobModal"
+                            class="bg-blue-600 text-white px-4 py-2 rounded font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors text-sm flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            新建作业
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 筛选统计栏 -->
+                <div class="px-6 py-4 bg-gray-50/30 border-b border-gray-200">
+                    <div class="flex flex-wrap gap-4 mb-5">
+                        <div class="flex flex-col gap-1.5 flex-1 min-w-[200px]">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">作业信息</label>
+                            <input type="text" placeholder="请输入作业ID/名称"
+                                class="border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500">
+                        </div>
+                        <div class="flex flex-col gap-1.5 flex-1 min-w-[200px]">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">作业类型</label>
+                            <select
+                                class="border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500">
+                                <option>请选择</option>
+                                <option>互动作业</option>
+                                <option>发文任务</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1.5 flex-1 min-w-[200px]">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">作业平台</label>
+                            <select
+                                class="border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500">
+                                <option>请选择</option>
+                                <option>微信视频号</option>
+                                <option>微信公众号</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1.5 flex-1 min-w-[200px]">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">作业状态</label>
+                            <select
+                                class="border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500">
+                                <option>请选择</option>
+                                <option>已结束</option>
+                                <option>进行中</option>
+                                <option>待发布</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end pb-0.5">
+                            <button
+                                class="bg-blue-600 text-white px-5 py-2 rounded font-bold text-sm hover:bg-blue-700 h-[38px]">查询</button>
+                        </div>
+                    </div>
+
+                    <!-- 状态汇总 -->
+                    <div class="flex items-center gap-8 text-sm">
+                        <div v-for="s in jobStats" :key="s.label"
+                            class="flex flex-col items-center gap-1 border-r border-gray-200 last:border-0 pr-8 last:pr-0 cursor-pointer group">
+                            <span class="text-gray-400 font-medium group-hover:text-blue-600 transition-colors">{{
+                                s.label }}</span>
+                            <span class="text-xl font-black text-slate-800">{{ s.count }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 作业列表表格 -->
+                <div class="flex-1 overflow-auto bg-white">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead
+                            class="bg-gray-50 border-b border-gray-200 text-xs text-gray-600 font-semibold sticky top-0 z-10">
+                            <tr>
+                                <th class="px-5 py-3">作业ID</th>
+                                <th class="px-5 py-3">作业名称</th>
+                                <th class="px-5 py-3">作业类型</th>
+                                <th class="px-5 py-3">作业状态</th>
+                                <th class="px-5 py-3">作业平台</th>
+                                <th class="px-5 py-3">作业时间</th>
+                                <th class="px-5 py-3">发布时间</th>
+                                <th class="px-5 py-3 text-right">作业总量</th>
+                                <th class="px-5 py-3">推送方式</th>
+                                <th class="px-5 py-3 text-right">推送人数</th>
+                                <th class="px-5 py-3 text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 text-gray-700">
+                            <tr v-for="j in jobs" :key="j.id" class="hover:bg-gray-50 transition-colors group">
+                                <td class="px-5 py-4 font-mono text-[11px] text-gray-400">{{ j.id }}</td>
+                                <td class="px-5 py-4 font-bold text-gray-800 max-w-[200px] truncate" :title="j.name">{{
+                                    j.name }}</td>
+                                <td class="px-5 py-4 text-xs">{{ j.type }}</td>
+                                <td class="px-5 py-4">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full" :class="j.statusColor"></span>
+                                        <span class="text-xs font-medium">{{ j.status }}</span>
+                                    </span>
+                                </td>
+                                <td class="px-5 py-4 text-gray-500">{{ j.platform }}</td>
+                                <td class="px-5 py-4 font-mono text-[11px] leading-tight text-gray-500">
+                                    {{ j.startTime }}<br>{{ j.endTime }}
+                                </td>
+                                <td class="px-5 py-4 font-mono text-[11px] text-gray-500">{{ j.publishTime }}</td>
+                                <td class="px-5 py-4 text-right font-semibold">{{ j.total.toLocaleString() }}</td>
+                                <td class="px-5 py-4">
+                                    <span
+                                        class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[10px] font-bold border border-blue-100">{{
+                                        j.pushType }}</span>
+                                </td>
+                                <td class="px-5 py-4 text-right text-indigo-600 font-bold">{{ j.pushed.toLocaleString()
+                                    }}</td>
+                                <td class="px-5 py-4 text-center">
+                                    <div class="flex gap-3 justify-center text-xs font-bold text-blue-600">
+                                        <span class="cursor-pointer hover:underline">作业详情</span>
+                                        <span class="cursor-pointer hover:underline text-gray-300">|</span>
+                                        <span class="cursor-pointer hover:underline">查看作业</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ====== [4] PC 分发时机与策略决定图 ======= -->
+            <div v-show="activePane === 'flowchart'"
+                class="min-h-full p-8 w-full bg-[#f8fafc] overflow-y-auto hide-scrollbar">
+                <div class="max-w-5xl mx-auto space-y-10 pb-16">
+                    <!-- Title Section -->
+                    <div class="mb-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-1.5 h-6 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full"></div>
+                            <h2 class="text-2xl font-black text-slate-800 tracking-tight">推送额度产生与路由双管线流转图</h2>
+                        </div>
+                        <p class="text-[13px] text-slate-500 font-medium ml-4">
+                            展示用户授权后个人订阅凭证的建立过程，以及推送引擎如何依据上游业务传入的逻辑人群列表完成路由分发的完整链路。</p>
+                    </div>
+
+                    <!-- 图1：额度增加 -->
+                    <div
+                        class="bg-white rounded-3xl shadow-lg shadow-indigo-100/50 border border-slate-100 p-8 relative overflow-hidden group">
+                        <!-- BG aesthetic -->
+                        <div
+                            class="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-50 z-0">
+                        </div>
+
+                        <div class="relative z-10 flex items-center mb-8 gap-3">
+                            <div
+                                class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-sm font-bold shadow-md">
+                                1</div>
+                            <h3 class="text-lg font-bold text-slate-800">微信一次性订阅授权流程</h3>
+                        </div>
+
+                        <div class="relative z-10 flex flex-col items-center">
+                            <div class="flex items-center gap-4">
+                                <div
+                                    class="bg-white border hover:border-blue-400 transition-colors border-slate-200 shadow-sm w-44 py-3.5 rounded-xl text-center">
+                                    <div class="text-xs text-slate-400 font-medium mb-1">Step 01</div>
+                                    <div class="font-bold text-[13px] text-slate-700">网评员进入 H5 页面</div>
+                                </div>
+
+                                <!-- Line Arrow -->
+                                <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                </svg>
+
+                                <div
+                                    class="bg-white border hover:border-blue-400 transition-colors border-slate-200 shadow-sm w-44 py-3.5 rounded-xl text-center">
+                                    <div class="text-xs text-slate-400 font-medium mb-1">Step 02</div>
+                                    <div class="font-bold text-[13px] text-slate-700">点击底部【领取任务】</div>
+                                </div>
+
+                                <!-- Line Arrow -->
+                                <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                </svg>
+
+                                <div
+                                    class="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 w-52 py-3.5 rounded-xl text-center relative shadow-sm">
+                                    <div
+                                        class="absolute -top-2 -right-2 bg-indigo-500 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">
+                                        微信原生</div>
+                                    <div class="font-bold text-[14px] text-indigo-700 mb-0.5">唤起订阅授权组件</div>
+                                    <div class="text-[10px] text-indigo-500/80 font-medium">获取「是否同意授权」结果</div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-12 mt-12 w-[480px] justify-between">
+                                <div class="flex flex-col items-center w-48">
+                                    <span
+                                        class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-1 rounded inline-block mb-2">未授权
+                                        / 不同意</span>
+                                    <div
+                                        class="border border-slate-200 border-dashed bg-slate-50 w-full p-3 rounded-xl text-center text-[12px] text-slate-500 font-medium leading-relaxed">
+                                        仍可正常领取任务。<br>但该用户的一次性订阅记录数不增加。
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-center w-56">
+                                    <span
+                                        class="bg-emerald-100 text-emerald-600 text-[10px] font-bold px-2 py-1 rounded inline-block mb-2">成功授权同意</span>
+                                    <div
+                                        class="bg-gradient-to-br from-emerald-500 to-green-600 shadow-xl shadow-emerald-200/50 text-white border-0 w-full p-4 rounded-xl text-center relative overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                                        <div
+                                            class="absolute top-0 right-0 w-16 h-16 bg-white/20 rounded-full -mr-8 -mt-8">
+                                        </div>
+                                        <div
+                                            class="font-black text-[16px] tracking-wide mb-1 leading-tight relative Z-10">
+                                            个人订阅凭证 +1</div>
+                                        <div class="text-[11px] text-emerald-100 font-medium relative Z-10">
+                                            写入用户订阅记录表，长期有效。</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 人群选取规则看板 -->
+                    <div class="bg-slate-50 rounded-3xl border border-slate-200 p-8 shadow-inner relative">
+                        <div class="flex items-center mb-8 gap-3">
+                            <div
+                                class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-sm font-bold shadow-md">
+                                2</div>
+                            <h3 class="text-lg font-black text-slate-800">推送目标人群选取与优先级逻辑规则</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Rule Card 1: Ordinary Tasks -->
+                            <div
+                                class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm relative overflow-hidden">
+                                <div class="absolute -right-8 -top-8 w-24 h-24 bg-blue-100 rounded-full opacity-30">
+                                </div>
+                                <h4 class="text-[13px] font-black text-slate-800 mb-4 flex items-center gap-2">
+                                    <div class="w-1.5 h-4 bg-orange-400 rounded-full"></div>
+                                    类型 A：立刻发布与预约任务
+                                </h4>
+                                <div class="space-y-4">
+                                    <div class="flex items-start gap-3">
+                                        <div
+                                            class="w-5 h-5 rounded bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-bold">
+                                            范</div>
+                                        <div class="text-[12px] text-slate-600 leading-relaxed font-medium">推送该任务关联品牌
+                                            <span
+                                                class="text-orange-700 font-black underline decoration-orange-300 underline-offset-4">2个月内活跃人群</span>
+                                            (活跃定义待定)。</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Rule Card 2: Periodic Reminders -->
+                            <div class="bg-white border border-blue-200 rounded-2xl p-6 shadow-sm relative">
+                                <div
+                                    class="absolute -right-10 -bottom-10 w-32 h-32 bg-indigo-100 rounded-full opacity-20">
+                                </div>
+                                <h4
+                                    class="text-[13px] font-black text-slate-800 mb-4 flex items-center gap-2 text-indigo-700">
+                                    <div class="w-1.5 h-4 bg-indigo-600 rounded-full"></div>
+                                    类型 B：未领 / 未完成定时催办
+                                </h4>
+                                <div class="space-y-4">
+                                    <div class="flex items-start gap-3">
+                                        <div
+                                            class="w-5 h-5 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-bold">
+                                            窗</div>
+                                        <div
+                                            class="text-[12px] text-slate-600 leading-relaxed font-medium font-mono bg-blue-50/50 px-2 py-1 rounded border border-indigo-100/50">
+                                            获取作业结束时间在 [当日17:00 ~ 次日17:00] 对应未领/未完用户。</div>
+                                    </div>
+
+                                    <div class="pl-8 border-l-2 border-indigo-100 space-y-4">
+                                        <div class="space-y-2">
+                                            <div class="text-[11px] font-bold text-slate-400">不含直播类任务：</div>
+                                            <div
+                                                class="bg-slate-50 p-3 rounded-lg text-[11px] space-y-2 border border-slate-100">
+                                                <div class="flex justify-between font-bold text-slate-700"><span>1. P1:
+                                                        “未领 + 未完成”复合用户</span><span class="text-indigo-600">合并推送</span>
+                                                </div>
+                                                <div class="text-slate-500 font-medium">2. P2: 仅“未完成”作业用户</div>
+                                                <div class="pt-2 border-t border-slate-200 text-blue-600 font-black">
+                                                    排序：(集团+品牌) 总积分 倒序</div>
+                                            </div>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <div class="text-[11px] font-bold text-slate-400">含直播类任务：</div>
+                                            <div
+                                                class="bg-indigo-900 text-white p-3 rounded-lg text-[11px] space-y-2 shadow-sm">
+                                                <div class="flex justify-between font-black text-amber-300"><span>1. P1:
+                                                        上期直播完成用户</span><span
+                                                        class="bg-amber-400 text-indigo-900 px-1 rounded">回流优先</span>
+                                                </div>
+                                                <div class="opacity-80">2. P2: “未领 + 未完成”复合用户</div>
+                                                <div class="opacity-80">3. P3: 仅“未完成”作业用户</div>
+                                                <div class="pt-2 border-t border-white/20 font-black text-sky-200">
+                                                    排序：(集团+品牌) 总积分 倒序</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 图3：推送下发引擎 -->
+                    <div
+                        class="bg-white rounded-3xl shadow-lg shadow-blue-100/40 border border-slate-100 p-8 relative overflow-hidden">
+                        <div
+                            class="absolute -top-40 -left-40 w-96 h-96 bg-slate-50 rounded-full blur-3xl opacity-50 z-0">
+                        </div>
+
+                        <div class="relative z-10 flex items-center mb-10 gap-3 justify-center">
+                            <div
+                                class="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-red-500 text-white flex items-center justify-center text-sm font-bold shadow-md">
+                                2</div>
+                            <h3 class="text-xl font-black text-slate-800 tracking-tight">推送引擎遍历下发与合并截断机制</h3>
+                        </div>
+
+                        <div class="relative z-10">
+                            <!-- Top Inputs -->
+                            <div class="flex justify-center gap-6 mb-4">
+                                <div
+                                    class="w-48 bg-white border border-slate-200 hover:border-slate-300 transition-colors shadow-sm p-4 rounded-2xl flex flex-col items-center">
+                                    <div
+                                        class="w-8 h-8 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mb-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="font-bold text-slate-700 text-[13px]">当日任务立刻发布</div>
+                                    <div
+                                        class="text-[10px] text-slate-400 mt-1 font-medium bg-slate-50 px-2 py-0.5 rounded">
+                                        作业时间/发布时间立刻下推</div>
+                                </div>
+                                <div
+                                    class="w-48 bg-white border border-slate-200 hover:border-slate-300 transition-colors shadow-sm p-4 rounded-2xl flex flex-col items-center">
+                                    <div
+                                        class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="font-bold text-slate-700 text-[13px]">预约任务期满触发</div>
+                                    <div
+                                        class="text-[10px] text-slate-400 mt-1 font-medium bg-slate-50 px-2 py-0.5 rounded">
+                                        到设定时间自动执行</div>
+                                </div>
+                                <div
+                                    class="w-56 bg-gradient-to-b from-white to-blue-50/50 border border-blue-200 shadow-sm p-4 rounded-2xl flex flex-col items-center relative border-b-4 border-b-blue-500">
+                                    <div
+                                        class="absolute -top-3 bg-blue-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">
+                                        核心合流节点</div>
+                                    <div
+                                        class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-2 mt-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <div class="font-bold text-blue-800 text-[13px]">未领/未完 定时催办</div>
+                                    <div
+                                        class="text-[10px] text-blue-500 mt-1 font-semibold bg-blue-100/50 px-2 py-0.5 rounded">
+                                        每日系统 T+1 跑批触发</div>
+                                    <div class="absolute -bottom-10 flex flex-col items-center z-20">
+                                        <div
+                                            class="w-2 h-2 bg-slate-800 rotate-45 border-l border-t border-slate-700 -mb-1 relative z-10">
+                                        </div>
+                                        <div
+                                            class="w-64 bg-slate-800 border border-slate-700 text-white text-[10px] px-3 py-1.5 rounded-lg shadow-xl text-center font-medium">
+                                            按 UID 对待催办通知进行合并去重，每个用户只发一条汇总通知
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Routing Center: The LOOP -->
+                            <div class="flex flex-col items-center justify-center mt-14 w-full relative">
+                                <div class="h-8 w-px bg-slate-300 relative mx-auto my-1">
+                                    <div
+                                        class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-[2px] w-2 h-2 border-r-[1.5px] border-b-[1.5px] border-slate-400 rotate-45">
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="bg-slate-900 border border-slate-700 text-white p-5 rounded-3xl shadow-2xl shadow-indigo-900/40 text-center relative mx-auto w-[420px]">
+                                    <div
+                                        class="absolute -left-3 -top-3 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 text-[10px] px-2.5 py-1 rounded-lg font-black shadow-lg">
+                                        推送调度引擎</div>
+                                    <div
+                                        class="font-bold text-[15px] tracking-wide mb-3 flex items-center justify-center gap-2">
+                                        接收：<span
+                                            class="px-2.5 py-1 bg-slate-800 border border-slate-600 rounded text-amber-300">【待推送目标人群列表】</span>
+                                    </div>
+                                    <div
+                                        class="text-[11px] font-medium text-slate-300/80 leading-relaxed border-t border-slate-700/50 pt-3 opacity-90 text-left px-2">
+                                        <span class="text-emerald-400 font-bold">▶
+                                            业务前提说明：</span>该下发名单已由上游业务（依据业务权重）完成优先级降序排列，调度引擎无需二次判别，仅需按既定顺序执行循环下推。
+                                    </div>
+                                </div>
+
+                                <div class="h-8 w-px bg-slate-300 relative mx-auto my-1">
+                                    <div
+                                        class="absolute bottom-[3px] left-1/2 -translate-x-1/2 translate-y-1/2 w-2 h-2 border-r-[1.5px] border-b-[1.5px] border-slate-400 rotate-45 z-20">
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="bg-white border-2 border-dashed border-indigo-300 px-8 py-3.5 rounded-full shadow-md text-center relative z-10 flex items-center gap-4 group hover:border-indigo-500 transition-colors cursor-default">
+                                    <div
+                                        class="w-7 h-7 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100 group-hover:bg-indigo-100 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <div class="text-[13px] font-bold text-slate-700 leading-tight">
+                                        循环遍历下发名单，判断该个体：<br>
+                                        <span
+                                            class="text-[14px] text-indigo-600 tracking-wide mt-1 block">该用户的【个人一次性订阅记录】是否
+                                            > 0 ？</span>
+                                    </div>
+                                </div>
+
+                                <!-- Branching Yes / No -->
+                                <div class="w-[720px] flex justify-between mt-8 relative">
+                                    <!-- Connecting top horizontal line via absolute borders -->
+                                    <div
+                                        class="absolute left-[130px] right-[180px] top-[-32px] border-t-2 border-l-2 border-r-2 border-slate-300 h-8 rounded-t-xl opacity-70">
+                                        <div
+                                            class="absolute bottom-0 left-[-2px] translate-y-1/2 w-2 h-2 border-r-[2px] border-b-[2px] border-slate-300 rotate-45 transform translate-x-[1px]">
+                                        </div>
+                                        <div
+                                            class="absolute bottom-0 right-[-2px] translate-y-1/2 w-2 h-2 border-r-[2px] border-b-[2px] border-slate-300 rotate-45 transform -translate-x-[1px]">
+                                        </div>
+                                    </div>
+
+                                    <!-- Yes Path (Left) -->
+                                    <div class="w-[260px] flex flex-col items-center z-10 bg-transparent">
+                                        <div
+                                            class="text-[12px] font-black text-emerald-600 bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 rounded-full mb-3 shadow-sm inline-flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                    clip-rule="evenodd"></path>
+                                            </svg>
+                                            是 (存在未销核订阅)
+                                        </div>
+                                        <div
+                                            class="bg-white border border-emerald-200 w-full p-5 rounded-2xl text-center shadow-[0_8px_30px_rgb(16,185,129,0.12)] relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                                            <div
+                                                class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-emerald-400 to-green-600">
+                                            </div>
+                                            <div class="relative z-10 pl-2">
+                                                <div
+                                                    class="text-[13px] text-slate-600 font-medium leading-relaxed mb-3">
+                                                    优先扣减该 UID 对应的<br><strong
+                                                        class="text-emerald-700 text-[14px] bg-emerald-50/80 border border-emerald-100 px-1.5 py-0.5 rounded shadow-[0_2px_4px_rgb(16,185,129,0.1)] inline-block mt-1">个人订阅凭证
+                                                        1 次</strong>
+                                                </div>
+                                                <div class="w-full h-px bg-slate-100 my-3"></div>
+                                                <div
+                                                    class="text-[12px] font-bold text-slate-800 flex items-center justify-center gap-1.5 mb-1">
+                                                    <svg class="w-4 h-4 text-emerald-500" fill="none"
+                                                        stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                                    </svg>
+                                                    调用一次性订阅接口发送
+                                                </div>
+                                                <span
+                                                    class="text-[10px] text-emerald-600 font-semibold block bg-emerald-50 py-1.5 rounded-lg border border-emerald-100/50">此触达不占用服务号公共池限额</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- No Path (Right) -->
+                                    <div class="w-[380px] flex flex-col items-center z-10 bg-transparent">
+                                        <div
+                                            class="text-[12px] font-black text-orange-600 bg-orange-50 border border-orange-200 px-3.5 py-1.5 rounded-full mb-3 shadow-sm inline-flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                                    clip-rule="evenodd"></path>
+                                            </svg>
+                                            否 (未授权或耗尽)
+                                        </div>
+
+                                        <div
+                                            class="bg-white border border-slate-200 w-full p-1.5 rounded-[20px] flex flex-col items-center shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                                            <div
+                                                class="bg-slate-50 w-full p-4 rounded-t-[16px] border-b border-slate-100 relative">
+                                                <div
+                                                    class="text-[11px] font-bold text-slate-500 mb-2.5 text-center uppercase tracking-widest flex items-center justify-center gap-2">
+                                                    <span class="w-6 h-px bg-slate-300"></span>
+                                                    扣减对应业务类型的公共池限额
+                                                    <span class="w-6 h-px bg-slate-300"></span>
+                                                </div>
+                                                <div class="w-full flex gap-3 text-center">
+                                                    <div
+                                                        class="bg-white border border-slate-200 p-3 rounded-xl flex-1 flex flex-col shadow-sm hover:shadow-md transition-shadow">
+                                                        <span
+                                                            class="text-[10px] text-slate-400 mb-1 font-medium">发布/直播业务</span>
+                                                        <span
+                                                            class="text-[11px] font-bold text-slate-700 leading-tight flex items-center justify-center flex-wrap gap-1">申请扣除
+                                                            <span
+                                                                class="text-blue-600 bg-blue-50 px-1 py-0.5 rounded shadow-[0_1px_2px_rgba(0,0,0,0.05)] border border-blue-100/50">预约池
+                                                                1次</span></span>
+                                                    </div>
+                                                    <div
+                                                        class="bg-white border border-slate-200 p-3 rounded-xl flex-1 flex flex-col shadow-sm hover:shadow-md transition-shadow">
+                                                        <span
+                                                            class="text-[10px] text-slate-400 mb-1 font-medium">未领/未完催办</span>
+                                                        <span
+                                                            class="text-[11px] font-bold text-slate-700 leading-tight flex items-center justify-center flex-wrap gap-1">申请扣除
+                                                            <span
+                                                                class="text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded shadow-[0_1px_2px_rgba(0,0,0,0.05)] border border-indigo-100/50">保障池
+                                                                1次</span></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="w-full p-4 space-y-3.5">
+                                                <!-- Exceptional End case -->
+                                                <div
+                                                    class="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200/60 rounded-xl p-3.5 w-full shadow-inner">
+                                                    <div class="flex items-center gap-1.5 mb-1.5">
+                                                        <svg class="w-4 h-4 text-red-500 shrink-0" fill="currentColor"
+                                                            viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd"
+                                                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                                                clip-rule="evenodd"></path>
+                                                        </svg>
+                                                        <div class="text-[12px] font-bold text-red-700">若执行期间公共额度扣减至 0？
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        class="text-[11px] text-red-600/90 leading-relaxed font-medium pl-5.5">
+                                                        系统将直接中断本次任务列表中后续人员的推送。由于名单已基于业务重要程度倒序排列，此熔断机制优先保证了高优目标的正常触达。
+                                                    </div>
+                                                </div>
+
+                                                <!-- Normal Success Path -->
+                                                <div
+                                                    class="bg-gradient-to-r from-blue-500 to-indigo-600 border border-transparent text-white text-[12px] p-2.5 rounded-xl w-full text-center font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-shadow cursor-default group">
+                                                    <svg class="w-4 h-4 text-blue-200 group-hover:text-white transition-colors"
+                                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                    额度核减成功，调用模板消息接口下发
+                                                </div>
+                                            </div>
+
+                                            <!-- Final User State -->
+                                            <div
+                                                class="w-[calc(100%+0px)] bg-slate-900 rounded-b-[18px] p-4 text-center mt-[-6px] z-10 relative shadow-lg overflow-hidden">
+                                                <div
+                                                    class="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10">
+                                                </div>
+                                                <span
+                                                    class="text-[10px] text-slate-400 mb-1.5 block font-medium relative z-10">用户端点击微信应用内消息卡片的交互闭环：</span>
+                                                <span
+                                                    class="font-bold text-white text-[12px] tracking-wide inline-flex items-center justify-center gap-2 relative z-10 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700 w-full hover:bg-slate-700 transition-colors cursor-pointer">
+                                                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14">
+                                                        </path>
+                                                    </svg>
+                                                    统一流转进入【通知任务聚合操作列表页】
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== [弹窗层] 新建作业 (四步流程) ======= -->
+            <div v-if="showJobModal"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm">
+                <div
+                    class="bg-white rounded-2xl shadow-2xl w-[800px] max-h-[90vh] overflow-hidden border border-gray-100 flex flex-col">
+                    <!-- Modal Header -->
+                    <div class="p-6 border-b border-gray-100 bg-gray-50/50">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-black text-slate-800">新建作业任务</h3>
+                            <button @click="showJobModal = false"
+                                class="text-gray-400 hover:text-gray-600 transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Steps Indicator -->
+                        <div class="flex items-center justify-between px-10 relative">
+                            <div class="absolute top-1/2 left-20 right-20 h-0.5 bg-gray-200 -translate-y-1/2 z-0"></div>
+                            <div v-for="n in 4" :key="n" class="relative z-10 flex flex-col items-center gap-2">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300"
+                                    :class="jobStep >= n ? 'bg-blue-600 text-white ring-4 ring-blue-100' : 'bg-gray-100 text-gray-400'">
+                                    {{ n }}
+                                </div>
+                                <span class="text-[11px] font-bold"
+                                    :class="jobStep >= n ? 'text-blue-600' : 'text-gray-400'">
+                                    {{ ['基础信息', '目标人群', '内容设置', '发布配置'][n-1] }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Body -->
+                    <div class="flex-1 overflow-y-auto p-8 bg-white min-h-[400px]">
+
+                        <!-- Step 1: 基础信息 -->
+                        <div v-if="jobStep === 1"
+                            class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-xs font-black text-slate-700 uppercase tracking-wider">作业名称 <span
+                                            class="text-red-500">*</span></label>
+                                    <input v-model="jobDraft.name" type="text"
+                                        class="w-full border border-gray-200 rounded-lg p-3 text-sm focus:border-blue-500 outline-none bg-gray-50/30"
+                                        placeholder="例如：神龙标致创意征集任务">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-black text-slate-700 uppercase tracking-wider">作业类型 <span
+                                            class="text-red-500">*</span></label>
+                                    <select v-model="jobDraft.type"
+                                        class="w-full border border-gray-200 rounded-lg p-3 text-sm focus:border-blue-500 outline-none bg-gray-50/30">
+                                        <option>互动作业</option>
+                                        <option>发文任务</option>
+                                        <option>直播引导</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-xs font-black text-slate-700 uppercase tracking-wider">作业平台 <span
+                                            class="text-red-500">*</span></label>
+                                    <select v-model="jobDraft.platform"
+                                        class="w-full border border-gray-200 rounded-lg p-3 text-sm focus:border-blue-500 outline-none bg-gray-50/30">
+                                        <option>微信视频号</option>
+                                        <option>微信公众号</option>
+                                        <option>专属APP</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-black text-slate-700 uppercase tracking-wider">作业时间 (开始)
+                                        <span class="text-red-500">*</span></label>
+                                    <input v-model="jobDraft.startTime" type="datetime-local"
+                                        class="w-full border border-gray-200 rounded-lg p-3 text-sm focus:border-blue-500 outline-none bg-gray-50/30">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: 目标人群 -->
+                        <div v-if="jobStep === 2"
+                            class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                            <div
+                                class="p-8 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400">
+                                <svg class="w-16 h-16 mb-4 opacity-20" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                                    </path>
+                                </svg>
+                                <p class="text-sm font-bold">目标人群选择模块 (已按默认全量网评员载入)</p>
+                                <p class="text-xs mt-2">包含：子品牌标签筛选、地区筛选、历史活跃度筛选等</p>
+                            </div>
+                            <div
+                                class="bg-blue-50 p-4 rounded-xl flex items-center justify-between border border-blue-100">
+                                <span class="text-sm font-bold text-blue-800">预估覆盖人数</span>
+                                <span class="text-xl font-black text-blue-600">{{ jobDraft.total.toLocaleString() }}
+                                    人</span>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: 内容设置 -->
+                        <div v-if="jobStep === 3"
+                            class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                            <div class="space-y-2">
+                                <label
+                                    class="text-xs font-black text-slate-700 uppercase tracking-wider">作业描述/指令</label>
+                                <textarea
+                                    class="w-full border border-gray-200 rounded-lg p-3 text-sm focus:border-blue-500 outline-none bg-gray-50/30 h-32"
+                                    placeholder="请输入发文或互动指引..."></textarea>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-black text-slate-700 uppercase tracking-wider">上传素材</label>
+                                <div
+                                    class="border-2 border-dashed border-gray-200 rounded-lg py-10 flex flex-col items-center justify-center bg-gray-50/50">
+                                    <svg class="w-8 h-8 text-gray-300 mb-2" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    <span class="text-[12px] text-gray-400">点击或拖拽上传图片/视频</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: 发布配置 (Logic Center) -->
+                        <div v-if="jobStep === 4"
+                            class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                            <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                                <h4 class="text-sm font-black text-slate-800 mb-4 flex items-center gap-2">
+                                    <div class="w-1.5 h-4 bg-blue-600 rounded-full"></div>
+                                    发布时间确认
+                                </h4>
+                                <div class="flex items-center gap-10">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs text-gray-400 mb-1">设定作业开始时间</span>
+                                        <span class="font-mono font-bold text-slate-700">{{
+                                            jobDraft.startTime ? jobDraft.startTime.replace('T', ' ') : '未设置' }}</span>
+                                    </div>
+                                    <div class="h-10 w-px bg-gray-200"></div>
+                                    <div class="flex flex-col">
+                                        <span class="text-xs text-gray-400 mb-1">当前模拟系统时间</span>
+                                        <span class="font-mono font-bold text-blue-600">{{ simToday }} 09:00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <!-- 关联预约额度 (核心逻辑) -->
+                                <div class="bg-white border rounded-2xl p-6 space-y-4 shadow-sm"
+                                    :class="isTPlus1 ? 'border-blue-100' : 'opacity-40 pointer-events-none bg-gray-50'">
+                                    <div class="flex justify-between items-start">
+                                        <div class="space-y-1">
+                                            <h4 class="text-sm font-black text-slate-800 flex items-center gap-2">
+                                                关联已预约额度
+                                                <span v-if="getAvailableResForDate(jobDraft.startTime).length > 0"
+                                                    class="bg-emerald-500 text-white text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider animate-pulse">
+                                                    有可用预约
+                                                </span>
+                                            </h4>
+                                            <p class="text-[11px] text-slate-400">选择该作业日期对应的已获批预约单，锁定推送配额</p>
+                                        </div>
+                                        <div class="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded">
+                                            {{ jobDraft.startTime ? jobDraft.startTime.split('T')[0] : '请先在第一步选择日期' }}
+                                        </div>
+                                    </div>
+
+                                    <div v-if="getAvailableResForDate(jobDraft.startTime).length > 0" class="space-y-3">
+                                        <div v-for="res in getAvailableResForDate(jobDraft.startTime)" :key="res.id"
+                                            @click="jobDraft.linkedResId = (jobDraft.linkedResId === res.id ? null : res.id)"
+                                            class="flex items-center justify-between p-3 rounded-xl border-2 transition-all cursor-pointer"
+                                            :class="jobDraft.linkedResId === res.id ? 'border-blue-600 bg-blue-50/50' : 'border-slate-100 hover:border-slate-200'">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center border border-slate-100">
+                                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <div class="text-xs font-bold text-slate-700">{{ res.name }}</div>
+                                                    <div class="text-[10px] text-slate-400">可用额度: {{
+                                                        res.amount.toLocaleString() }} | 预约 ID: {{ res.id }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors"
+                                                :class="jobDraft.linkedResId === res.id ? 'bg-blue-600 border-blue-600' : 'border-slate-300'">
+                                                <svg v-if="jobDraft.linkedResId === res.id" class="w-3 h-3 text-white"
+                                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-else
+                                        class="bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center text-center space-y-2">
+                                        <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                            </path>
+                                        </svg>
+                                        <div>
+                                            <div class="text-xs font-bold text-slate-600">未找到匹配的已获批预约单</div>
+                                            <div class="text-[10px] text-slate-400 mt-1">
+                                                {{ !jobDraft.startTime ? '请先在第一步设置作业开始时间' : '需先前往【预约管理】针对 ' +
+                                                jobDraft.startTime.split('T')[0] + ' 申请额度' }}
+                                            </div>
+                                        </div>
+                                        <button v-if="jobDraft.startTime"
+                                            @click="showJobModal = false; activePane = 'reservation_mgmt'"
+                                            class="mt-2 text-[11px] font-black text-blue-600 hover:underline">
+                                            前往预约管理申请 ➔
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div v-if="!isTPlus1"
+                                    class="flex gap-2 p-4 bg-orange-50 border border-orange-100 rounded-2xl text-orange-700">
+                                    <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                        </path>
+                                    </svg>
+                                    <div class="text-[12px] leading-relaxed">
+                                        <span class="font-bold">预约限制说明：</span>微信服务号预约推送仅支持 T+1 日及之后。当前作业时间在
+                                        T+0，无法关联额度预约。发布后系统将尝试利用即时剩余额度进行下发。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="p-6 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
+                        <button v-show="jobStep > 1" @click="jobStep--"
+                            class="px-6 py-2.5 rounded-xl font-bold border border-gray-300 text-gray-600 hover:bg-white transition-colors">上一步</button>
+                        <div v-show="jobStep === 1"></div>
+
+                        <div class="flex gap-3">
+                            <button @click="showJobModal = false"
+                                class="px-6 py-2.5 rounded-xl font-bold text-gray-400 hover:text-gray-600">取消</button>
+                            <button v-if="jobStep < 4" @click="jobStep++"
+                                class="px-8 py-2.5 rounded-xl bg-blue-600 text-white font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95">下一步</button>
+                            <button v-if="jobStep === 4" @click="submitJob"
+                                class="px-8 py-2.5 rounded-xl bg-blue-600 text-white font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                发布作业
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== [弹窗层] 全局 推送和额度配置 ======= -->
+            <div v-if="showConfig"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm">
+                <div class="bg-white rounded-lg shadow-xl w-[500px] overflow-hidden border border-gray-100">
+                    <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                        <h3 class="text-base font-bold text-gray-800">全局系统额度配置</h3>
+                        <button @click="showConfig = false" class="text-gray-400 hover:text-gray-600"><svg
+                                class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg></button>
+                    </div>
+                    <div class="p-6 space-y-6">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-2 flex justify-between">
+                                <span>未领取/未完成催办 保障额度</span><span
+                                    class="text-blue-600 font-bold border border-blue-200 px-2 py-0.5 rounded">{{
+                                    parseInt(configDraft.classB).toLocaleString() }}</span>
+                            </label>
+                            <input type="range" v-model="configDraft.classB" min="5000" max="80000" step="5000"
+                                class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[11px] text-gray-500 mt-1">系统每日预留给定时催办任务的独立发信额度，不参与突发业务消耗竞争。</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-2 flex justify-between">
+                                <span>单日预约锁库额度上限</span><span
+                                    class="text-indigo-600 font-bold border border-indigo-200 px-2 py-0.5 rounded">{{
+                                    parseInt(configDraft.maxReserve).toLocaleString() }}</span>
+                            </label>
+                            <input type="range" v-model="configDraft.maxReserve" min="10000" max="70000" step="5000"
+                                class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[11px] text-gray-500 mt-1">允许各品牌提前定档锁定的总体日峰值限高，确保高优业务有充足额度可用。</p>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                        <button @click="showConfig = false"
+                            class="px-4 py-2 rounded font-medium border border-gray-300 text-gray-600 bg-white text-sm hover:bg-gray-100">取消</button>
+                        <button @click="saveConfig"
+                            class="px-4 py-2 rounded font-medium bg-blue-600 text-white text-sm hover:bg-blue-700">仅保存参数
+                            (次日生效)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== [弹窗层] 人工审核 ======= -->
+            <div v-if="activeReq"
+                class="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+                <div class="bg-white rounded-lg shadow-xl w-[550px] overflow-hidden border border-gray-100">
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                        <div class="flex items-center gap-2">
+                            <div class="w-1.5 h-4 bg-blue-600 rounded-full"></div>
+                            <h3 class="text-[15px] font-black text-gray-800">推送任务预约申请：人工审核</h3>
+                        </div>
+                        <button @click="activeReq = null" class="text-gray-400 hover:text-gray-600 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-5 space-y-4">
+                            <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+                                <div>
+                                    <span
+                                        class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">申请主体
+                                        (子品牌)</span>
+                                    <span class="font-bold text-sm text-slate-800 italic">{{ activeReq.brand }}</span>
+                                </div>
+                                <div>
+                                    <span
+                                        class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">拟申请推送额度</span>
+                                    <span class="font-black text-lg text-blue-600 tracking-tighter">{{
+                                        activeReq.reqData.toLocaleString() }} 人次</span>
+                                </div>
+                                <div>
+                                    <span
+                                        class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">预定推送日期</span>
+                                    <span class="font-mono font-bold text-sm text-slate-700">{{ activeReq.time }}</span>
+                                </div>
+                                <div>
+                                    <span
+                                        class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">当日池剩余可用</span>
+                                    <span class="font-black text-sm"
+                                        :class="(quota.maxReserve - quota.reserved) < activeReq.reqData ? 'text-red-600' : 'text-slate-800'">
+                                        {{ (quota.maxReserve - quota.reserved).toLocaleString() }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="border-t border-slate-200 pt-3">
+                                <span
+                                    class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">任务名称获取及申请事由</span>
+                                <div class="bg-white border border-slate-100 rounded-lg p-3">
+                                    <div class="text-sm font-black text-slate-800 mb-1">{{ activeReq.taskName }}</div>
+                                    <div class="text-[12px] text-slate-500 leading-relaxed">{{ activeReq.reason }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 补回申请主体历史表现 -->
+                        <div class="mt-4 pt-1">
+                            <h4 class="text-xs font-bold text-gray-700 mb-3 flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                                    </path>
+                                </svg>
+                                该申请主体历史核对表现
+                            </h4>
+                            <div class="grid grid-cols-3 gap-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                <div>
+                                    <div class="text-[11px] text-gray-500 mb-0.5">发起审批成功记录</div>
+                                    <div class="font-bold text-gray-800 text-sm">15 次</div>
+                                </div>
+                                <div>
+                                    <div class="text-[11px] text-gray-500 mb-0.5">实际核销推送记录</div>
+                                    <div class="font-bold text-gray-800 text-sm">14 次</div>
+                                </div>
+                                <div>
+                                    <div class="text-[11px] text-gray-500 mb-0.5">平均实际推送人数</div>
+                                    <div class="font-bold text-gray-800 text-sm">8,500 人/次</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="(quota.maxReserve - quota.reserved) < activeReq.reqData"
+                            class="bg-red-50 text-red-600 border border-red-200 text-xs p-3 rounded flex gap-2 mt-4">
+                            <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                </path>
+                            </svg>
+                            当前剩余可排期预约额度不足，无法通过审核进行锁定，建议拒绝申请重新评估。
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3 items-center">
+                        <button @click="activeReq = null"
+                            class="px-4 py-2 rounded font-medium border border-gray-300 text-gray-700 bg-white text-sm hover:bg-gray-100">取消</button>
+                        <button @click="rejectReq"
+                            class="px-4 py-2 rounded font-medium bg-white border border-red-200 text-red-600 text-sm hover:bg-red-50">拒绝申请</button>
+                        <button @click="passReq"
+                            class="px-4 py-2 rounded font-medium text-white text-sm hover:bg-blue-700"
+                            :class="(quota.maxReserve - quota.reserved) < activeReq.reqData ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600'">通过申请并锁定额度</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue
+
+        createApp({
+            setup() {
+                const activePane = ref('prd_doc')
+                const showTodayDetail = ref(false)
+                const showHistoryDetail = ref(false)
+
+                // ===== 模拟全局时间 =====
+                const simToday = ref('2026-04-13')
+
+                // ===== Frontend Handlers ====
+                const showWxPopup = ref(false)
+                const keepSelection = ref(false)
+                const isSubscribed = ref(false)
+                const userQuotaCount = ref(0)
+
+                const triggerSubscribe = () => {
+                    if (isSubscribed.value && keepSelection.value) userQuotaCount.value++
+                    else showWxPopup.value = true
+                }
+                const processSub = () => {
+                    showWxPopup.value = false; isSubscribed.value = true; userQuotaCount.value++
+                }
+
+                // ===== Frontend List ====
+                const auditNotifyKey = ref(0)
+                const showAuditPopup = ref(false)
+                const listTab = ref('unclaimed')
+                const rawList = [
+                    { id: 10041, state: 'unclaimed', title: '神龙标致首测视频急单奖励' },
+                    { id: 10042, state: 'unclaimed', title: '岚图新战略发布全网转播指令' },
+                    { id: 10023, state: 'uncompleted', title: '东风雪铁龙春季试驾内容定审意见录入' }
+                ]
+                const filteredList = computed(() => rawList.filter(x => x.state === listTab.value))
+
+                // ===== [作业管理] 数据与逻辑 ====
+                const jobs = ref([
+                    { id: '202604256', name: '神龙标致创意征集任务 - 车主生活', type: '互动作业', status: '已结束', statusColor: 'bg-gray-400', platform: '微信视频号', startTime: '2026-04-11 00:00', endTime: '2026-04-12 23:59', publishTime: '2026-04-11 09:48', total: 9000, pushType: '标签推送', pushed: 24025 },
+                    { id: '202604227', name: '东风青年公益行——牵手武汉', type: '互动作业', status: '已结束', statusColor: 'bg-gray-400', platform: '微信视频号', startTime: '2026-04-10 00:00', endTime: '2026-04-11 23:59', publishTime: '2026-04-10 12:45', total: 8000, pushType: '标签推送', pushed: 18470 },
+                    { id: '202604165', name: '打破国外垄断！东风自主产权线控', type: '互动作业', status: '已结束', statusColor: 'bg-gray-400', platform: '微信公众号', startTime: '2026-04-08 00:00', endTime: '2026-04-09 23:59', publishTime: '2026-04-08 08:56', total: 5000, pushType: '标签推送', pushed: 12657 }
+                ])
+
+                // ===== [预约管理] 数据与逻辑 ====
+                const brandReservations = ref([
+                    { id: 'RES-001', created: '2026-04-12 10:00', brand: '东风雪铁龙', taskName: '岚图新战略发布直播', time: '2026-04-15 20:00', reqData: 8000, state: 'approved', actualPush: 0, reason: '年度重点战略发布', linkedJob: '101' },
+                    { id: 'RES-002', created: '2026-04-13 09:30', brand: '东风雪铁龙', taskName: '神龙标致夏季车展预热', time: '2026-04-16 10:00', reqData: 5000, state: 'pending', actualPush: 0, reason: '提升车展到场率', linkedJob: null },
+                    { id: 'RES-003', created: '2026-04-11 14:00', brand: '东风雪铁龙', taskName: '东风雪铁龙今日抢修通知', time: '2026-04-13 12:00', reqData: 2000, state: 'approved', actualPush: 2000, reason: '紧急服务提醒', linkedJob: null }
+                ])
+                const showResModal = ref(false)
+                const resDraft = ref({ name: '', date: '', amount: 1000, reason: '' })
+
+                const submitReservation = () => {
+                    brandReservations.value.unshift({
+                        id: 'RES-' + Math.floor(Math.random() * 900 + 100),
+                        created: simToday.value + ' 10:30',
+                        brand: '东风雪铁龙',
+                        taskName: resDraft.value.name,
+                        time: resDraft.value.date + ' 09:00',
+                        reqData: resDraft.value.amount,
+                        state: 'pending',
+                        actualPush: 0,
+                        reason: resDraft.value.reason,
+                        linkedJob: null
+                    })
+                    showResModal.value = false
+                    alert('预约申请已提交，请等待管理员审核！')
+                }
+
+                // 筛选状态 (Brand view)
+                const resFilterStatus = ref('All')
+                const resFilterDateStart = ref('')
+                const resFilterDateEnd = ref('')
+
+                const displayReservations = computed(() => {
+                    let list = brandReservations.value;
+                    if (resFilterStatus.value !== 'All') {
+                        list = list.filter(r => r.state === resFilterStatus.value)
+                    }
+                    if (resFilterDateStart.value) {
+                        list = list.filter(r => r.time >= resFilterDateStart.value)
+                    }
+                    if (resFilterDateEnd.value) {
+                        list = list.filter(r => r.time <= resFilterDateEnd.value + ' 23:59')
+                    }
+                    return list;
+                })
+
+                // 计算当前品牌在指定日期的可用预约记录
+                const getAvailableResForDate = (dateStr) => {
+                    if (!dateStr) return []
+                    const targetDate = dateStr.split('T')[0]
+                    return brandReservations.value.filter(r => r.time.startsWith(targetDate) && r.state === 'approved' && !r.linkedJob)
+                }
+
+                const jobStats = computed(() => [
+                    { label: '全部', count: jobs.value.length + 2076 + 60 },
+                    { label: '待发布', count: 5 },
+                    { label: '已发布', count: '--' },
+                    { label: '已结束', count: 2076 },
+                    { label: '已撤回', count: 60 }
+                ])
+
+                const showJobModal = ref(false)
+                const jobStep = ref(1)
+                const jobDraft = ref({
+                    name: '', type: '互动作业', platform: '微信视频号', startTime: '',
+                    total: 5000, linkedResId: null
+                })
+
+                // T+1 校验器
+                const isTPlus1 = computed(() => {
+                    if (!jobDraft.value.startTime) return false
+                    const jobDate = new Date(jobDraft.value.startTime)
+                    const simDate = new Date(simToday.value)
+                    // 设为次日 0 点
+                    const tPlus1Threshold = new Date(simDate)
+                    tPlus1Threshold.setDate(tPlus1Threshold.getDate() + 1)
+                    tPlus1Threshold.setHours(0, 0, 0, 0)
+                    return jobDate >= tPlus1Threshold
+                })
+
+                const openCreateJobModal = () => {
+                    jobStep.value = 1
+                    jobDraft.value = {
+                        name: '', type: '互动作业', platform: '微信视频号', startTime: '',
+                        total: 5000, linkedResId: null
+                    }
+                    showJobModal.value = true
+                }
+
+                const toggleReservation = () => {
+                    if (isTPlus1.value) {
+                        jobDraft.value.needReserve = !jobDraft.value.needReserve
+                    }
+                }
+
+                const submitJob = () => {
+                    const newId = '202604' + Math.floor(Math.random() * 900 + 100)
+                    const now = new Date().toISOString().replace('T', ' ').substring(0, 16)
+
+                    // 添加到作业列表
+                    jobs.value.unshift({
+                        id: newId,
+                        name: jobDraft.value.name || '未命名作业',
+                        type: jobDraft.value.type,
+                        status: '待发布',
+                        statusColor: 'bg-blue-400',
+                        platform: jobDraft.value.platform,
+                        startTime: jobDraft.value.startTime.replace('T', ' '),
+                        endTime: 'TBD',
+                        publishTime: now,
+                        total: jobDraft.value.total,
+                        pushType: '标签推送',
+                        pushed: 0
+                    })
+
+                    // 如果选择了预约额度，则锁定该预约单
+                    if (jobDraft.value.linkedResId) {
+                        const targetRes = brandReservations.value.find(r => r.id === jobDraft.value.linkedResId)
+                        if (targetRes) {
+                            targetRes.linkedJob = newId
+                        }
+                    }
+
+                    showJobModal.value = false
+                    alert(jobDraft.value.linkedResId ? '作业已创建并锁定预约额度！' : '作业已创建成功！')
+                }
+
+                // ===== Backend Main ====
+                const quota = ref({
+                    bClass: 20000,
+                    reserved: 28000,
+                    maxReserve: 50000,
+                    available: 52000,
+                    pushedTodayTemplate: 8500,  // 今日模板消息实推
+                    pushedTodaySub: 4200        // 今日订阅凭证实推
+                })
+
+                // --- History Stats ---
+                const todayFormatted = new Date().toISOString().split('T')[0]
+                const threeMonthsAgo = new Date(); threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 2);
+                const startStr = threeMonthsAgo.toISOString().split('T')[0]
+
+                const statDateStart = ref(startStr)
+                const statDateEnd = ref(todayFormatted)
+
+                const historyStats = computed(() => {
+                    const days = (new Date(statDateEnd.value) - new Date(statDateStart.value)) / (1000 * 60 * 60 * 24) || 1
+                    const factor = Math.max(0.1, days / 30)
+                    return {
+                        total: Math.floor(450000 * factor),
+                        template: Math.floor(280000 * factor),
+                        subscription: Math.floor(170000 * factor),
+                        remind: Math.floor(310000 * factor),   // 催办实推
+                        reserve: Math.floor(140000 * factor)   // 预约实推
+                    }
+                })
+
+                const queue = ref([
+                    { id: 101, created: '2026-04-12 14:30', brand: '东风岚图', taskName: '秋季直销防漏提醒', time: '2026-04-15 20:00', reqData: 8000, state: 'pending', actualPush: 0, reason: '年度重点直销拉新活动' },
+                    { id: 102, created: '2026-04-11 09:12', brand: '集团总部', taskName: '突发舆论引导通发', time: '2026-04-13 09:00', reqData: 28000, state: 'approved', actualPush: 0, reason: '突发公关危机应急预警' },
+                    { id: 103, created: '2026-04-10 11:20', brand: '猛士科技', taskName: '越野线上市预热直达', time: '2026-04-11 12:00', reqData: 5000, state: 'pushed', actualPush: 5000, reason: '新旗舰上市第一波触达' },
+                    { id: 104, created: '2026-04-09 10:00', brand: '神龙汽车', taskName: '因雨推迟废弃活动', time: '2026-04-10 10:00', reqData: 1000, state: 'canceled', actualPush: 0, reason: '车展外场活动临时取消' },
+                    { id: 105, created: '2026-04-08 14:00', brand: '东风标致', taskName: '测试推流用无需过批', time: '2026-04-10 20:00', reqData: 60000, state: 'rejected', actualPush: 0, reason: '系统压力测试专用管道' }
+                ])
+
+                // --- Filter Mechanics (Audit View) ---
+                const filterStatus = ref('All')
+                const filterBrand = ref('全部主体')
+                const filterCreateStart = ref('')
+                const filterCreateEnd = ref('')
+                const filterPushStart = ref('')
+                const filterPushEnd = ref('')
+
+                const displayQueue = computed(() => {
+                    let list = queue.value;
+                    if (filterStatus.value !== 'All') {
+                        list = list.filter(item => item.state === filterStatus.value)
+                    }
+                    if (filterBrand.value !== '全部主体') {
+                        list = list.filter(item => item.brand === filterBrand.value)
+                    }
+                    if (filterCreateStart.value) {
+                        list = list.filter(item => item.created >= filterCreateStart.value)
+                    }
+                    if (filterCreateEnd.value) {
+                        list = list.filter(item => item.created <= filterCreateEnd.value + ' 23:59')
+                    }
+                    if (filterPushStart.value) {
+                        list = list.filter(item => item.time >= filterPushStart.value)
+                    }
+                    if (filterPushEnd.value) {
+                        list = list.filter(item => item.time <= filterPushEnd.value + ' 23:59')
+                    }
+                    return list;
+                })
+
+                // --- Config Settings Mechanics ---
+                const showConfig = ref(false)
+                const configDraft = ref({ classB: quota.value.bClass, maxReserve: quota.value.maxReserve })
+                const saveConfig = () => {
+                    quota.value.bClass = configDraft.value.classB
+                    quota.value.maxReserve = configDraft.value.maxReserve
+                    showConfig.value = false
+                }
+
+                // --- Approval Modal Mechanics ---
+                const activeReq = ref(null)
+                const openApprovalModal = (r) => { activeReq.value = r }
+                const rejectReq = () => { activeReq.value.state = 'rejected'; activeReq.value = null }
+                const passReq = () => {
+                    if ((quota.value.maxReserve - quota.value.reserved) < activeReq.value.reqData) return;
+                    activeReq.value.state = 'approved'
+                    quota.value.available -= activeReq.value.reqData
+                    quota.value.reserved += activeReq.value.reqData
+                    activeReq.value = null
+                }
+                const handleRevoke = (r) => {
+                    r.state = 'canceled'
+                    quota.value.reserved -= r.reqData
+                    quota.value.available += r.reqData
+                }
+
+                return {
+                    activePane, simToday,
+                    showWxPopup, keepSelection, userQuotaCount, triggerSubscribe, processSub,
+                    listTab, filteredList,
+                    jobs, jobStats, showJobModal, jobStep, jobDraft, isTPlus1, openCreateJobModal, toggleReservation, submitJob,
+                    brandReservations, showResModal, resDraft, submitReservation, getAvailableResForDate, resFilterStatus, resFilterDateStart, resFilterDateEnd, displayReservations,
+                    quota, queue, filterStatus, filterBrand, filterCreateStart, filterCreateEnd, filterPushStart, filterPushEnd, displayQueue,
+                    statDateStart, statDateEnd, historyStats,
+                    showTodayDetail, showHistoryDetail,
+                    showConfig, configDraft, saveConfig,
+                    activeReq, openApprovalModal, rejectReq, passReq, handleRevoke,
+                    handleAuditResubmit: () => {
+                        showAuditPopup.value = true
+                    },
+                    confirmAuditResubmit: () => {
+                        showAuditPopup.value = false
+                        alert('作业已重新提交，请耐心等待审核！');
+                        setTimeout(() => {
+                            auditNotifyKey.value++
+                        }, 1200)
+                    },
+                    auditNotifyKey, showAuditPopup,
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+
+</html>
