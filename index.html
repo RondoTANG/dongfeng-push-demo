@@ -248,6 +248,118 @@
 
                     <!-- Content Body -->
                     <div class="p-8 md:p-14 bg-[#FAFAFA]">
+                        <!-- 00. 方案核心摘要 -->
+                        <section class="mb-12 bg-indigo-50/30 p-8 rounded-3xl border border-indigo-100 shadow-inner">
+                            <h2 class="prd-sec-title text-2xl mb-8 flex items-center gap-3 font-black">
+                                <span
+                                    class="bg-indigo-600 text-white w-10 h-10 rounded-full flex items-center justify-center text-sm">00</span>
+                                <span class="text-indigo-900">改造方案核心摘要</span>
+                            </h2>
+
+                            <div class="space-y-8">
+                                <!-- 一、 核心底座 -->
+                                <div>
+                                    <h3 class="flex items-center gap-2 text-lg font-black text-indigo-900 mb-4">
+                                        <div class="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
+                                        一、 核心底座：预约审核与资源保供机制
+                                    </h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 ml-4">
+                                        <div
+                                            class="bg-white p-4 rounded-xl border border-indigo-50 shadow-sm transition-all hover:shadow-md">
+                                            <div class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">
+                                                前置配额申请</div>
+                                            <p class="text-[13px] text-slate-600 leading-relaxed">
+                                                品牌主体需提前发起【预约申请】，由“新闻中心运营”基于全盘负荷与历史表现进行宏观审批。</p>
+                                        </div>
+                                        <div
+                                            class="bg-white p-4 rounded-xl border border-indigo-50 shadow-sm transition-all hover:shadow-md text-dfred-500">
+                                            <div class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">
+                                                物理配额确定性保障</div>
+                                            <p class="text-[13px] text-slate-600 leading-relaxed">
+                                                作业创建强制关联已通过的预约单。核心目的是实现<b>资源预占</b>——确保高权重任务在流量峰值期拥有“<b>必有位、必能发</b>”的保供能力。
+                                            </p>
+                                        </div>
+                                        <div
+                                            class="bg-white p-4 rounded-xl border border-indigo-50 shadow-sm transition-all hover:shadow-md border-l-4 border-l-dfred">
+                                            <div class="text-xs font-bold text-dfred uppercase tracking-widest mb-1">
+                                                [新增] 一次性订阅授权</div>
+                                            <p class="text-[13px] text-slate-600 leading-relaxed">
+                                                在任务领取高频场景嵌入订阅组件，为授权用户建立<b>独立于公共池的个人订阅凭证</b>。推送时优先核销，实现触达上限的物理突破。
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 二、 执行逻辑 -->
+                                <div>
+                                    <h3 class="flex items-center gap-2 text-lg font-black text-indigo-900 mb-4">
+                                        <div class="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
+                                        二、 执行逻辑：基于时效窗口的精准分层分发
+                                    </h3>
+                                    <div class="space-y-4 ml-4">
+                                        <!-- T0 -->
+                                        <div class="bg-white p-5 rounded-xl border border-indigo-50 shadow-sm transition-all hover:shadow-md">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <span class="font-black text-slate-800 text-sm italic underline decoration-blue-200 decoration-4">即时/预约首发（T0发布）</span>
+                                                <span
+                                                    class="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold">黄金期触达</span>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-4 text-[13px]">
+                                                <div><span class="text-slate-400">发布时机：</span><span
+                                                        class="text-slate-700 font-medium">新作业发布后的黄金活跃期。</span></div>
+                                                <div><span class="text-slate-400">分发规则：</span><span
+                                                        class="text-slate-700 font-medium font-bold">定向下发给该品牌 2
+                                                        个月内的活跃人群。</span></div>
+                                            </div>
+                                        </div>
+                                        <!-- T+1 -->
+                                        <div
+                                            class="bg-white p-5 rounded-xl border border-indigo-50 relative overflow-hidden shadow-sm transition-all hover:shadow-md">
+                                            <div
+                                                class="flex items-center justify-between mb-3 border-b border-slate-50 pb-3">
+                                                <span class="font-black text-slate-800 text-sm italic underline decoration-indigo-200 decoration-4">存量任务定时催办（T+1 定时提醒）</span>
+                                                <span
+                                                    class="text-[10px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-bold">拦截清零</span>
+                                            </div>
+                                            <div class="space-y-4">
+                                                <div
+                                                    class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[12px] leading-relaxed">
+                                                    <div class="bg-slate-50 p-4 rounded-lg"><span
+                                                            class="block text-indigo-500 font-black mb-2 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>执行/获取规则</span>
+                                                        每日 <span class="text-dfred font-black">15:00</span> 准时下发；自动抓取作业结束时间在 <span class="bg-indigo-600 text-white px-1.5 rounded text-[10px] font-mono">[当日17:00 ~ 次日17:00]</span> 窗口内、且仍处于“未领/未完成”状态的用户。通过提前两个小时干流干预，最大化截止前转化。
+                                                    </div>
+                                                    <div class="bg-slate-50 p-4 rounded-lg border-l-4 border-indigo-200">
+                                                        <span class="block text-indigo-500 font-black mb-2 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>算法权重梯度</span>
+                                                        <b>直播类：</b>实施“回流优先”策略。P1:上期直播完成 > P2:复合用户 > P3:单一用户<br>
+                                                        <div class="mt-1"><b>非直播：</b>实施“复合优先”策略。P1:复合用户 > P2:单一用户</div>
+                                                        <div class="mt-2 pt-2 border-t border-slate-200/50 text-indigo-600 font-black">排序评分：各档位内部严格按“（集团+品牌）总积分”倒序排列。</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 方案总结 -->
+                                <div
+                                    class="bg-gradient-to-r from-indigo-600 to-dfred p-6 rounded-2xl text-white shadow-lg shadow-indigo-200 group">
+                                    <div class="flex items-start gap-4">
+                                        <div class="bg-white/20 p-2 rounded-lg mt-1 group-hover:scale-110 transition-transform">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                                </path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div class="font-black text-indigo-50 text-base mb-1 tracking-wider italic">方案总结</div>
+                                            <p class="text-[13px] text-indigo-50/90 leading-relaxed font-bold">
+                                                方案通过“前置锁定位子、中场合并聚合、后场精准拦截/按权下发”，确保了在额度有限的条件下，每一条通知都能精准拦截在用户流失前的最后窗口期。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
 
                         <!-- 01. 背景与问题 -->
                         <section class="mb-12">
