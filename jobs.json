@@ -1,0 +1,90 @@
+[
+    {
+        "article_id": "mock_art_1778483734",
+        "account_name": "东风汽车",
+        "title": "东风汽车2026战略发布：全面转型新能源",
+        "url": "https://mp.weixin.qq.com/s/example",
+        "digest": "东风汽车今日在武汉发布最新战略，计划在2026年前实现全系车型电动化。",
+        "thumb": "https://via.placeholder.com/100x60",
+        "publish_time": 1778483734,
+        "comments_count": 2,
+        "comments": [
+            {
+                "content": "支持东风！国产车加油！",
+                "create_time": 1778483734
+            },
+            {
+                "content": "请问岚图追光有最新优惠政策吗？",
+                "create_time": 1778483434
+            }
+        ],
+        "status": "pending_review",
+        "fetched_at": 1778483734
+    },
+    {
+        "article_id": "1000007990_1",
+        "account_name": "东风汽车",
+        "title": "模拟文章-mock_article_111",
+        "url": "https://mp.weixin.qq.com/s/mock_article_111",
+        "digest": "这是通过公众号群发事件触发并抓取到的模拟文章摘要信息。",
+        "thumb": "https://via.placeholder.com/100x60",
+        "publish_time": 1780389620,
+        "comments_count": 2,
+        "comments": [
+            {
+                "content": "支持东风！国产车加油！",
+                "create_time": 1780389620
+            },
+            {
+                "content": "请问岚图追光有最新优惠政策吗？",
+                "create_time": 1780389320
+            }
+        ],
+        "status": "pending_review",
+        "fetched_at": 1780389620
+    },
+    {
+        "article_id": "1000005434_1",
+        "account_name": "东风汽车",
+        "title": "未命名图文",
+        "url": "https://mp.weixin.qq.com/s/V68C0ZlX1qQ63cPl8D1LdQ",
+        "digest": "",
+        "thumb": "",
+        "publish_time": 1780389634,
+        "comments_count": 2,
+        "comments": [
+            {
+                "content": "支持东风！国产车加油！",
+                "create_time": 1780389634
+            },
+            {
+                "content": "请问岚图追光有最新优惠政策吗？",
+                "create_time": 1780389334
+            }
+        ],
+        "status": "pending_review",
+        "fetched_at": 1780389634
+    },
+    {
+        "article_id": "1000001144_1",
+        "account_name": "东风汽车",
+        "title": "模拟文章-mock_article_222",
+        "url": "https://mp.weixin.qq.com/s/mock_article_222",
+        "digest": "这是通过公众号群发事件触发并抓取到的模拟文章摘要信息。",
+        "thumb": "https://via.placeholder.com/100x60",
+        "publish_time": 1780389694,
+        "comments_count": 2,
+        "comments": [
+            {
+                "content": "支持东风！国产车加油！",
+                "create_time": 1780389694
+            },
+            {
+                "content": "请问岚图追光有最新优惠政策吗？",
+                "create_time": 1780389394
+            }
+        ],
+        "status": "pending_review",
+        "fetched_at": 1780389694
+    }
+]

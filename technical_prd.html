@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>护卫军 · 公众号推送监控系统 — 技术 PRD (V1.0)</title>
+    <!-- 引入高级字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- 引入 Mermaid 自动渲染流程图 -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            theme: 'default',
+            startOnLoad: true,
+            securityLevel: 'loose',
+            flowchart: { useMaxWidth: true, htmlLabels: true }
+        });
+    </script>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --surface-hover: #f1f5f9;
+            --border: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --accent: #2563eb;
+            --accent-glow: rgba(37, 99, 235, 0.08);
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            display: flex;
+        }
+
+        /* 左侧固定侧边栏 - 蓝白清爽风格 */
+        .sidebar {
+            width: 290px;
+            height: 100vh;
+            background: #f1f5f9;
+            border-right: 1px solid var(--border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            overflow-y: auto;
+            padding: 2rem 1.5rem;
+            box-sizing: border-box;
+            z-index: 100;
+        }
+
+        .logo-area {
+            margin-bottom: 2.5rem;
+        }
+
+        .logo-area h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(135deg, #0f172a, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-area span {
+            font-size: 0.75rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: block;
+            margin-top: 0.3rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            margin-bottom: 0.4rem;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 0.55rem 0.9rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--accent);
+            background: rgba(37, 99, 235, 0.05);
+            border-left: 3px solid var(--accent);
+            padding-left: calc(0.9rem - 3px);
+        }
+
+        /* 右侧主体文档区域 */
+        .main-content {
+            margin-left: 290px;
+            padding: 3rem 4rem;
+            max-width: 1020px;
+            box-sizing: border-box;
+            width: calc(100% - 290px);
+        }
+
+        header {
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 2rem;
+        }
+
+        .doc-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.1rem;
+            margin: 0 0 0.8rem 0;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .doc-meta {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .doc-meta a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        section {
+            margin-bottom: 4rem;
+            scroll-margin-top: 2rem;
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            color: #0f172a;
+        }
+
+        h3 {
+            font-size: 1.15rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+
+        p, li {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* 精美卡片与表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+            background: var(--surface);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        th, td {
+            padding: 0.8rem 1.2rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 警告框等饰志 */
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-req { background: rgba(239, 68, 68, 0.08); color: var(--danger); }
+        .badge-opt { background: rgba(245, 158, 11, 0.08); color: var(--warning); }
+        .badge-done { background: rgba(16, 185, 129, 0.08); color: var(--success); }
+
+        .callout {
+            background: rgba(37, 99, 235, 0.02);
+            border-left: 4px solid var(--accent);
+            padding: 1rem 1.5rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+            border-top: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .callout p {
+            margin: 0;
+        }
+
+        /* 代码块样式 */
+        pre {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            padding: 1.2rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+        }
+
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            color: #3b82f6;
+        }
+
+        /* Mermaid 容器样式 */
+        .mermaid {
+            background: #ffffff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin: 1.5rem 0;
+            display: flex;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 侧边栏导航 -->
+    <div class="sidebar">
+        <div class="logo-area">
+            <h1>护卫军系统</h1>
+            <span>TECHNICAL PRD (V1.0)</span>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="#section1" class="nav-link">1. 项目全景 (V1.0)</a></li>
+            <li class="nav-item"><a href="#section2" class="nav-link">2. 技术架构 (V1.0)</a></li>
+            <li class="nav-item"><a href="#section3" class="nav-link">3. 微信接口 (V1.0)</a></li>
+            <li class="nav-item"><a href="#section4" class="nav-link">4. 数据模型 (V1.0)</a></li>
+            <li class="nav-item"><a href="#section5" class="nav-link">5. 代码职责 (V1.0)</a></li>
+            <li class="nav-item"><a href="#section6" class="nav-link">6. 核心流程 (V1.0)</a></li>
+            <li class="nav-item"><a href="#section7" class="nav-link">7. 权限集要求 (V1.0)</a></li>
+            <li class="nav-item"><a href="#section8" class="nav-link">8. 调用速查 (V1.0)</a></li>
+            <li class="nav-item"><a href="#section9" class="nav-link">9. 本期实现状态</a></li>
+            <li class="nav-item" style="border-top: 1px dashed var(--border); margin-top: 0.5rem; padding-top: 0.5rem;"><a href="#section10" class="nav-link" style="color: var(--accent);">未来版本规划 (V1.1/V2)</a></li>
+        </ul>
+    </div>
+
+    <!-- 右侧文档流 -->
+    <div class="main-content">
+        <header>
+            <div class="doc-title">护卫军 · 公众号推送监控系统 — 技术 PRD (V1.0 规范)</div>
+            <div class="doc-meta">
+                <span><strong>当前版本</strong>：V1.0 (代开发扫码绑定 & 公众号群发实时捕获)</span>
+                <span><strong>更新时间</strong>：2026-06-03</span>
+                <span><strong>关联文档</strong>：<a href="mass_send_monitoring_solution.md">实时感知设计方案.md</a></span>
+            </div>
+        </header>
+
+        <!-- 1. 项目全景 -->
+        <section id="section1">
+            <h2>1. 项目全景 (V1.0)</h2>
+            <h3>1.1 业务目标</h3>
+            <p>为东风汽车集团（含子品牌矩阵：东风日产、岚图汽车、东风本田等）搭建公众号群发实时感知骨架，本期开发实现：</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">目标</th>
+                        <th>说明</th>
+                        <th style="width: 20%;">交付版本</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>代公众号授权绑定</strong></td>
+                        <td>引导子品牌运营扫码，将公众号授权给第三方平台，获取长期凭证。</td>
+                        <td><span class="badge badge-done">V1.0 (本期)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>群发内容毫秒感知</strong></td>
+                        <td>公众号运营后台执行群发，系统通过 Webhook 推送毫秒级感知。</td>
+                        <td><span class="badge badge-done">V1.0 (本期)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>文章详情抓取与去重</strong></td>
+                        <td>提取 ArticleUrl，去重校验后通过 HTTP 抓取解析文章标题、封面、发布时间并写入作业库。</td>
+                        <td><span class="badge badge-done">V1.0 (本期)</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>1.2 系统角色 (V1.0 范围)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">角色</th>
+                        <th style="width: 25%;">典型用户</th>
+                        <th>系统权限</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>超级管理员</strong></td>
+                        <td>护卫军项目组</td>
+                        <td>管理品牌大盘，查看已授权账号及捕获到的待审核作业。</td>
+                    </tr>
+                    <tr>
+                        <td><strong>品牌运营</strong></td>
+                        <td>东风各子品牌市场部</td>
+                        <td>本账号公众号授权挂载、查看本品牌捕获的作业列表。</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 2. 技术架构 -->
+        <section id="section2">
+            <h2>2. 技术架构 (V1.0)</h2>
+            <h3>2.1 架构图</h3>
+            <div class="mermaid">
+                graph LR
+                    A["公众号运营者<br/>微信后台群发"] -->|群发完成| B["微信官方服务器"]
+                    B -->|MASSSENDJOBFINISH<br/>XML 推送| C["护卫军事件网关<br/>(Webhook)"]
+                    C -->|XML Payload| D["护卫军处理引擎<br/>(engine.py)"]
+                    D -->|去重 + 入库| E["作业数据库<br/>(jobs.json)"]
+                    
+                    G["运营后台<br/>(index.html)"] -->|授权管理| H["授权账号库<br/>(accounts.json)"]
+            </div>
+
+            <h3>2.2 核心架构思路</h3>
+            <p>系统废弃了旧版定时轮询模式，采用<strong>被动感知架构</strong>：在微信第三方开放平台配置 Webhook 事件接收网关。微信服务器在公众号群发完成后主动向网关推送 <code>MASSSENDJOBFINISH</code> 事件，处理引擎仅需轻量级 XML 解析即可完成新内容感知。</p>
+            <div class="callout">
+                <p><strong>被动感知的核心优势：</strong><br>
+                1. <strong>监控 0 盲区</strong>：100% 覆盖微信公众号最为核心的“群发（Mass Send）”场景。<br>
+                2. <strong>感知 0 延迟</strong>：群发完成即时推送，毫秒级流转至监控引擎。<br>
+                3. <strong>API 0 损耗</strong>：无需主动轮询，不消耗微信 API 每日调用限额，有效规避风控规则。</p>
+            </div>
+        </section>
+
+        <!-- 3. 微信接口对照表 -->
+        <section id="section3">
+            <h2>3. 微信接口对照表 (V1.0)</h2>
+            
+            <h3>3.1 授权凭证管理 — 刷新 Access Token</h3>
+            <table>
+                <tr>
+                    <td style="width: 25%;"><strong>接口 URL</strong></td>
+                    <td><code>https://api.weixin.qq.com/cgi-bin/component/api_authorizer_token?component_access_token={TOKEN}</code></td>
+                </tr>
+                <tr>
+                    <td><strong>请求方法</strong></td>
+                    <td>POST</td>
+                </tr>
+                <tr>
+                    <td><strong>功能用途</strong></td>
+                    <td>用授权时获得的 <code>refresh_token</code> 定期刷新公众号的 <code>authorizer_access_token</code>（2 小时有效）</td>
+                </tr>
+                <tr>
+                    <td><strong>代码位置</strong></td>
+                    <td><a href="wechat_api.py">wechat_api.py</a> — <code>_refresh_access_token()</code></td>
+                </tr>
+            </table>
+
+            <h3>3.2 群发事件接收 — MASSSENDJOBFINISH (本期核心)</h3>
+            <table>
+                <tr>
+                    <td style="width: 25%;"><strong>接收网关 URL</strong></td>
+                    <td><code>https://api.huweijun.com/v1/wechat/events/$APPID$</code>（在微信第三方开放平台配置）</td>
+                </tr>
+                <tr>
+                    <td><strong>推送方法</strong></td>
+                    <td>POST（由微信主动向我方 Webhook 推送，被动接收）</td>
+                </tr>
+                <tr>
+                    <td><strong>数据格式</strong></td>
+                    <td>XML</td>
+                </tr>
+                <tr>
+                    <td><strong>官方链接</strong></td>
+                    <td><a href="https://developers.weixin.qq.com/doc/service/guide/product/message/Batch_Sends.html" target="_blank">微信公众平台官方文档 - 群发结果事件推送</a></td>
+                </tr>
+            </table>
+
+            <h4>XML 报文结构示例：</h4>
+            <pre><code>&lt;xml&gt;
+  &lt;ToUserName&gt;&lt;![CDATA[gh_dongfeng]]&gt;&lt;/ToUserName&gt;
+  &lt;FromUserName&gt;&lt;![CDATA[o_admin_id]]&gt;&lt;/FromUserName&gt;
+  &lt;CreateTime&gt;1778483734&lt;/CreateTime&gt;
+  &lt;MsgType&gt;&lt;![CDATA[event]]&gt;&lt;/MsgType&gt;
+  &lt;Event&gt;&lt;![CDATA[MASSSENDJOBFINISH]]&gt;&lt;/Event&gt;
+  &lt;MsgID&gt;1000001625&lt;/MsgID&gt;
+  &lt;Status&gt;&lt;![CDATA[sendsuccess]]&gt;&lt;/Status&gt;
+  &lt;ArticleUrlResult&gt;
+    &lt;Count&gt;1&lt;/Count&gt;
+    &lt;ResultList&gt;
+      &lt;item&gt;
+        &lt;ArticleIdx&gt;1&lt;/ArticleIdx&gt;
+        &lt;ArticleUrl&gt;&lt;![CDATA[https://mp.weixin.qq.com/s/xxx]]&gt;&lt;/ArticleUrl&gt;
+      &lt;/item&gt;
+    &lt;/ResultList&gt;
+  &lt;/ArticleUrlResult&gt;
+&lt;/xml&gt;</code></pre>
+
+            <h4>关键提取字段：</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">字段名称</th>
+                        <th>提取 XPath 路径</th>
+                        <th>技术用途</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>MsgID</strong></td>
+                        <td><code>xml → MsgID</code></td>
+                        <td>群发任务的唯一标识，用于在库中关联此次推送。</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ArticleUrl</strong></td>
+                        <td><code>xml → ArticleUrlResult → ResultList → item → ArticleUrl</code></td>
+                        <td>文章永久阅读链接。用于<strong>全局去重校验</strong>，并作为抓取的直接入口。</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Status</strong></td>
+                        <td><code>xml → Status</code></td>
+                        <td>群发状态判定：<code>sendsuccess</code>（群发成功）时才予解析入库。</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="callout" style="border-color: var(--danger);">
+                <p><strong>网关幂等响应与去重：</strong><br>
+                1. <strong>五秒响应机制</strong>：网关必须在 5 秒内返回 <code>"success"</code>，防止微信连续发起重试。<br>
+                2. <strong>防并发与重复</strong>：入库时对 <code>url</code>（即 ArticleUrl）设置唯一索引，冲突则直接丢弃不作处理。</p>
+            </div>
+
+            <h3>3.3 文章元数据获取机制 (ArticleUrl 抓取)</h3>
+            <p>微信官方未提供通过接口获取群发详情的 API，因此系统通过向 <code>ArticleUrl</code> 发送轻量级请求抓取页面元信息，正则提取字段定义如下：</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">目标字段</th>
+                        <th>主匹配标签</th>
+                        <th>微信页面 JS 变量/H1 兜底匹配</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>标题 (title)</strong></td>
+                        <td><code>meta[property="og:title"]</code></td>
+                        <td>JS 变量 <code>var msg_title = "..."</code> 或 <code>h1.rich_media_title</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>封面 (thumb)</strong></td>
+                        <td><code>meta[property="og:image"]</code></td>
+                        <td>JS 变量 <code>var msg_cdn_url = "..."</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>摘要 (digest)</strong></td>
+                        <td><code>meta[property="og:description"]</code></td>
+                        <td>JS 变量 <code>var msg_desc = "..."</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>时间 (publish_time)</strong></td>
+                        <td>-</td>
+                        <td>页面内 JS 变量 <code>var ct = "1778483734"</code> 秒级时间戳</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 4. 数据模型 -->
+        <section id="section4">
+            <h2>4. 数据模型 (V1.0)</h2>
+            <h3>4.1 授权账号数据模型（accounts.json）</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">字段名</th>
+                        <th style="width: 20%;">类型</th>
+                        <th>说明与数据来源</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>appid</code></td>
+                        <td>string</td>
+                        <td>公众号唯一凭证 AppID</td>
+                    </tr>
+                    <tr>
+                        <td><code>nickname</code></td>
+                        <td>string</td>
+                        <td>公众号昵称（如“东风汽车”）</td>
+                    </tr>
+                    <tr>
+                        <td><code>original_id</code></td>
+                        <td>string</td>
+                        <td>公众号原始 ID（如“gh_dongfeng”，匹配 XML 中的 ToUserName）</td>
+                    </tr>
+                    <tr>
+                        <td><code>refresh_token</code></td>
+                        <td>string</td>
+                        <td>授权刷新令牌（长期保存，用于换取 AccessToken）</td>
+                    </tr>
+                    <tr>
+                        <td><code>authorized_at</code></td>
+                        <td>int</td>
+                        <td>授权绑定的秒级时间戳</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.2 监控作业数据模型（jobs.json — V1.0 精简版）</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">字段名</th>
+                        <th style="width: 20%;">类型</th>
+                        <th>说明与数据来源</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>article_id</code></td>
+                        <td>string</td>
+                        <td>作业标识（由群发 <code>MsgID_ArticleIdx</code> 组装）</td>
+                    </tr>
+                    <tr>
+                        <td><code>account_name</code></td>
+                        <td>string</td>
+                        <td>所属公众号昵称</td>
+                    </tr>
+                    <tr>
+                        <td><code>title</code></td>
+                        <td>string</td>
+                        <td>文章标题（页面抓取解析）</td>
+                    </tr>
+                    <tr>
+                        <td><code>url</code></td>
+                        <td>string</td>
+                        <td>微信文章永久链接（全局去重唯一索引）</td>
+                    </tr>
+                    <tr>
+                        <td><code>digest</code></td>
+                        <td>string</td>
+                        <td>文章摘要描述（页面抓取解析）</td>
+                    </tr>
+                    <tr>
+                        <td><code>thumb</code></td>
+                        <td>string</td>
+                        <td>文章封面图 URL（页面抓取解析）</td>
+                    </tr>
+                    <tr>
+                        <td><code>publish_time</code></td>
+                        <td>int</td>
+                        <td>发布时间戳（页面抓取 JS 变量 <code>ct</code>）</td>
+                    </tr>
+                    <tr>
+                        <td><code>status</code></td>
+                        <td>string</td>
+                        <td>作业状态（本期固定为初始值 <code>pending_review</code>）</td>
+                    </tr>
+                    <tr>
+                        <td><code>fetched_at</code></td>
+                        <td>int</td>
+                        <td>抓取成功时间戳</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 5. 代码职责 -->
+        <section id="section5">
+            <h2>5. 代码文件职责映射 (V1.0)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">文件名称</th>
+                        <th style="width: 25%;">V1.0 定位</th>
+                        <th>本期核心职责说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><a href="wechat_api.py">wechat_api.py</a></td>
+                        <td>凭证刷新与事件解析</td>
+                        <td>Token 定时刷新维护、XML 推送解析器 (<code>parse_mass_send_event</code>)、支持页面 JS 兼容的多级元数据正则解析器 (<code>fetch_article_meta</code>)。</td>
+                    </tr>
+                    <tr>
+                        <td><a href="engine.py">engine.py</a></td>
+                        <td>感知网关逻辑与调度</td>
+                        <td>处理 XML 事件接收流转，调用解析与抓取；包含本地 XML 模拟接收与去重测试运行流。</td>
+                    </tr>
+                    <tr>
+                        <td><a href="storage.py">storage.py</a></td>
+                        <td>本地持久化</td>
+                        <td>读写 <code>accounts.json</code> / <code>jobs.json</code>，实现基于 URL 的全局去重核心。</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 6. 核心流程 -->
+        <section id="section6">
+            <h2>6. 核心处理流程 (V1.0)</h2>
+            
+            <h3>6.1 公众号授权流程</h3>
+            <div class="mermaid">
+                sequenceDiagram
+                    participant Admin as 品牌运营
+                    participant UI as 护卫军后台
+                    participant WX as 微信开放平台
+                    participant DB as accounts.json
+
+                    Admin->>UI: 点击"新增扫码授权"
+                    UI->>UI: 选择归属品牌
+                    UI->>WX: 生成授权二维码（包含群发权限）
+                    Admin->>WX: 公众号管理员扫码确认
+                    WX->>UI: 回调通知授权成功并下发 refresh_token
+                    UI->>DB: 写入 appid, original_id, nickname, refresh_token
+            </div>
+
+            <h3>6.2 V1.0 群发被动感知与作业创建</h3>
+            <div class="mermaid">
+                sequenceDiagram
+                    participant Op as 公众号运营者
+                    participant WX as 微信服务器
+                    participant GW as 事件网关 (Webhook)
+                    participant Engine as 处理引擎
+                    participant DB as jobs.json
+
+                    Op->>WX: 微信后台点击群发并确认
+                    WX->>GW: 异步推送 MASSSENDJOBFINISH 事件 (XML)
+                    GW->>Engine: 事件入队
+                    GW->>WX: 返回 "success"（5 秒内，规避重复推送）
+                    Engine->>Engine: 解析提取 ArticleUrl 和 MsgID
+                    Engine->>DB: 检查 jobs.json 中是否存在该 ArticleUrl
+                    alt 链接不存在 (新内容)
+                        Engine->>Engine: 发送 HTTP 请求加载 ArticleUrl 页面
+                        Engine->>Engine: 匹配 og属性/JS变量 提取标题、封面和发布时间 ct
+                        Engine->>DB: 写入 jobs.json (status=pending_review)
+                    else 链接已存在 (去重拦截)
+                        Engine->>Engine: 静默丢弃，结束流程
+                    end
+            </div>
+        </section>
+
+        <!-- 7. 权限集要求 -->
+        <section id="section7">
+            <h2>7. 权限集要求 (V1.0)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">权限集名称</th>
+                        <th style="width: 20%;">必要性</th>
+                        <th>本期说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>群发消息与异步通知权限</strong></td>
+                        <td><span class="badge badge-req">🔴 V1.0 必需</span></td>
+                        <td>用于允许第三方代开发接口接收微信 <code>MASSSENDJOBFINISH</code> 回调。</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 8. 调用速查 -->
+        <section id="section8">
+            <h2>8. 接口调用链路速查 (V1.0)</h2>
+            <pre><code>【第三方授权】
+运营扫码授权 → 获得 refresh_token → 持久化在 accounts.json
+
+【凭证刷新】
+组件请求 api_authorizer_token 刷新 authorizer_access_token（2 小时有效）
+
+【实时捕获】
+网关接收 MASSSENDJOBFINISH 事件推送 → XML 提取 ArticleUrl + MsgID
+
+【元数据解析】
+HTTP 抓取 ArticleUrl 网页 -> 正则匹配 og:title/JS 变量 ct -> 组装作业数据
+
+【去重入库】
+查询 jobs.json 中是否存在该 url -> 冲突直接丢弃 -> 写入待审核作业表</code></pre>
+        </section>
+
+        <!-- 9. 本期实现状态 -->
+        <section id="section9">
+            <h2>9. 本期实现状态</h2>
+            <h3>9.1 当前已完成（本地 Demo 与沙盘环境）</h3>
+            <ul>
+                <li><span class="badge badge-done">已完成</span> 微信 API 封装：<code>wechat_api.py</code>（包含 Token 刷新、事件解析、网页元数据免依赖抓取器与防爬兜底降级方案）。</li>
+                <li><span class="badge badge-done">已完成</span> 调度引擎 <code>engine.py</code>：实现群发事件模拟、解析、网页抓取与基于 URL 去重闭环。</li>
+                <li><span class="badge badge-done">已完成</span> 本地去重验证：实现重复推送 URL 时 100% 拦截并静默抛弃。</li>
+            </ul>
+
+            <h3>9.2 本期（V1.0）生产化待建设任务</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">待建设模块</th>
+                        <th style="width: 15%;">优先级</th>
+                        <th>技术实现说明</th>
+                        <th style="width: 15%;">规划版本</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Webhook 事件网关</strong></td>
+                        <td>P0</td>
+                        <td>部署正式的 HTTP 服务，接收微信推送的事件 XML 报文并进行快速队列入队。</td>
+                        <td><span class="badge badge-req">V1.0 (本期)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>XML 报文解析器</strong></td>
+                        <td>P0</td>
+                        <td>稳健解析 XML 报文，提取 MsgID、ArticleUrl、ArticleIdx 字段。</td>
+                        <td><span class="badge badge-req">V1.0 (本期)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>持久化关系型数据库</strong></td>
+                        <td>P0</td>
+                        <td>替换 JSON 本地存储，采用 MySQL，并将 url (ArticleUrl) 设置为唯一索引。</td>
+                        <td><span class="badge badge-req">V1.0 (本期)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Token 定时刷新服务</strong></td>
+                        <td>P1</td>
+                        <td>每 1 小时 50 分定时轮询刷新所有公众号的凭证并写入 Redis 缓存。</td>
+                        <td><span class="badge badge-req">V1.0 (本期)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>授权回调监听网关</strong></td>
+                        <td>P1</td>
+                        <td>接收第三方开放平台的授权事件推送（微信端扫码成功后），自动写入 accounts。</td>
+                        <td><span class="badge badge-req">V1.0 (本期)</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 10. 未来版本规划 -->
+        <section id="section10" style="border-top: 1px dashed var(--border); padding-top: 2rem;">
+            <h2 style="color: var(--accent); border-bottom-color: var(--accent);">10. 未来版本技术演进规划 (非本期开发范围)</h2>
+            
+            <h3>10.1 V1.1 阶段（留言拉取与派单监控）</h3>
+            <p>一期作业状态置为 `pending_review` 经人工审核通过后，激活留言评论拉取，以备 AI 及人工内容抽检。</p>
+            
+            <h4>1. 新增留言抓取接口：comment/list</h4>
+            <table>
+                <tr>
+                    <td style="width: 25%;"><strong>接口 URL</strong></td>
+                    <td><code>https://api.weixin.qq.com/cgi-bin/comment/list?access_token={ACCESS_TOKEN}</code></td>
+                </tr>
+                <tr>
+                    <td><strong>请求方法</strong></td>
+                    <td>POST</td>
+                </tr>
+                <tr>
+                    <td><strong>功能用途</strong></td>
+                    <td>传入群发 MsgID，分页拉取对应文章底部的留言数据。</td>
+                </tr>
+                <tr>
+                    <td><strong>官方链接</strong></td>
+                    <td><a href="https://developers.weixin.qq.com/doc/offiaccount/Comments_management/Image_Comments_Management_Interface.html" target="_blank">微信文档 · 留言管理接口</a></td>
+                </tr>
+            </table>
+
+            <h4>2. V1.1 作业模型扩展字段 (jobs.json)</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">新增字段</th>
+                        <th style="width: 20%;">类型</th>
+                        <th>职能与数据来源</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>comments_count</code></td>
+                        <td>int</td>
+                        <td>留言总数（由留言接口返回的 total 赋值）</td>
+                    </tr>
+                    <tr>
+                        <td><code>comments</code></td>
+                        <td>array</td>
+                        <td>评论详细数组（包括留言时间、用户名称、内容、精选状态）</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>3. V1.1 核心留言捕获流程时序</h4>
+            <div class="mermaid">
+                sequenceDiagram
+                    participant Web as 运营后台
+                    participant DB as 数据库
+                    participant WX as 微信服务器
+                    
+                    Web->>DB: 运营人工确认发布作业 (in_progress)
+                    DB-->>Web: 开启该 MsgID 的留言定时同步任务
+                    loop 每 15 分钟执行一次
+                        Web->>WX: 请求 comment/list (入参: MsgID + Index)
+                        WX-->>Web: 返回最新的评论数据与总数 total
+                        Web->>DB: 更新作业数据表中的 comments 及 comments_count
+                    end
+            </div>
+
+            <h4>4. V1.1 必需权限集要求</h4>
+            <ul>
+                <li><strong>留言与评论管理权限集</strong>（代开发授权扫码时需勾选）。</li>
+            </ul>
+
+            <h3 style="margin-top: 3rem;">10.2 V2.0 阶段（积分激励与 AI 自动审核）</h3>
+            <div class="callout">
+                <p><strong>1. 友福利积分商城对接 (10:1)</strong><br>
+                在网评员提交监控作业截图并通过审核后，系统调用友福利商城积分累加 API，按 10 积分折算 1 元的规则自动累加网评员的商城账户余额。</p>
+            </div>
+            <div class="callout">
+                <p><strong>2. HiAgent AI 截图与内容质检</strong><br>
+                网评员上传截图后，异步触发 AI 内容识别服务。通过文字 OCR 提取及图片相似度校验，自动判断是否与公众号文章相关，并在语义层面做合规风险评级，减少人工审核成本。</p>
+            </div>
+            <div class="callout">
+                <p><strong>3. 自动催收逻辑</strong><br>
+                当作业派发超过 2 小时未完成时，通过微信公众号模板消息向网评员发送催收通知。</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- 侧边栏平滑高亮 -->
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    const id = entry.target.getAttribute('id');
+                    const link = document.querySelector(`.nav-link[href="#${id}"]`);
+                    if (entry.intersectionRatio > 0.0) {
+                        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                        if (link) link.classList.add('active');
+                    }
+                });
+            }, { rootMargin: '-10% 0px -80% 0px' });
+
+            document.querySelectorAll('section').forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>

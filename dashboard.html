@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>护卫军运营后台 - 完整系统 Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#2563EB',
+                        primaryHover: '#1D4ED8',
+                        accent: '#F97316',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #F8FAFC; color: #1E293B; }
+        .glass-card { background: white; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.05); border-radius: 12px; }
+        
+        /* Sidebar Links */
+        .sidebar-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1.5rem; color: #94A3B8; transition: all 0.2s; font-weight: 500; cursor: pointer; }
+        .sidebar-link:hover { color: white; background-color: rgba(255, 255, 255, 0.05); }
+        .sidebar-link.active { color: white; background-color: #2563EB; border-left: 4px solid #60A5FA; }
+
+        /* Inner Tabs */
+        .tab-btn { border-bottom: 2px solid transparent; color: #64748B; transition: all 0.2s; padding-bottom: 0.5rem; margin-right: 1.5rem; cursor: pointer; display: inline-block; }
+        .tab-btn:hover { color: #1E293B; }
+        .tab-btn.active { color: #2563EB; border-bottom: 2px solid #2563EB; font-weight: 600; }
+        
+        /* Pages */
+        .page-section:not(.active) { display: none !important; }
+        .page-section.active { animation: fadeIn 0.3s ease-in-out forwards; }
+        .tab-content:not(.active) { display: none !important; }
+        .tab-content.active { animation: fadeIn 0.3s ease-in-out forwards; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Modals */
+        .modal-overlay { display: none; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); animation: fadeIn 0.2s ease-in-out; }
+        .modal-overlay.active { display: flex; }
+        
+        /* Badges */
+        .badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+        .badge-gray { background-color: #F1F5F9; color: #475569; border: 1px solid #E2E8F0; }
+        .badge-green { background-color: #ECFDF5; color: #10B981; border: 1px solid #A7F3D0; }
+        .badge-blue { background-color: #EFF6FF; color: #3B82F6; border: 1px solid #BFDBFE; }
+
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* Step Wizard Additions */
+        .job-step-panel:not(.active) { display: none; }
+        .job-step-panel.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden antialiased">
+
+    <!-- ================= Sidebar ================= -->
+    <aside class="w-64 bg-[#0F172A] flex flex-col shrink-0">
+        <div class="h-16 flex items-center px-6 border-b border-slate-800 shrink-0">
+            <svg class="w-6 h-6 text-primary mr-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+            <span class="text-white font-bold text-lg tracking-wide">护卫军平台</span>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-6 space-y-1">
+            <a class="sidebar-link active" onclick="switchPage('dashboard', '数据大屏概览')" data-page="dashboard">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                数据大屏
+            </a>
+            <a class="sidebar-link" onclick="switchPage('wechat', '公众号管理')" data-page="wechat">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg>
+                公众号管理
+            </a>
+            <a class="sidebar-link" onclick="switchPage('jobs', '作业管理')" data-page="jobs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                作业管理
+            </a>
+            <a class="sidebar-link" onclick="switchPage('audit', '任务审核')" data-page="audit">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                任务审核
+            </a>
+            <a class="sidebar-link" onclick="switchPage('users', '用户与权限')" data-page="users">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                用户与权限
+            </a>
+        </nav>
+    </aside>
+
+    <!-- ================= Main Content ================= -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-50">
+        <!-- Header -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0">
+            <h1 id="topBarTitle" class="text-xl font-bold text-slate-800">数据大屏概览</h1>
+            <div class="flex items-center gap-4">
+                <div class="w-8 h-8 bg-slate-200 rounded-full overflow-hidden">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=2563EB&color=fff" alt="Avatar">
+                </div>
+                <span class="text-sm font-medium text-slate-600">超级管理员</span>
+            </div>
+        </header>
+
+        <!-- Dynamic Pages -->
+        <div class="flex-1 overflow-y-auto p-8 relative">
+
+            <!-- 1. Dashboard (Placeholder) -->
+            <div id="page-dashboard" class="page-section active h-full flex flex-col items-center justify-center text-slate-400">
+                <svg class="w-24 h-24 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                <h2 class="text-xl font-bold mb-2">数据大屏及数据汇兑监控台</h2>
+                <p>建设中模块占位</p>
+            </div>
+
+            <!-- 2. Wechat Management -->
+            <div id="page-wechat" class="page-section">
+                <!-- Inner Tabs -->
+                <div class="flex border-b border-slate-200 mb-8">
+                    <a class="tab-btn active" onclick="switchInnerTab('wechat', 'wechat-auth')" data-tab="wechat-auth">授权账号管理</a>
+                    <a class="tab-btn" onclick="switchInnerTab('wechat', 'wechat-articles')" data-tab="wechat-articles">已群发文章池</a>
+                </div>
+
+                <!-- 2.1 Auth Management -->
+                <div id="tab-wechat-auth" class="tab-content active">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-lg font-bold text-slate-800">已授权的主体矩阵</h2>
+                        <button onclick="openModal('authModal')" class="bg-primary hover:bg-primaryHover text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors shadow-sm flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            新增扫码授权
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="authAccountList">
+                        <div class="glass-card p-6 flex flex-col">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold text-lg shrink-0 border border-green-200">
+                                        东风
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-slate-800 text-base">东风汽车官方</h3>
+                                        <span class="text-xs text-green-600 font-medium bg-green-50 px-2 py-0.5 rounded-full border border-green-100">正常监听中</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-auto pt-4 border-t border-slate-100 text-xs text-slate-500 flex justify-between">
+                                <span>授权时间: 2026-05-10</span>
+                                <span>归属: 集团本部</span>
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-6 border-dashed border-2 border-slate-300 hover:border-primary bg-slate-50/50 flex flex-col items-center justify-center cursor-pointer transition-colors" onclick="openModal('authModal')">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 text-primary flex items-center justify-center mb-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            </div>
+                            <span class="font-medium text-slate-600">接入更多矩阵账号</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2.2 Articles Pool -->
+                <div id="tab-wechat-articles" class="tab-content">
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex gap-2">
+                            <select id="articleFilter" onchange="filterArticles()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                <option value="all">全网文章状态</option>
+                                <option value="unlinked">仅看未关联文章</option>
+                                <option value="linked">仅看已关联作业</option>
+                            </select>
+                        </div>
+                        <button onclick="refreshArticles()" class="text-slate-500 hover:text-primary transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        </button>
+                    </div>
+
+                    <div class="space-y-4" id="articleListContainer">
+                        <div class="glass-card p-5 flex gap-5 items-center transition-all hover:shadow-md article-item" data-status="unlinked" data-id="art1" data-title="东风汽车2026战略发布：向新而行" data-brand="东风汽车" data-url="https://mp.weixin.qq.com/s/sample1">
+                            <div class="w-32 h-20 bg-slate-200 rounded-lg overflow-hidden shrink-0">
+                                <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=200" class="w-full h-full object-cover" alt="cover">
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-1">
+                                    <span class="badge badge-gray">未关联作业</span>
+                                    <span class="text-xs text-slate-500">东风汽车官方 · 10分钟前群发</span>
+                                </div>
+                                <h3 class="font-bold text-slate-800 text-lg mb-1">东风汽车2026战略发布：向新而行</h3>
+                                <p class="text-sm text-slate-500 line-clamp-2">东风汽车今日在武汉发布最新战略，计划在2026年前实现全系车型电动化...</p>
+                            </div>
+                            <div class="shrink-0 pl-4 border-l border-slate-100 flex flex-col items-end gap-2">
+                                <button class="bg-primary hover:bg-primaryHover text-white px-5 py-2 rounded-lg font-medium text-sm transition-colors shadow-sm" onclick="generateJobFromArticle('东风汽车', '东风汽车2026战略发布：向新而行', 'https://mp.weixin.qq.com/s/sample1')">
+                                    生成推送作业
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-5 flex gap-5 items-center bg-slate-50/50 article-item" data-status="linked">
+                            <div class="w-32 h-20 bg-slate-200 rounded-lg overflow-hidden shrink-0 opacity-80">
+                                <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=200" class="w-full h-full object-cover" alt="cover">
+                            </div>
+                            <div class="flex-1 opacity-80">
+                                <div class="flex items-center gap-3 mb-1">
+                                    <span class="badge badge-blue">已关联作业</span>
+                                    <span class="text-xs text-slate-500">东风日产 · 2小时前群发</span>
+                                </div>
+                                <h3 class="font-bold text-slate-600 text-lg mb-1">全新一代天籁：智领未来，舒适进阶</h3>
+                                <p class="text-sm text-slate-500 line-clamp-2">日产智联2.0系统加持，全面提升智能驾驶体验...</p>
+                            </div>
+                            <div class="shrink-0 pl-4 border-l border-slate-100 flex flex-col items-end gap-2">
+                                <span class="text-xs text-slate-500">关联任务: Task-10029</span>
+                                <button class="text-primary hover:text-primaryHover text-sm font-medium bg-blue-50 px-4 py-2 rounded-lg" onclick="switchPage('jobs', '作业管理')">
+                                    查看作业看板
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Job Management Page -->
+            <div id="page-jobs" class="page-section">
+                <!-- Inner Tabs -->
+                <div class="flex border-b border-slate-200 mb-8">
+                    <a class="tab-btn active" onclick="switchInnerTab('jobs', 'jobs-list')" data-tab="jobs-list">作业看板</a>
+                    <a class="tab-btn" onclick="switchInnerTab('jobs', 'jobs-create')" data-tab="jobs-create" id="tab-btn-jobs-create">新建作业 (向导化)</a>
+                </div>
+
+                <!-- 3.1 Jobs List -->
+                <div id="tab-jobs-list" class="tab-content active">
+                    <!-- Filter bar (simulated) -->
+                    <div class="px-6 py-4 bg-white rounded-t-xl border border-b-0 border-slate-200 mb-0 flex flex-wrap gap-4">
+                        <input type="text" placeholder="作业ID/名称" class="border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 w-48">
+                        <select class="border border-slate-300 rounded px-3 py-2 text-sm outline-none w-32"><option>类型</option></select>
+                        <select class="border border-slate-300 rounded px-3 py-2 text-sm outline-none w-32"><option>状态</option></select>
+                        <button class="bg-blue-600 text-white px-5 py-2 rounded text-sm font-bold">查询</button>
+                    </div>
+
+                    <div class="glass-card overflow-hidden rounded-t-none">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-slate-800 border-b border-slate-200 text-xs">
+                                <tr>
+                                    <th class="px-6 py-4 font-semibold">作业ID</th>
+                                    <th class="px-6 py-4 font-semibold">作业名称</th>
+                                    <th class="px-6 py-4 font-semibold">类型</th>
+                                    <th class="px-6 py-4 font-semibold">状态</th>
+                                    <th class="px-6 py-4 font-semibold text-right">推送人数</th>
+                                    <th class="px-6 py-4 font-semibold text-right">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100" id="jobsTableBody">
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4 font-mono text-slate-500">#10029</td>
+                                    <td class="px-6 py-4 font-medium text-slate-800">转发：全新一代天籁上市</td>
+                                    <td class="px-6 py-4 text-xs">普通作业</td>
+                                    <td class="px-6 py-4"><span class="text-accent font-medium text-xs">进行中</span></td>
+                                    <td class="px-6 py-4 text-right font-bold text-indigo-600">500</td>
+                                    <td class="px-6 py-4 text-right">
+                                        <a href="#" class="text-primary hover:underline font-medium">详情</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 3.2 Create Job Form (4-Step Wizard) -->
+                <div id="tab-jobs-create" class="tab-content">
+                    <div class="glass-card p-0 max-w-4xl mx-auto flex flex-col min-h-[600px] overflow-hidden">
+                        
+                        <!-- Modal/Wizard Header -->
+                        <div class="p-6 border-b border-gray-100 bg-gray-50/50">
+                            <h3 class="text-lg font-black text-slate-800 mb-6">新建推送作业</h3>
+                            
+                            <!-- Steps Indicator -->
+                            <div class="flex items-center justify-between px-10 relative">
+                                <div class="absolute top-1/2 left-20 right-20 h-0.5 bg-gray-200 -translate-y-1/2 z-0"></div>
+                                <div class="relative z-10 flex flex-col items-center gap-2">
+                                    <div id="step-circle-1" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 bg-blue-600 text-white ring-4 ring-blue-100">1</div>
+                                    <span id="step-label-1" class="text-[11px] font-bold text-blue-600">基础信息</span>
+                                </div>
+                                <div class="relative z-10 flex flex-col items-center gap-2">
+                                    <div id="step-circle-2" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 bg-gray-100 text-gray-400">2</div>
+                                    <span id="step-label-2" class="text-[11px] font-bold text-gray-400">目标人群</span>
+                                </div>
+                                <div class="relative z-10 flex flex-col items-center gap-2">
+                                    <div id="step-circle-3" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 bg-gray-100 text-gray-400">3</div>
+                                    <span id="step-label-3" class="text-[11px] font-bold text-gray-400">内容设置</span>
+                                </div>
+                                <div class="relative z-10 flex flex-col items-center gap-2">
+                                    <div id="step-circle-4" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 bg-gray-100 text-gray-400">4</div>
+                                    <span id="step-label-4" class="text-[11px] font-bold text-gray-400">发布配置</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Wizard Body -->
+                        <div class="flex-1 p-8 bg-white overflow-y-auto">
+                            
+                            <!-- Step 1: Basic Info -->
+                            <div id="job-step-1" class="job-step-panel active space-y-6">
+                                <div class="grid grid-cols-2 gap-6">
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-black text-slate-700 uppercase tracking-wider">作业名称 <span class="text-red-500">*</span></label>
+                                        <input type="text" id="formJobName" class="w-full border border-gray-200 rounded-lg p-3 text-sm focus:border-blue-500 outline-none bg-gray-50/30" placeholder="例如：转发推广 - 秋季品牌大促">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-black text-slate-700 uppercase tracking-wider">作业类型 <span class="text-red-500">*</span></label>
+                                        <select id="formJobType" onchange="handleJobTypeChange()" class="w-full border border-gray-200 rounded-lg p-3 text-sm focus:border-blue-500 outline-none bg-gray-50/30">
+                                            <option value="custom">普通发文任务</option>
+                                            <option value="wechat">公众号文章任务</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-6">
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-black text-slate-700 uppercase tracking-wider">归属品牌 <span class="text-red-500">*</span></label>
+                                        <select id="formBrand" onchange="handleJobTypeChange()" class="w-full border border-gray-200 rounded-lg p-3 text-sm focus:border-blue-500 outline-none bg-gray-50/30">
+                                            <option value="">请选择归属品牌...</option>
+                                            <option value="东风汽车">东风汽车（集团）</option>
+                                            <option value="东风日产">东风日产</option>
+                                            <option value="岚图汽车">岚图汽车</option>
+                                            <option value="东风本田">东风本田</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-black text-slate-700 uppercase tracking-wider">作业时间 (开始) <span class="text-red-500">*</span></label>
+                                        <input type="datetime-local" class="w-full border border-gray-200 rounded-lg p-3 text-sm focus:border-blue-500 outline-none bg-gray-50/30">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 2: Target Audience -->
+                            <div id="job-step-2" class="job-step-panel space-y-6">
+                                <div class="p-8 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400">
+                                    <svg class="w-16 h-16 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                                    <p class="text-sm font-bold">目标人群选择模块 (已按默认全量网评员载入)</p>
+                                    <p class="text-xs mt-2">包含：子品牌标签筛选、地区筛选、历史活跃度筛选等</p>
+                                </div>
+                                <div class="bg-blue-50 p-4 rounded-xl flex items-center justify-between border border-blue-100">
+                                    <span class="text-sm font-bold text-blue-800">预估覆盖人数</span>
+                                    <span class="text-xl font-black text-blue-600">1,500 人</span>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Content Setup -->
+                            <div id="job-step-3" class="job-step-panel space-y-6">
+                                <!-- Standard Content Section -->
+                                <div id="standardContentPanel">
+                                    <div class="space-y-2 mb-6">
+                                        <label class="text-xs font-black text-slate-700 uppercase tracking-wider">作业描述/指令</label>
+                                        <textarea class="w-full border border-gray-200 rounded-lg p-3 text-sm focus:border-blue-500 outline-none bg-gray-50/30 h-32" placeholder="请输入发文或互动指引..."></textarea>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-black text-slate-700 uppercase tracking-wider">上传素材</label>
+                                        <div class="border-2 border-dashed border-gray-200 rounded-lg py-10 flex flex-col items-center justify-center bg-gray-50/50 hover:bg-gray-50 cursor-pointer">
+                                            <svg class="w-8 h-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                            <span class="text-[12px] text-gray-400">点击或拖拽上传图片/视频</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Wechat Article Linkage Panel with Toggle & Modal Select -->
+                                <div id="formWechatPanel" class="hidden bg-blue-50/50 border border-blue-200 p-6 rounded-xl shadow-sm">
+                                    <div class="flex items-center justify-between mb-6 pb-4 border-b border-blue-100">
+                                        <div class="flex items-center gap-2">
+                                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                                            <h4 class="text-sm font-black text-slate-800">关联公众号文章</h4>
+                                        </div>
+                                        
+                                        <!-- Source Toggle -->
+                                        <div class="flex bg-white rounded-lg p-1 border border-blue-100 shadow-sm text-xs font-bold">
+                                            <button id="wechatModeSelect" class="px-4 py-1.5 rounded bg-blue-100 text-blue-700 transition-colors" onclick="toggleWechatMode('select')">从已群发中选取</button>
+                                            <button id="wechatModeManual" class="px-4 py-1.5 rounded text-slate-500 hover:text-slate-700 transition-colors" onclick="toggleWechatMode('manual')">手动填入链接</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="space-y-5">
+                                        <!-- Mode: Select from DB -->
+                                        <div id="wechatSelectBlock">
+                                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">选取已群发文章</label>
+                                            
+                                            <!-- The Modal Trigger Button -->
+                                            <button onclick="openArticleSelectModal()" id="btnOpenArticleModal" class="w-full bg-white border border-blue-200 hover:border-blue-400 text-blue-700 px-4 py-3 rounded-lg text-sm shadow-sm transition-all flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed group">
+                                                <span id="selectedArticleLabel" class="font-bold truncate pr-4 text-slate-600">请先在第一步选择归属品牌...</span>
+                                                <div class="shrink-0 flex items-center gap-1 text-blue-500 group-hover:text-blue-600">
+                                                    <span class="text-xs font-bold">点击选择</span>
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                                </div>
+                                            </button>
+                                            
+                                            <p class="text-[11px] text-blue-600 bg-blue-100/50 p-2 rounded border border-blue-100 mt-3">
+                                                提示：针对已授权账号，系统将弹出专属面板供您搜索或筛选<span class="font-bold">「已群发」且「未关联作业」</span>的最新文章。
+                                            </p>
+                                        </div>
+                                        
+                                        <!-- Mode: Manual / Output Link -->
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">公众号推文链接 <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                                    </svg>
+                                                </div>
+                                                <input type="text" id="formArticleLink" placeholder="例如：https://mp.weixin.qq.com/s/..." class="w-full pl-10 border border-slate-200 rounded-lg p-3 text-sm text-slate-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 4: Publish Config -->
+                            <div id="job-step-4" class="job-step-panel space-y-6">
+                                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                                    <h4 class="text-sm font-black text-slate-800 mb-4 flex items-center gap-2">
+                                        <div class="w-1.5 h-4 bg-blue-600 rounded-full"></div>
+                                        发布时间与额度确认
+                                    </h4>
+                                    <p class="text-xs text-slate-500 mb-4">当前系统将根据选择的人群及时间，自动扣减该品牌的通知额度池。</p>
+                                    
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="space-y-2">
+                                            <label class="text-xs font-black text-slate-700 uppercase tracking-wider">审核方式</label>
+                                            <select class="w-full border border-gray-200 rounded-lg p-3 text-sm focus:border-blue-500 outline-none bg-white">
+                                                <option>HiAgent AI 自动审核</option>
+                                                <option>纯人工抽检</option>
+                                            </select>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <label class="text-xs font-black text-slate-700 uppercase tracking-wider">催收策略</label>
+                                            <select class="w-full border border-gray-200 rounded-lg p-3 text-sm focus:border-blue-500 outline-none bg-white">
+                                                <option>开启超时自动催收</option>
+                                                <option>不催收</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                        <!-- Wizard Footer -->
+                        <div class="p-6 border-t border-gray-100 bg-gray-50 flex justify-between items-center mt-auto">
+                            <button id="btnJobPrev" class="px-6 py-2.5 rounded-xl font-bold border border-gray-300 text-gray-600 hover:bg-white transition-colors invisible" onclick="changeJobStep(-1)">上一步</button>
+                            
+                            <div class="flex gap-3">
+                                <button class="px-6 py-2.5 rounded-xl font-bold text-gray-400 hover:text-gray-600" onclick="switchInnerTab('jobs', 'jobs-list')">取消</button>
+                                <button id="btnJobNext" class="px-8 py-2.5 rounded-xl bg-blue-600 text-white font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95" onclick="changeJobStep(1)">下一步</button>
+                                <button id="btnJobSubmit" class="hidden px-8 py-2.5 rounded-xl bg-green-600 text-white font-black shadow-lg shadow-green-200 hover:bg-green-700 transition-all active:scale-95 flex items-center gap-2" onclick="submitNewJob()">
+                                    发布作业
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 4. Other Placeholder Pages -->
+            <div id="page-audit" class="page-section h-full flex flex-col items-center justify-center text-slate-400">
+                <p>任务审核模块</p>
+            </div>
+            <div id="page-users" class="page-section h-full flex flex-col items-center justify-center text-slate-400">
+                <p>用户与权限模块</p>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ================= Modals ================= -->
+    
+    <!-- Auth Modal -->
+    <div id="authModal" class="fixed inset-0 modal-overlay z-50 items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden" onclick="event.stopPropagation()">
+            <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-lg text-slate-800">接入新公众号</h3>
+                <button onclick="closeModal('authModal')" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <!-- Data Inputs before scanning -->
+                <div class="space-y-4 mb-6 pb-6 border-b border-slate-100">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">归属品牌矩阵 <span class="text-red-500">*</span></label>
+                        <select id="authBrandInput" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                            <option value="东风汽车">东风汽车（集团）</option>
+                            <option value="东风日产">东风日产</option>
+                            <option value="岚图汽车">岚图汽车</option>
+                            <option value="东风本田">东风本田</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">公众号主体名称 <span class="text-red-500">*</span></label>
+                        <input type="text" id="authNameInput" placeholder="输入要绑定的公众号全称" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                        <p class="text-xs text-slate-500 mt-1">方便您扫码时核对公众号主体</p>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <p class="text-xs text-slate-500 mb-4">请使用目标公众号的管理员微信扫码授权<br>需勾选「发布能力」与「留言管理」权限</p>
+                    <div class="w-40 h-40 mx-auto bg-slate-100 rounded-xl border border-slate-200 mb-6 flex flex-col items-center justify-center p-2">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https://huweijun.com/auth" class="w-full h-full opacity-90 mix-blend-multiply" alt="QR">
+                    </div>
+                    <button class="bg-primary hover:bg-primaryHover text-white w-full py-2.5 rounded-lg font-medium shadow-sm transition-colors text-sm" onclick="simulateAuthSuccess()">
+                        模拟扫码授权完成
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Article Selection Modal -->
+    <div id="articleSelectModal" class="fixed inset-0 modal-overlay z-50 items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh] border border-slate-100" onclick="event.stopPropagation()">
+            <!-- Header -->
+            <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    选择已群发文章
+                </h3>
+                <button onclick="closeModal('articleSelectModal')" class="text-slate-400 hover:bg-slate-200 p-1 rounded transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="p-5 border-b border-slate-100 bg-white shrink-0">
+                <div class="relative">
+                    <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" id="articleSearchInput" oninput="filterArticleModalList()" placeholder="搜索文章标题..." class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-slate-50 transition-all">
+                </div>
+            </div>
+
+            <!-- List -->
+            <div class="flex-1 overflow-y-auto p-5 bg-slate-50" id="articleModalList">
+                <!-- Items populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        // Data Mock for Article Linkage
+        const mockUnlinkedArticles = [
+            { id: 'art1', brand: '东风汽车', title: '东风汽车2026战略发布：向新而行', url: 'https://mp.weixin.qq.com/s/sample1' },
+            { id: 'art2', brand: '东风日产', title: '探陆 PATHFINDER 震撼预售', url: 'https://mp.weixin.qq.com/s/sample2' },
+            { id: 'art3', brand: '东风日产', title: '限时回馈，购车立享万元补贴', url: 'https://mp.weixin.qq.com/s/sample3' },
+            { id: 'art4', brand: '岚图汽车', title: '岚图追光PHEV：全方位舒适体验', url: 'https://mp.weixin.qq.com/s/sample4' },
+            { id: 'art5', brand: '东风汽车', title: '科技跃迁，东风商用车发布新一代架构', url: 'https://mp.weixin.qq.com/s/sample5' },
+            { id: 'art6', brand: '东风汽车', title: '一文读懂：东风新能源全家桶', url: 'https://mp.weixin.qq.com/s/sample6' }
+        ];
+
+        // 1. Navigation & Routing
+        function switchPage(pageId, title) {
+            document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.sidebar-link[data-page="${pageId}"]`).classList.add('active');
+            document.getElementById('topBarTitle').textContent = title;
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`page-${pageId}`).classList.add('active');
+        }
+
+        function switchInnerTab(pagePrefix, tabId) {
+            const container = document.getElementById(`page-${pagePrefix}`);
+            container.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            container.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+            container.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        }
+
+        // 2. Wizard State Logic
+        let currentJobStep = 1;
+        const totalJobSteps = 4;
+
+        function changeJobStep(dir) {
+            let newStep = currentJobStep + dir;
+            if(newStep < 1 || newStep > totalJobSteps) return;
+            
+            // Validate before next step
+            if(dir === 1 && currentJobStep === 1) {
+                const name = document.getElementById('formJobName').value;
+                const brand = document.getElementById('formBrand').value;
+                if(!name) { alert("请填写作业名称！"); return; }
+                if(!brand) { alert("请选择归属品牌！"); return; }
+                
+                // Force update UI state based on step 1 selections
+                handleJobTypeChange();
+            }
+
+            // Validate Link in step 3
+            if(dir === 1 && currentJobStep === 3) {
+                const jobType = document.getElementById('formJobType').value;
+                if(jobType === 'wechat') {
+                    const link = document.getElementById('formArticleLink').value;
+                    if(!link) { alert("请提供有效的公众号推文链接！"); return; }
+                }
+            }
+
+            currentJobStep = newStep;
+            updateWizardUI();
+        }
+
+        function updateWizardUI() {
+            // Update panels
+            document.querySelectorAll('.job-step-panel').forEach(el => el.classList.remove('active'));
+            document.getElementById(`job-step-${currentJobStep}`).classList.add('active');
+
+            // Update indicators
+            for(let i=1; i<=totalJobSteps; i++) {
+                const circle = document.getElementById(`step-circle-${i}`);
+                const label = document.getElementById(`step-label-${i}`);
+                
+                if(i <= currentJobStep) {
+                    circle.className = 'w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 bg-blue-600 text-white ring-4 ring-blue-100';
+                    label.className = 'text-[11px] font-bold text-blue-600';
+                } else {
+                    circle.className = 'w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 bg-gray-100 text-gray-400';
+                    label.className = 'text-[11px] font-bold text-gray-400';
+                }
+            }
+
+            // Update Buttons
+            const btnPrev = document.getElementById('btnJobPrev');
+            const btnNext = document.getElementById('btnJobNext');
+            const btnSubmit = document.getElementById('btnJobSubmit');
+
+            if(currentJobStep === 1) {
+                btnPrev.classList.remove('visible');
+                btnPrev.classList.add('invisible');
+            } else {
+                btnPrev.classList.remove('invisible');
+                btnPrev.classList.add('visible');
+            }
+
+            if(currentJobStep === totalJobSteps) {
+                btnNext.classList.add('hidden');
+                btnSubmit.classList.remove('hidden');
+            } else {
+                btnNext.classList.remove('hidden');
+                btnSubmit.classList.add('hidden');
+            }
+        }
+
+        // 3. Wechat Article Linkage in Step 1 -> Step 3
+        let wechatInputMode = 'select'; // 'select' or 'manual'
+
+        function toggleWechatMode(mode) {
+            wechatInputMode = mode;
+            const btnSelect = document.getElementById('wechatModeSelect');
+            const btnManual = document.getElementById('wechatModeManual');
+            const selectBlock = document.getElementById('wechatSelectBlock');
+            const linkInput = document.getElementById('formArticleLink');
+
+            if(mode === 'select') {
+                btnSelect.className = 'px-4 py-1.5 rounded bg-blue-100 text-blue-700 transition-colors';
+                btnManual.className = 'px-4 py-1.5 rounded text-slate-500 hover:text-slate-700 transition-colors bg-transparent';
+                selectBlock.classList.remove('hidden');
+                linkInput.readOnly = true;
+                linkInput.classList.add('bg-gray-50');
+            } else {
+                btnSelect.className = 'px-4 py-1.5 rounded text-slate-500 hover:text-slate-700 transition-colors bg-transparent';
+                btnManual.className = 'px-4 py-1.5 rounded bg-blue-100 text-blue-700 transition-colors';
+                selectBlock.classList.add('hidden');
+                linkInput.readOnly = false;
+                linkInput.classList.remove('bg-gray-50');
+                linkInput.value = ''; // Reset link when switching to manual
+                linkInput.focus();
+            }
+        }
+
+        function handleJobTypeChange() {
+            const brand = document.getElementById('formBrand').value;
+            const jobType = document.getElementById('formJobType').value;
+            
+            const wechatPanel = document.getElementById('formWechatPanel');
+            const standardPanel = document.getElementById('standardContentPanel');
+            const btnOpenModal = document.getElementById('btnOpenArticleModal');
+            const lblSelected = document.getElementById('selectedArticleLabel');
+
+            if (jobType === 'wechat') {
+                wechatPanel.classList.remove('hidden');
+                standardPanel.classList.add('hidden');
+                
+                if (!brand) {
+                    btnOpenModal.disabled = true;
+                    lblSelected.textContent = '请先在第一步选择归属品牌...';
+                    lblSelected.classList.add('text-slate-400');
+                    lblSelected.classList.remove('text-slate-800');
+                } else {
+                    btnOpenModal.disabled = false;
+                    const filtered = mockUnlinkedArticles.filter(a => a.brand === brand);
+                    lblSelected.textContent = filtered.length > 0 ? '点击选择该品牌下的群发文章' : '该品牌暂无可关联的群发文章';
+                    lblSelected.className = filtered.length > 0 ? 'font-bold truncate pr-4 text-blue-600' : 'font-bold truncate pr-4 text-slate-400';
+                }
+            } else {
+                wechatPanel.classList.add('hidden');
+                standardPanel.classList.remove('hidden');
+            }
+        }
+
+        // --- Article Select Modal Logic ---
+        let currentModalArticles = [];
+
+        function openArticleSelectModal() {
+            const brand = document.getElementById('formBrand').value;
+            if(!brand) return;
+            
+            currentModalArticles = mockUnlinkedArticles.filter(a => a.brand === brand);
+            document.getElementById('articleSearchInput').value = '';
+            renderArticleModalList(currentModalArticles);
+            openModal('articleSelectModal');
+            
+            // Auto focus search
+            setTimeout(() => document.getElementById('articleSearchInput').focus(), 100);
+        }
+
+        function filterArticleModalList() {
+            const query = document.getElementById('articleSearchInput').value.toLowerCase();
+            const filtered = currentModalArticles.filter(a => a.title.toLowerCase().includes(query));
+            renderArticleModalList(filtered);
+        }
+
+        function renderArticleModalList(list) {
+            const container = document.getElementById('articleModalList');
+            if(list.length === 0) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-16 text-slate-400">
+                        <svg class="w-12 h-12 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="text-sm">暂无匹配的文章，请尝试更换关键词</span>
+                    </div>`;
+                return;
+            }
+            
+            container.innerHTML = list.map(art => `
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-3 cursor-pointer hover:border-blue-400 hover:shadow-md transition-all flex items-center justify-between group" onclick="confirmArticleSelection('${art.url}', '${art.title}')">
+                    <div class="flex items-center gap-4">
+                        <div class="w-[84px] h-[60px] bg-slate-100 rounded-lg flex-shrink-0 overflow-hidden border border-slate-100">
+                            <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=200" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-800 text-[15px] mb-1.5 group-hover:text-blue-600 transition-colors">${art.title}</div>
+                            <div class="text-xs text-slate-400 flex items-center gap-3">
+                                <span><strong class="text-slate-500 font-medium">群发时间:</strong> 刚刚</span>
+                                <span><strong class="text-slate-500 font-medium">预估阅读:</strong> 1200+</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity">选中</button>
+                </div>
+            `).join('');
+        }
+
+        function confirmArticleSelection(url, title) {
+            document.getElementById('formArticleLink').value = url;
+            
+            const lbl = document.getElementById('selectedArticleLabel');
+            lbl.textContent = `已选: ${title}`;
+            lbl.className = 'font-bold truncate pr-4 text-slate-800';
+            
+            closeModal('articleSelectModal');
+        }
+
+        // --- Cross Module Jump Logic ---
+        function generateJobFromArticle(brand, title, url) {
+            // Jump to New Job Tab
+            switchPage('jobs', '作业管理');
+            switchInnerTab('jobs', 'jobs-create');
+
+            // Prefill Step 1
+            document.getElementById('formJobName').value = `转发推广：${title}`;
+            document.getElementById('formBrand').value = brand;
+            document.getElementById('formJobType').value = 'wechat';
+            
+            toggleWechatMode('select');
+            handleJobTypeChange();
+
+            // Directly jump to Step 3 to show the user the prefilled article!
+            currentJobStep = 3;
+            updateWizardUI();
+
+            // Pre-select the article
+            setTimeout(() => {
+                document.getElementById('formArticleLink').value = url;
+                const lbl = document.getElementById('selectedArticleLabel');
+                lbl.textContent = `已选: ${title}`;
+                lbl.className = 'font-bold truncate pr-4 text-slate-800';
+                
+                // Show a brief toast/alert to explain the magic jump
+                alert('系统已为您自动填入基础信息，并关联好文章。\\n\\n已跳至第 3 步（内容设置），请继续完善其它配置。');
+            }, 100);
+        }
+
+        function submitNewJob() {
+            const jobName = document.getElementById('formJobName').value;
+            
+            // Go back to list
+            switchInnerTab('jobs', 'jobs-list');
+            
+            // Add row
+            const tbody = document.getElementById('jobsTableBody');
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-50 transition-colors border-t border-slate-100';
+            tr.innerHTML = `
+                <td class="px-6 py-4 font-mono text-slate-500">#10030</td>
+                <td class="px-6 py-4 font-medium text-slate-800">${jobName}</td>
+                <td class="px-6 py-4 text-xs">运营新建</td>
+                <td class="px-6 py-4"><span class="text-slate-500 font-medium text-xs">刚刚发布</span></td>
+                <td class="px-6 py-4 text-right font-bold text-indigo-600">1,500</td>
+                <td class="px-6 py-4 text-right">
+                    <a href="#" class="text-primary hover:underline font-medium">详情</a>
+                </td>
+            `;
+            tbody.insertBefore(tr, tbody.firstChild);
+
+            // Clean up
+            document.getElementById('formJobName').value = '';
+            document.getElementById('formArticleLink').value = '';
+            currentJobStep = 1;
+            updateWizardUI();
+
+            alert('作业发布成功！');
+        }
+
+        // 4. Modals and Auth Logic
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if(e.target === this) this.classList.remove('active');
+            });
+        });
+
+        function simulateAuthSuccess() {
+            const brand = document.getElementById('authBrandInput').value;
+            const accountName = document.getElementById('authNameInput').value;
+            
+            if(!accountName) { alert("请输入公众号主体名称！"); return; }
+
+            closeModal('authModal');
+            
+            const list = document.getElementById('authAccountList');
+            const newCard = document.createElement('div');
+            newCard.className = 'glass-card p-6 flex flex-col animation-fadeIn';
+            newCard.innerHTML = `
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg shrink-0 border border-blue-200">
+                            ${accountName.substring(0,2)}
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">${accountName}</h3>
+                            <span class="text-xs text-green-600 font-medium bg-green-50 px-2 py-0.5 rounded-full border border-green-100">正常监听中</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-auto pt-4 border-t border-slate-100 text-xs text-slate-500 flex justify-between">
+                    <span>授权时间: 刚刚</span>
+                    <span>归属: ${brand}</span>
+                </div>
+            `;
+            list.insertBefore(newCard, list.lastElementChild);
+            document.getElementById('authNameInput').value = '';
+            alert(`【${accountName}】授权成功！`);
+        }
+
+        function filterArticles() {
+            const val = document.getElementById('articleFilter').value;
+            const items = document.querySelectorAll('.article-item');
+            items.forEach(item => {
+                if (val === 'all' || item.dataset.status === val) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+        function refreshArticles() {
+            const icon = event.currentTarget.querySelector('svg');
+            icon.classList.add('animate-spin');
+            setTimeout(() => { icon.classList.remove('animate-spin'); }, 500);
+        }
+    </script>
+</body>
+</html>
