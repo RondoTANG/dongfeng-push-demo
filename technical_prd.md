@@ -24,11 +24,114 @@
 | 超级管理员 | 护卫军项目组 | 管理品牌大盘，查看已授权账号及捕获到的待审核作业。 |
 | 品牌运营 | 东风汽车各品牌市场部 | 新增扫码授权公众号、查看本品牌捕获的文章作业列表。 |
 
+### 1.3 版本迭代规划
+
+为降低交付风险，本期项目将采取**渐进式迭代**。技术团队在第一阶段（V1.0）应聚焦于完成公众号底层授权机制及群发内容的自动实时感知与抓取：
+
+*   **V1.0（本期核心：授权接入与内容感知）**
+    *   **代公众号授权绑定**：通过第三方开放平台代公众号发起扫码授权，换取并持久化 `refresh_token`。
+    *   **授权凭证维护**：实现 `component_access_token` 和 `authorizer_access_token` 的自动刷新服务。
+    *   **事件网关接收**：部署 Webhook 接口接收 `MASSSENDJOBFINISH`（群发结束）推送，5 秒内幂等响应。
+    *   **URL 全局去重**：以 `ArticleUrl` 为排他性唯一约束进行全局去重。
+    *   **图文信息抓取**：对公开 `ArticleUrl` 发送轻量请求，通过正则匹配兼容解析提取标题、封面、摘要与发布时间。
+    *   **作业自动创建**：图文成功捕获后，在数据库自动生成 `status = pending_review` 的初始作业记录。
+
+*   **V1.1（下期演进：留言抓取与作业下发）**
+    *   **文章留言拉取**：依群发 `MsgID` 异步调用 `comment/list` 接口，拉取、精选并同步文章留言列表。
+    *   **作业分发管理**：运营在后台将作业指派给指定网评员，网评员在移动端接收作业并上传提交截图与链接。
+
+*   **V2.0（未来规划：积分激励与 AI 智能审核）**
+    *   **积分激励体系**：网评员完成作业后获得积分，数据按 10:1 与友福利商城 API 对账并同步兑换。
+    *   **AI 智能审核**：集成 HiAgent AI 模块，对网评员上传的截图与内容自动进行语义及合规审查。
+    *   **自动催收通知**：对超时未完成的作业向网评员发送催收提醒。
+
 ---
 
-## 2. 技术架构 (V1.0)
+## 2. 微信第三方平台前置开发准备 (V1.0 必需)
 
-### 2.1 架构图
+本系统需要实现对东风汽车集团旗下“多子品牌、多公众号的长期托管与代开发授权机制”，**绝对不能向各品牌公众号索要其本身的 AppID 与 AppSecret**（因这涉及极高安全合规风险且违反微信规范）。技术开发团队必须前置搭建并配置“微信第三方平台（开放平台服务商模式）”。
+
+### 2.1 为什么必须搭建第三方平台？
+* **合规与安全性**：子品牌公众号通过“扫码确认”将指定的接口权限集（如群发消息、留言管理）托管给本平台。平台通过微信下发的授权令牌进行代开发操作，无需知晓公众号本身的 Secret，符合安全审计要求。
+* **多公众号统一感知**：微信第三方平台允许配置统一的“消息与事件接收URL”。当任何已授权的子品牌公众号群发文章时，微信均会推送 `MASSSENDJOBFINISH` 到该统一地址，从而实现一个后台对所有品牌的全局感知。
+
+### 2.2 微信第三方平台搭建配置流程
+开发团队在编写任何业务代码前，必须首先完成微信官方的第三方平台注册、资质审核与核心配置，详见[官方文档：如何成为第三方平台](https://developers.weixin.qq.com/doc/oplatform/Third-party_Platforms/2.0/getting_started/how_to_be.html)。具体前置准备分为两部分：
+
+#### 2.2.1 账号与资质申请
+1. **资质认证**：注册微信开放平台账号，并完成**企业级开发者资质认证**（需企业主体营业执照，微信收取认证费 300 元/年）。
+2. **平台创建**：在开放平台管理中心创建**第三方平台**，选择**“平台型服务商”**类型（此类型才支持代公众号调用接口及批量化服务）。
+
+#### 2.2.2 核心开发参数配置表
+在第三方平台后台的“开发配置”中，技术团队必须前置配置以下关键参数：
+
+| 参数名称 | 配置值/规则 | 必要性 | 技术作用与要求 |
+| :--- | :--- | :--- | :--- |
+| **授权发起页域名** | 如 `admin.huweijun.com` | ✅ 必需 | 展示扫码授权二维码页面的所在域名，微信会校验来源域名安全性。 |
+| **授权事件接收URL** | 如 `https://api.huweijun.com/v1/wechat/component/events` | ✅ 必需 | 接收微信每 **10分钟** 推送一次的验证票据 `component_verify_ticket`，以及公众号授权成功/更新/取消的回调通知。 |
+| **消息与事件接收URL** | 如 `https://api.huweijun.com/v1/wechat/events/$APPID$` | ✅ 必需 | 统一接收已授权公众号收到的事件推送（如群发结束事件 `MASSSENDJOBFINISH`）。其中 `$APPID$` 为占位符，微信推送时会自动替换为对应公众号的 AppID。 |
+| **消息校验 Token** | 开发者自定义的字符串 | ✅ 必需 | 用于验证推送请求是否来自微信官方服务器，进行解密签名校验。 |
+| **消息加解密 Key** | 开发者生成的 EncodingAESKey (43位) | ✅ 必需 | 微信推送的所有 XML 报文均为加密格式，技术团队必须使用此 Key 和微信官方加解密 SDK 进行报文解密。 |
+| **授权测试公众号列表** | 被授权测试公众号的**原始 ID** (gh_xxx) | ✅ 必需 | **开发阶段核心防坑点**。在第三方平台未正式发布“全网发布”前，普通公众号扫码会报错。必须在此配置白名单，只有白名单内的测试公众号才能扫码测试。 |
+
+---
+
+### 2.3 微信代授权生命周期与核心阻塞任务 (P0 级别)
+这是整个 V1.0 系统的运行骨架，开发团队**必须优先打通以下步骤，尤其是 P0 阻塞性任务**：
+
+```mermaid
+sequenceDiagram
+    participant WX as 微信服务器
+    participant Server as 护卫军后端服务
+    participant Admin as 品牌运营管理员
+    participant PC as 授权前端页面
+
+    Note over WX, Server: 步骤1：P0 阻塞级任务 (验证票据监听)
+    loop 每10分钟推送
+        WX->>Server: 推送加密 component_verify_ticket (XML)
+        Server->>Server: 用 EncodingAESKey 解密并写入 Redis (长期覆盖)
+    end
+
+    Note over WX, Server: 步骤2：获取服务凭证与预授权码
+    Server->>WX: 用 Ticket + component_appid + secret 换取 component_access_token
+    WX-->>Server: 返回 component_access_token (2h有效)
+    Server->>WX: 用 token 获取 pre_auth_code (20min有效)
+    WX-->>Server: 返回 pre_auth_code
+
+    Note over Server, Admin: 步骤3：扫码授权并绑定
+    Admin->>PC: 点击“新增扫码授权”
+    PC->>PC: 引导跳转微信授权页 (带上 pre_auth_code 等参数)
+    Admin->>PC: 使用公众号管理员微信号扫码授权
+    PC->>Server: 授权成功，重定向回调并携带 authorization_code
+
+    Note over Server, WX: 步骤4：凭证置换与持久化
+    Server->>WX: 用 authorization_code 换取授权公众号信息
+    WX-->>Server: 返回 authorizer_appid + authorizer_refresh_token + authorizer_access_token
+    Server->>Server: 持久化 refresh_token 至 accounts.json (长期代开发凭证)
+```
+
+#### 2.3.1 核心阻塞点：验证票据 `component_verify_ticket` 监听
+* **为什么是 P0 阻塞任务？**
+  第三方开放平台没有可以直接调用获取 Token 的固定 API Secret。一切 API 访问的根源是 `component_access_token`，而换取它的前提是必须持有微信**每 10 分钟**向“授权事件接收URL”推送的最新 `component_verify_ticket`。
+* **技术避坑要点**：
+  1. **冷启动延迟**：首次在开放平台后台点击保存开发参数时，微信会在 10 分钟内发起第一次 Ticket 推送，此时网关必须已部署并正常工作，否则无法成功保存配置。
+  2. **高可用持久化**：Ticket 必须妥善持久化存储（推荐 Redis 或数据库，不推荐本地内存）。每次微信推送时均需用最新的 Ticket 覆盖旧值。若系统因网络波动、宕机等原因导致连续 20 分钟以上未更新 Ticket，平台凭证置换链条将彻底断裂，所有代开发接口均会报错。
+  3. **加解密算法**：收到的 Ticket 推送是密文 XML，必须使用对应语言的微信安全加解密库（`WXBizMsgCrypt`）进行解密并验签，签名不一致或解密失败的请求应直接拒绝。
+
+#### 2.3.2 令牌置换置信链 (TOKEN CHAIN)
+* **`component_verify_ticket`** (微信推送，每10分钟变化，必须保存)。
+* **`component_access_token`** (用 Ticket 换取，2小时有效，推荐设置 1小时50分 定时任务刷新，写入共享缓存)。
+* **`pre_auth_code`** (用组件 token 换取，20分钟有效，仅在引导扫码前临时生成)。
+* **`authorizer_refresh_token`** (扫码成功后换取，**长期有效**。用于在其对应的 `authorizer_access_token` 过期时自动刷新。一旦丢失或失效，必须让客户管理员重新扫码授权)。
+* **`authorizer_access_token`** (代表公众号调用 API 的直接令牌，2小时有效。系统必须后台自动轮询，使用对应的 `authorizer_refresh_token` 换取新令牌)。
+
+---
+
+---
+
+## 3. 技术架构 (V1.0)
+
+### 3.1 架构图
 
 ```mermaid
 graph LR
@@ -40,7 +143,7 @@ graph LR
     G["运营后台<br/>(index.html)"] -->|授权管理| H["授权账号库<br/>(accounts.json)"]
 ```
 
-### 2.2 核心架构思路
+### 3.2 核心架构思路
 
 系统采用**被动感知架构**：在微信第三方开放平台配置 Webhook 事件接收网关。微信服务器在群发完成后主动向我方推送 `MASSSENDJOBFINISH` 事件，处理引擎仅需轻量级 XML 解析即可完成新内容感知。
 
@@ -50,9 +153,9 @@ graph LR
 
 ---
 
-## 3. 微信接口对照表 (V1.0 范围)
+## 4. 微信接口对照表 (V1.0 范围)
 
-### 3.1 授权凭证管理 — 刷新 Access Token
+### 4.1 授权凭证管理 — 刷新 Access Token
 
 | 字段 | 值 |
 |------|-----|
@@ -79,7 +182,7 @@ graph LR
 
 ---
 
-### 3.2 群发事件接收 — MASSSENDJOBFINISH
+### 4.2 群发事件接收 — MASSSENDJOBFINISH
 
 | 字段 | 值 |
 |------|-----|
@@ -136,9 +239,9 @@ graph LR
 
 ---
 
-## 4. 数据模型 (V1.0 范围)
+## 5. 数据模型 (V1.0 范围)
 
-### 4.1 授权账号（accounts.json）
+### 5.1 授权账号（accounts.json）
 
 | 字段 | 类型 | 说明 | 示例 |
 |------|------|------|------|
@@ -150,7 +253,7 @@ graph LR
 
 存储文件：[accounts.json](file:///Users/RondoT/Documents/护卫军相关/公众号授权/accounts.json)
 
-### 4.2 监控作业（jobs.json — V1.0 精简版）
+### 5.2 监控作业（jobs.json — V1.0 精简版）
 
 | 字段 | 类型 | 说明 | 数据来源 |
 |------|------|------|----------|
@@ -166,7 +269,7 @@ graph LR
 
 ---
 
-## 5. 代码文件职责映射 (V1.0 范围)
+## 6. 代码文件职责映射 (V1.0 范围)
 
 | 文件 | 定位 | V1.0 核心职责 |
 |------|------|--------------|
@@ -176,9 +279,9 @@ graph LR
 
 ---
 
-## 6. 核心处理流程 (V1.0)
+## 7. 核心处理流程 (V1.0)
 
-### 6.1 公众号授权流程
+### 7.1 公众号授权流程
 
 ```mermaid
 sequenceDiagram
@@ -195,7 +298,7 @@ sequenceDiagram
     UI->>DB: 写入 {appid, original_id, nickname, refresh_token, authorized_at}
 ```
 
-### 6.2 群发感知 → 作业生成流程
+### 7.2 群发感知 → 作业生成流程
 
 ```mermaid
 sequenceDiagram
@@ -222,7 +325,7 @@ sequenceDiagram
 
 ---
 
-## 7. 开放平台权限集要求 (V1.0)
+## 8. 开放平台权限集要求 (V1.0)
 
 | 权限集 | 作用 | 必要性 |
 |--------|------|--------|
@@ -230,7 +333,7 @@ sequenceDiagram
 
 ---
 
-## 8. 接口调用链路速查 (V1.0)
+## 9. 接口调用链路速查 (V1.0)
 
 ```
 授权绑定：
@@ -248,6 +351,38 @@ sequenceDiagram
 详情抓取：
   HTTP GET ArticleUrl -> 正则提取 og 元数据及时间变量 ct -> 写入作业
 ```
+
+---
+
+## 10. 当前实现状态
+
+### 已完成（Demo 级别）
+
+- ✅ 微信 API 封装（Mock + 真实双模式）
+- ✅ 调度引擎（可运行）
+- ✅ 本地 JSON 存储
+- ✅ 运营后台 UI 完整原型（5 模块）
+- ✅ 授权管理 UI（扫码模拟 + 品牌归属）
+- ✅ 作业管理 UI（四步向导 + 文章关联）
+- ✅ 事件驱动方案演示沙盘
+- ✅ 积分页移动端原型
+
+### 待建设（生产化）
+
+| 模块 | 优先级 | 说明 | 规划版本 |
+|------|--------|------|---------|
+| **Webhook 事件网关** | P0 | 部署并运行接收微信 `MASSSENDJOBFINISH` 推送的 HTTP 网关服务 | **V1.0 (本期)** |
+| **XML 解析器** | P0 | 解析微信推送的 XML 报文，提取 `ArticleUrl` 和 `MsgID` | **V1.0 (本期)** |
+| **持久化数据库** | P0 | 将 JSON 文件数据结构重构并替换为 MySQL / PostgreSQL，设置唯一索引 | **V1.0 (本期)** |
+| **Token 管理服务** | P1 | `component_access_token` 定时刷新机制与多节点分布式缓存 | **V1.0 (本期)** |
+| **授权回调处理** | P1 | 接收第三方平台授权事件回调，自动写入 `accounts` 数据表 | **V1.0 (本期)** |
+| **评论数据抓取** | P1 | 基于群发 `MsgID` 异步调用 `comment/list` 接口并入库 | **V1.1** |
+| **数据大屏与统计** | P1 | 展现文章发布量、评论量、作业覆盖率、积分兑换排名等可视化看板 | **V1.1** |
+| **任务分发与审核模块** | P2 | 网评员接收任务、人工审核、作业状态流转状态机 | **V1.1** |
+| **AI 智能审核集成** | P2 | 接入 HiAgent AI 模块对网评员上传的内容及截图进行自动语义分析 | **V2.0** |
+| **积分商城系统对接** | P2 | 对接友福利商城 API，完成积分的核算、清算与 10:1 账户同步兑换 | **V2.0** |
+| **用户权限系统 (RBAC)** | P2 | 管理员、品牌运营、网评员三级角色权限控制 | **V2.0** |
+| **消息催收模块** | P3 | 对超时未完成或漏交的作业向网评员发送自动催告通知 | **V2.0** |
 
 ---
 ---
@@ -277,7 +412,7 @@ sequenceDiagram
 *   `comments_count`：int，评论总数。
 *   `comments`：array，包含每一条评论的 `content`（留言内容）和 `create_time`（留言时间戳）。
 
-### 3. V1.1 核心业务时序变更
+### 3. V1.1 核心留言捕获流程时序
 
 ```mermaid
 sequenceDiagram
@@ -285,12 +420,12 @@ sequenceDiagram
     participant DB as 数据库
     participant WX as 微信服务器
     
-    Web->>DB: 运营审核通过作业，状态 pending_review -> in_progress
-    DB-->>Web: 激活评论监控任务
-    loop 每隔 15 分钟
-        Web->>WX: 用 MsgID + Index 调用 comment/list 接口
-        WX-->>Web: 返回最新的评论列表及总数
-        Web->>DB: 更新 jobs.json 中的 comments 及 comments_count 字段
+    Web->>DB: 运营人工确认发布作业 (in_progress)
+    DB-->>Web: 开启该 MsgID 的留言定时同步任务
+    loop 每 15 分钟执行一次
+        Web->>WX: 请求 comment/list (入参: MsgID + Index)
+        WX-->>Web: 返回最新的评论数据与总数 total
+        Web->>DB: 更新作业数据表中的 comments 及 comments_count
     end
 ```
 
