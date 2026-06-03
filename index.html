@@ -122,65 +122,6 @@
             background: #ffffff;
         }
 
-        /* 移动端原型 Phone Mockup 样式 */
-        .mobile-wrapper {
-            width: 100%;
-            height: 100%;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            background: #f1f5f9;
-            box-sizing: border-box;
-            padding: 1.5rem 0;
-        }
-
-        .phone-simulator {
-            width: 375px;
-            height: 760px;
-            border: 12px solid #1e293b;
-            border-radius: 40px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
-            background: #ffffff;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* 手机刘海屏 */
-        .phone-simulator::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 150px;
-            height: 24px;
-            background: #1e293b;
-            border-bottom-left-radius: 18px;
-            border-bottom-right-radius: 18px;
-            z-index: 10000;
-        }
-
-        .phone-simulator iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* 手机底部的 Home 指示条 */
-        .phone-simulator::after {
-            content: '';
-            position: absolute;
-            bottom: 6px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 120px;
-            height: 4px;
-            background: #94a3b8;
-            border-radius: 2px;
-            z-index: 10000;
-        }
     </style>
 </head>
 <body>
@@ -201,9 +142,6 @@
             <button class="tab-btn" data-type="pc" data-src="dashboard.html" id="tab-dashboard">
                 💻 运营管理后台
             </button>
-            <button class="tab-btn" data-type="mobile" data-src="points-migration-ui.html" id="tab-mobile">
-                📱 移动端积分原型
-            </button>
         </div>
         <div style="font-size: 0.85rem; color: var(--text-secondary);">
             V1.0 Milestone
@@ -214,19 +152,10 @@
     <main class="viewport">
         <!-- PC端 iframe 容器 -->
         <iframe id="pc-frame" src="technical_prd.html"></iframe>
-        
-        <!-- 移动端 Phone 容器 -->
-        <div class="mobile-wrapper" id="mobile-container">
-            <div class="phone-simulator">
-                <iframe id="mobile-frame" src=""></iframe>
-            </div>
-        </div>
     </main>
 
     <script>
         const pcFrame = document.getElementById('pc-frame');
-        const mobileContainer = document.getElementById('mobile-container');
-        const mobileFrame = document.getElementById('mobile-frame');
         const tabButtons = document.querySelectorAll('.tab-btn');
 
         // Tab 点击处理
@@ -234,18 +163,8 @@
             tabButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            const type = btn.getAttribute('data-type');
             const src = btn.getAttribute('data-src');
-
-            if (type === 'pc') {
-                mobileContainer.style.display = 'none';
-                pcFrame.style.display = 'block';
-                pcFrame.src = src;
-            } else {
-                pcFrame.style.display = 'none';
-                mobileContainer.style.display = 'flex';
-                mobileFrame.src = src;
-            }
+            pcFrame.src = src;
             
             // 更新 URL Hash 方便一键分发
             const hash = btn.id.replace('tab-', '');
@@ -272,3 +191,4 @@
     </script>
 </body>
 </html>
+
