@@ -1,0 +1,8 @@
+# Ignore everything
+*
+
+# But not these directories
+!02_作业与任务引擎/
+!02_作业与任务引擎/公众号授权/
+!02_作业与任务引擎/公众号授权/**
+!.gitignore

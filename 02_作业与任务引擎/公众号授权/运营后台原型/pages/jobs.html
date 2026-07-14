@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>作业管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/engine.css">
+</head>
+<body class="bg-gray-50 flex h-screen overflow-hidden">
+    <!-- 左侧菜单栏 -->
+    <aside class="w-64 bg-[#1e2330] text-gray-300 flex flex-col shrink-0">
+        <div class="h-16 flex items-center px-6 text-white font-bold text-lg border-b border-gray-800">
+            <span class="mr-2">🚀</span> 护卫军平台
+        </div>
+        <nav class="flex-1 py-4 space-y-1">
+            <a href="#" class="block px-6 py-3 hover:bg-gray-800">数据大屏</a>
+            <a href="wechat.html" class="block px-6 py-3 hover:bg-gray-800">公众号管理</a>
+            <a href="jobs.html" class="block px-6 py-3 bg-blue-600 text-white">作业管理</a>
+            <a href="#" class="block px-6 py-3 hover:bg-gray-800">任务审核</a>
+            <a href="#" class="block px-6 py-3 hover:bg-gray-800">用户与权限</a>
+        </nav>
+    </aside>
+
+    <!-- 主工作区 -->
+    <main class="flex-1 overflow-auto p-8">
+        <div class="max-w-4xl mx-auto space-y-8">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 min-h-[500px]">
+            <h2 class="text-xl font-bold text-gray-800 mb-8 border-b pb-4">新建推送作业向导</h2>
+
+            <!-- Step 1 -->
+            <div class="mb-8">
+                <h3 class="font-bold mb-4">1. 基础信息</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <select id="jobType" onchange="checkCascade()" class="border p-2 rounded text-sm">
+                        <option value="custom">普通发文任务</option>
+                        <option value="wechat">公众号文章任务</option>
+                    </select>
+                    <select id="brandId" onchange="checkCascade()" class="border p-2 rounded text-sm">
+                        <option value="">请选择品牌...</option>
+                        <option value="df">东风汽车</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="mb-8 relative border p-4 rounded bg-gray-50">
+                <h3 class="font-bold mb-4 relative inline-block">
+                    3. 内容设置
+                    <!-- 图钉：第三步级联 -->
+                    <div class="red-pin pm-pin absolute -top-3 -right-6" data-key="wizard_step3_cascade" data-num="4"><span>4</span></div>
+                </h3>
+                <button id="btnSelectArticle" disabled class="w-full border-2 border-dashed border-gray-300 text-gray-400 p-4 rounded text-sm disabled:cursor-not-allowed bg-white" onclick="alert('弹窗：选取文章')">
+                    点击从数据库检索文章... (请先在第一步选择类型与品牌)
+                </button>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="mb-8 border p-4 rounded bg-blue-50/50">
+                <h3 class="font-bold mb-2 relative inline-block">
+                    4. 额度预估与发布
+                    <!-- 图钉：额度预估 -->
+                    <div class="red-pin pm-pin absolute -top-3 -right-6" data-key="wizard_step4_quota" data-num="5"><span>5</span></div>
+                </h3>
+                <div class="flex justify-between items-center text-sm mb-4">
+                    <span>预估覆盖人数: <strong class="text-blue-600">1,500</strong> 人</span>
+                    <span>当前可用额度: <strong class="text-red-600">500</strong> (额度不足)</span>
+                </div>
+                <button disabled class="w-full bg-gray-300 text-white font-bold py-3 rounded disabled:cursor-not-allowed">
+                    发布作业 (额度不足)
+                </button>
+            </div>
+        </div>
+        </div>
+    </main>
+
+    <!-- Engine Scripts -->
+    <script src="../docs/annotations.js"></script>
+    <script src="../assets/js/engine.js"></script>
+    <script>
+        function checkCascade() {
+            const type = document.getElementById('jobType').value;
+            const brand = document.getElementById('brandId').value;
+            const btn = document.getElementById('btnSelectArticle');
+            if (type === 'wechat' && brand) {
+                btn.disabled = false;
+                btn.classList.remove('text-gray-400', 'border-gray-300');
+                btn.classList.add('text-blue-600', 'border-blue-400', 'hover:bg-blue-50');
+                btn.innerText = '点击从数据库检索文章...';
+            } else {
+                btn.disabled = true;
+                btn.classList.add('text-gray-400', 'border-gray-300');
+                btn.classList.remove('text-blue-600', 'border-blue-400', 'hover:bg-blue-50');
+                btn.innerText = '点击从数据库检索文章... (请先在第一步选择类型与品牌)';
+            }
+        }
+    </script>
+</body>
+</html>

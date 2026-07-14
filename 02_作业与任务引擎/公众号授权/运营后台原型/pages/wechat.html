@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>公众号管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/engine.css">
+</head>
+<body class="bg-gray-50 flex h-screen overflow-hidden">
+    <!-- 左侧菜单栏 -->
+    <aside class="w-64 bg-[#1e2330] text-gray-300 flex flex-col shrink-0">
+        <div class="h-16 flex items-center px-6 text-white font-bold text-lg border-b border-gray-800">
+            <span class="mr-2">🚀</span> 护卫军平台
+        </div>
+        <nav class="flex-1 py-4 space-y-1">
+            <a href="#" class="block px-6 py-3 hover:bg-gray-800">数据大屏</a>
+            <a href="wechat.html" class="block px-6 py-3 bg-blue-600 text-white">公众号管理</a>
+            <a href="jobs.html" class="block px-6 py-3 hover:bg-gray-800">作业管理</a>
+            <a href="#" class="block px-6 py-3 hover:bg-gray-800">任务审核</a>
+            <a href="#" class="block px-6 py-3 hover:bg-gray-800">用户与权限</a>
+        </nav>
+    </aside>
+
+    <!-- 主工作区 -->
+    <main class="flex-1 overflow-auto p-8">
+        <div class="max-w-5xl mx-auto space-y-12">
+        <!-- 授权账号管理 -->
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800 relative inline-block">
+                    授权账号矩阵
+                    <!-- 图钉：公众号授权状态监控 -->
+                    <div class="red-pin pm-pin absolute -top-3 -right-6" data-key="wechat_auth_status" data-num="1"><span>1</span></div>
+                </h2>
+                <button onclick="openModal()" class="relative bg-blue-600 text-white px-4 py-2 rounded-lg font-medium shadow">
+                    新增扫码授权
+                    <!-- 图钉：新公众号扫码授权 -->
+                    <div class="red-pin pm-pin absolute -top-3 -right-3" data-key="wechat_scan_auth" data-num="2"><span>2</span></div>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-3 gap-6">
+                <!-- 正常卡片 -->
+                <div class="border border-gray-200 p-5 rounded-lg flex flex-col justify-between h-32 relative">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center font-bold">东风</div>
+                        <div>
+                            <div class="font-bold">东风汽车官方</div>
+                            <span class="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded border border-green-200">正常监听中</span>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-400">AppID: wx1234567890abcdef</div>
+                </div>
+                
+                <!-- 失效卡片 -->
+                <div class="border border-red-200 bg-red-50 p-5 rounded-lg flex flex-col justify-between h-32 relative opacity-80">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-red-200 text-red-600 rounded-full flex items-center justify-center font-bold">日产</div>
+                        <div>
+                            <div class="font-bold text-red-900">东风日产</div>
+                            <span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded border border-red-200">已失效 (Token过期)</span>
+                        </div>
+                    </div>
+                    <button onclick="openModal()" class="text-xs bg-red-600 text-white w-full py-1.5 rounded mt-2">重新扫码授权</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 文章池 -->
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 relative inline-block">
+                已群发文章池
+                <!-- 图钉：已群发文章的作业关联状态 -->
+                <div class="red-pin pm-pin absolute -top-3 -right-6" data-key="article_link_status" data-num="3"><span>3</span></div>
+            </h2>
+
+            <div class="space-y-4">
+                <!-- 未关联 -->
+                <div class="flex items-center gap-4 p-4 border border-gray-200 rounded-lg">
+                    <div class="w-24 h-16 bg-gray-200 rounded"></div>
+                    <div class="flex-1">
+                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">未关联作业</span>
+                        <h3 class="font-bold mt-1">东风汽车2026战略发布</h3>
+                    </div>
+                    <button onclick="window.location.href='jobs.html'" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition">生成推送作业</button>
+                </div>
+                <!-- 已关联 -->
+                <div class="flex items-center gap-4 p-4 border border-gray-200 rounded-lg opacity-80 bg-gray-50">
+                    <div class="w-24 h-16 bg-gray-200 rounded"></div>
+                    <div class="flex-1">
+                        <span class="text-xs bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded">已关联作业</span>
+                        <h3 class="font-bold mt-1 text-gray-600">全新一代天籁上市</h3>
+                    </div>
+                    <div class="text-xs text-gray-500 mr-2">Job: #10029</div>
+                    <button onclick="window.location.href='jobs.html'" class="bg-white border border-gray-300 text-gray-600 px-4 py-2 rounded text-sm hover:bg-gray-50 transition">查看作业看板</button>
+                </div>
+            </div>
+        </section>
+        </div>
+    </main>
+
+    <!-- 弹窗 -->
+    <div id="authModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center">
+        <div class="bg-white rounded-xl w-96 p-6">
+            <h3 class="font-bold text-lg mb-4">接入新公众号</h3>
+            <select class="w-full border p-2 rounded mb-4 text-sm"><option>选择归属品牌...</option></select>
+            <div class="w-48 h-48 bg-gray-100 mx-auto mb-4 border flex items-center justify-center text-gray-400">预授权二维码区域</div>
+            <p class="text-xs text-gray-500 text-center mb-4">需包含消息管理与发布权限</p>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal()" class="px-4 py-2 text-sm text-gray-500">取消</button>
+                <button onclick="simulateAuth()" class="px-4 py-2 text-sm bg-blue-600 text-white rounded">模拟授权回调</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Engine Scripts -->
+    <script src="../docs/annotations.js"></script>
+    <script src="../assets/js/engine.js"></script>
+    <script>
+        function openModal() { document.getElementById('authModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('authModal').style.display = 'none'; }
+        function simulateAuth() {
+            alert('Toast: [缺少权限] 未授予群发与图文素材权限');
+            closeModal();
+        }
+    </script>
+</body>
+</html>
