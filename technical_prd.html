@@ -278,7 +278,7 @@
             <li class="nav-item"><a href="#section8" class="nav-link">8. 权限集要求 (V1.0)</a></li>
             <li class="nav-item"><a href="#section9" class="nav-link">9. 调用速查 (V1.0)</a></li>
             <li class="nav-item"><a href="#section10" class="nav-link">10. 本期实现状态</a></li>
-            <li class="nav-item" style="border-top: 1px dashed var(--border); margin-top: 0.5rem; padding-top: 0.5rem;"><a href="#section11" class="nav-link" style="color: var(--accent);">未来版本规划 (V1.1/V2)</a></li>
+
         </ul>
     </div>
 
@@ -362,22 +362,7 @@
                 </ul>
             </div>
             
-            <div class="callout" style="border-color: var(--warning);">
-                <p><strong>V1.1（下期演进：留言抓取与作业下发）</strong></p>
-                <ul style="padding-left: 1.2rem; margin-top: 0.5rem; margin-bottom: 0;">
-                    <li><strong>文章留言拉取</strong>：依群发 <code>MsgID</code> 异步调用 <code>comment/list</code> 接口，拉取、精选并同步文章留言列表。</li>
-                    <li><strong>作业分发管理</strong>：运营在后台将作业指派给指定网评员，网评员在移动端接收作业并上传提交截图与链接。</li>
-                </ul>
-            </div>
 
-            <div class="callout" style="border-color: var(--text-secondary);">
-                <p><strong>V2.0（未来规划：积分激励与 AI 智能审核）</strong></p>
-                <ul style="padding-left: 1.2rem; margin-top: 0.5rem; margin-bottom: 0;">
-                    <li><strong>积分激励体系</strong>：网评员完成作业后获得积分，数据按 10:1 与友福利商城 API 对账并同步兑换。</li>
-                    <li><strong>AI 智能审核</strong>：集成 HiAgent AI 模块，对网评员上传的截图与内容自动进行语义及合规审查。</li>
-                    <li><strong>自动催收通知</strong>：对超时未完成的作业向网评员发送催收提醒。</li>
-                </ul>
-            </div>
         </section>
 
         <!-- 2. 前置准备 -->
@@ -935,91 +920,7 @@ HTTP 抓取 ArticleUrl 网页 -> 正则匹配 og:title/JS 变量 ct -> 组装作
             </table>
         </section>
 
-        <!-- 11. 未来版本规划 -->
-        <section id="section11" style="border-top: 1px dashed var(--border); padding-top: 2rem;">
-            <h2 style="color: var(--accent); border-bottom-color: var(--accent);">11. 未来版本技术演进规划 (非本期开发范围)</h2>
-            
-            <h3>11.1 V1.1 阶段（留言拉取与派单监控）</h3>
-            <p>一期作业状态置为 `pending_review` 经人工审核通过后，激活留言评论拉取，以备 AI 及人工内容抽检。</p>
-            
-            <h4>1. 新增留言抓取接口：comment/list</h4>
-            <table>
-                <tr>
-                    <td style="width: 25%;"><strong>接口 URL</strong></td>
-                    <td><code>https://api.weixin.qq.com/cgi-bin/comment/list?access_token={ACCESS_TOKEN}</code></td>
-                </tr>
-                <tr>
-                    <td><strong>请求方法</strong></td>
-                    <td>POST</td>
-                </tr>
-                <tr>
-                    <td><strong>功能用途</strong></td>
-                    <td>传入群发 MsgID，分页拉取对应文章底部的留言数据。</td>
-                </tr>
-                <tr>
-                    <td><strong>官方链接</strong></td>
-                    <td><a href="https://developers.weixin.qq.com/doc/offiaccount/Comments_management/Image_Comments_Management_Interface.html" target="_blank">微信文档 · 留言管理接口</a></td>
-                </tr>
-            </table>
 
-            <h4>2. V1.1 作业模型扩展字段 (jobs.json)</h4>
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 25%;">新增字段</th>
-                        <th style="width: 20%;">类型</th>
-                        <th>职能与数据来源</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>comments_count</code></td>
-                        <td>int</td>
-                        <td>留言总数（由留言接口返回的 total 赋值）</td>
-                    </tr>
-                    <tr>
-                        <td><code>comments</code></td>
-                        <td>array</td>
-                        <td>评论详细数组（包括留言时间、用户名称、内容、精选状态）</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h4>3. V1.1 核心留言捕获流程时序</h4>
-            <div class="mermaid">
-                sequenceDiagram
-                    participant Web as 运营后台
-                    participant DB as 数据库
-                    participant WX as 微信服务器
-                    
-                    Web->>DB: 运营人工确认发布作业 (in_progress)
-                    DB-->>Web: 开启该 MsgID 的留言定时同步任务
-                    loop 每 15 分钟执行一次
-                        Web->>WX: 请求 comment/list (入参: MsgID + Index)
-                        WX-->>Web: 返回最新的评论数据与总数 total
-                        Web->>DB: 更新作业数据表中的 comments 及 comments_count
-                    end
-            </div>
-
-            <h4>4. V1.1 必需权限集要求</h4>
-            <ul>
-                <li><strong>留言与评论管理权限集</strong>（代开发授权扫码时需勾选）。</li>
-            </ul>
-
-            <h3 style="margin-top: 3rem;">11.2 V2.0 阶段（积分激励与 AI 自动审核）</h3>
-            <div class="callout">
-                <p><strong>1. 友福利积分商城对接 (10:1)</strong><br>
-                在网评员提交监控作业截图并通过审核后，系统调用友福利商城积分累加 API，按 10 积分折算 1 元的规则自动累加网评员的商城账户余额。</p>
-            </div>
-            <div class="callout">
-                <p><strong>2. HiAgent AI 截图与内容质检</strong><br>
-                网评员上传截图后，异步触发 AI 内容识别服务。通过文字 OCR 提取及图片相似度校验，自动判断是否与公众号文章相关，并在语义层面做合规风险评级，减少人工审核成本。</p>
-            </div>
-            <div class="callout">
-                <p><strong>3. 自动消息催收逻辑</strong><br>
-                当作业派发超过 2 小时未完成时，通过微信公众号模板消息向网评员发送催收通知。</p>
-            </div>
-        </section>
     </div>
 
     <!-- 侧边栏平滑高亮 -->
