@@ -120,7 +120,7 @@
 
                 <!-- 签名画板 (情况A 全局阻断) -->
                 <div id="signatureModalGlobal" class="absolute inset-0 bg-white z-[60] hidden overflow-hidden slide-up">
-                    <div class="absolute top-0 left-0 flex flex-col bg-white" style="width: 812px; height: 375px; transform-origin: top left; transform: translateY(812px) rotate(-90deg);">
+                    <div class="absolute top-0 left-0 flex flex-col bg-white" style="width: 812px; height: 375px; transform-origin: top left; transform: translateX(375px) rotate(90deg);">
                         <div class="px-6 py-3 flex items-center justify-between border-b border-gray-100 bg-white shrink-0">
                             <div class="flex items-center gap-1.5 text-gray-700 cursor-pointer active:text-gray-400 transition" onclick="closeSignatureGlobal()">
                                 <i class="fas fa-chevron-left text-lg"></i>
@@ -256,7 +256,7 @@
 
                 <!-- 签名画板 (情况B 签约表单) -->
                 <div id="signatureModalInner" class="absolute inset-0 bg-white z-[60] hidden overflow-hidden slide-up">
-                    <div class="absolute top-0 left-0 flex flex-col bg-white" style="width: 812px; height: 375px; transform-origin: top left; transform: translateY(812px) rotate(-90deg);">
+                    <div class="absolute top-0 left-0 flex flex-col bg-white" style="width: 812px; height: 375px; transform-origin: top left; transform: translateX(375px) rotate(90deg);">
                         <div class="px-6 py-3 flex items-center justify-between border-b border-gray-100 bg-white shrink-0">
                             <div class="flex items-center gap-1.5 text-gray-700 cursor-pointer active:text-gray-400 transition" onclick="closeSignatureInner()">
                                 <i class="fas fa-chevron-left text-lg"></i>
@@ -429,13 +429,13 @@ sequenceDiagram
                         clientX = e.clientX;
                         clientY = e.clientY;
                     }
-                    // 因为父容器使用了 translateY(812px) rotate(-90deg) 进行横屏旋转
+                    // 因为父容器使用了 translateX(375px) rotate(90deg) 进行横屏旋转
                     // 所以屏幕上的 XY 坐标需要做一次逆向映射，回到 Canvas 的逻辑坐标系中
                     let x_screen = clientX - rect.left;
                     let y_screen = clientY - rect.top;
                     return { 
-                        x: this.canvas.width - y_screen, 
-                        y: x_screen 
+                        x: y_screen, 
+                        y: this.canvas.height - x_screen 
                     };
                 };
 
