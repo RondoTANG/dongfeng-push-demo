@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>护卫军用户新增保密承诺书签字功能说明</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
+    <style>
+        /* 隐藏滚动条 */
+        ::-webkit-scrollbar { display: none; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        .slide-up { animation: slideUp 0.3s ease-out; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        /* 移动端模拟器外壳 */
+        .device-mockup {
+            width: 375px;
+            height: 812px;
+            border-radius: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            border: 8px solid #1f2937;
+            position: relative;
+            background-color: #f3f4f6;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-start p-8 font-sans">
+
+    <!-- 页面大标题 -->
+    <div class="w-full text-center mb-12">
+        <h1 class="text-3xl font-bold text-gray-800 tracking-tight">护卫军用户新增保密承诺书签字功能说明</h1>
+        <p class="text-gray-500 mt-2">测试与开发验证基准原型 (涵盖场景判定、阻断交互、手写签名存根流转)</p>
+    </div>
+
+    <!-- 主体展示区 -->
+    <div class="flex items-start justify-center gap-8 flex-nowrap w-full max-w-[1400px] mx-auto overflow-x-auto pt-6 pb-4">
+        
+        <!-- 左侧设备：情况A 全局阻断 -->
+        <div class="relative shrink-0">
+            <!-- 图钉批注：场景1 -->
+            <div class="absolute -top-3 -left-3 bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-2xl shadow-xl z-[100] border-4 border-white">1</div>
+            <div class="device-mockup bg-gray-50 relative">
+                <!-- 导航栏 -->
+                <div class="bg-[#C60024] text-white px-4 py-3 flex items-center justify-between pt-12 shrink-0">
+                    <svg class="w-6 h-6 opacity-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    <h1 class="text-lg font-medium">护卫军首页</h1>
+                    <div class="w-16 h-8 bg-black/20 rounded-full flex items-center justify-evenly border border-white/20">
+                        <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        <div class="w-px h-4 bg-white/30"></div>
+                        <div class="w-4 h-4 rounded-full border-2 border-white flex items-center justify-center"><div class="w-1.5 h-1.5 bg-white rounded-full"></div></div>
+                    </div>
+                </div>
+
+                <!-- 正常系统首页内容（被遮罩覆盖） -->
+                <div id="homeContent" class="flex-1 p-4 space-y-3 bg-gray-50 overflow-y-auto">
+                    <div class="task-card bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center blur-[3px] transition-all duration-300">
+                        <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center mr-3 flex-shrink-0 border border-blue-100/50">
+                            <i class="fas fa-share-alt text-blue-500 text-sm"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-[13px] font-bold text-gray-800 mb-0.5">互动作业</div>
+                            <div class="text-[10px] text-gray-500">点赞、浏览、平台内转发</div>
+                            <div class="text-[#C60024] font-bold text-[11px] mt-1">+ 8~15 XP / 次</div>
+                        </div>
+                        <button class="bg-[#C60024] text-white text-xs px-4 py-1.5 rounded-full font-medium shadow-sm pointer-events-none">去完成</button>
+                    </div>
+
+                    <div class="task-card bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center blur-[3px] transition-all duration-300">
+                        <div class="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center mr-3 flex-shrink-0 border border-orange-100/50">
+                            <i class="fas fa-pen-nib text-orange-500 text-sm"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-[13px] font-bold text-gray-800 mb-0.5">原创作业</div>
+                            <div class="text-[10px] text-gray-500">提供高质量图文、试驾评测</div>
+                            <div class="text-[#C60024] font-bold text-[11px] mt-1">+ 50~100 XP / 次</div>
+                        </div>
+                        <button class="bg-[#C60024] text-white text-xs px-4 py-1.5 rounded-full font-medium shadow-sm pointer-events-none">去完成</button>
+                    </div>
+
+                    <div class="task-card bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center opacity-70 blur-[3px] transition-all duration-300">
+                        <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mr-3 flex-shrink-0 border border-green-100/50">
+                            <i class="fas fa-calendar-check text-green-500 text-sm"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-[13px] font-bold text-gray-800 mb-0.5">每日签到</div>
+                            <div class="text-[10px] text-gray-500">登录护卫军系统自动发放</div>
+                            <div class="text-gray-400 font-bold text-[11px] mt-1">+ 2 XP / 次</div>
+                        </div>
+                        <button disabled class="bg-gray-100 text-gray-400 border border-gray-200 text-xs px-4 py-1.5 rounded-full font-bold flex items-center gap-1"><i class="fas fa-check text-[10px]"></i> 已完成</button>
+                    </div>
+                </div>
+                
+                <!-- 拒绝协议后的占位空状态（阻断页面） -->
+                <div id="blockedState" class="absolute inset-0 top-[88px] bg-gray-50 z-10 hidden flex-col items-center justify-center p-6 text-center">
+                    <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4 text-gray-500">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">无访问权限</h3>
+                    <p class="text-sm text-gray-500 mb-6">为保障双方权益与信息安全，需同意《保密承诺书》后方可为您提供服务。</p>
+                    <button onclick="showGlobalModal()" class="bg-[#C60024] text-white px-6 py-2.5 rounded-lg text-sm shadow-md">
+                        重新阅读并签署
+                    </button>
+                </div>
+
+                <!-- 签名画板 (情况A 全局阻断) -->
+                <div id="signatureModalGlobal" class="absolute inset-0 bg-white z-[60] hidden overflow-hidden slide-up">
+                    <div class="absolute top-0 left-0 flex flex-col bg-white" style="width: 812px; height: 375px; transform-origin: top left; transform: translateY(812px) rotate(-90deg);">
+                        <div class="px-6 py-3 flex items-center justify-between border-b border-gray-100 bg-white shrink-0">
+                            <div class="flex items-center gap-1.5 text-gray-700 cursor-pointer active:text-gray-400 transition" onclick="closeSignatureGlobal()">
+                                <i class="fas fa-chevron-left text-lg"></i>
+                                <span class="text-[15px]">返回</span>
+                            </div>
+                            <h3 class="font-bold text-gray-800 text-[17px]">手写签名</h3>
+                            <div class="flex items-center gap-3 border border-gray-200 rounded-full px-3 py-1 text-gray-600 text-sm">
+                                <i class="fas fa-ellipsis-h"></i>
+                                <div class="w-px h-3 bg-gray-200"></div>
+                                <i class="far fa-dot-circle"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1 p-5 flex flex-col relative bg-gray-50">
+                            <div class="flex-1 border border-dashed border-gray-300 rounded-xl relative overflow-hidden bg-white shadow-sm" style="touch-action: none;">
+                                <canvas id="sigCanvasGlobal" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+                                <div id="sigPlaceholderGlobal" class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center gap-2">
+                                    <span class="text-[64px] font-extralight tracking-[0.35em] select-none" style="color: rgba(209,213,219,0.45); font-family: 'STKaiti', 'KaiTi', serif;">张三丰</span>
+                                    <span class="text-xs text-gray-300 select-none tracking-wider">请在此处签写您的姓名</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-6 pb-6 flex gap-4 bg-gray-50 shrink-0 justify-center">
+                            <button onclick="clearSignatureGlobal()" class="w-[140px] bg-white border border-gray-300 text-gray-600 font-medium py-2.5 rounded-lg text-sm hover:bg-gray-100 transition shadow-sm">清空</button>
+                            <button onclick="confirmSignatureGlobal()" class="w-[200px] bg-[#1E5BBC] text-white font-medium py-2.5 rounded-lg text-sm shadow-md transition hover:bg-blue-700">签名确认</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 全局弹窗遮罩层（限制在手机壳内部） -->
+                <div id="globalModalOverlay" class="absolute inset-0 bg-black/60 z-20 flex flex-col items-center justify-center fade-in backdrop-blur-[2px] top-[88px]">
+                    <div class="bg-white w-[85%] max-h-[85%] rounded-2xl flex flex-col slide-up overflow-hidden shadow-2xl relative">
+                        <!-- 背景装饰 -->
+                        <div class="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-red-50 to-white -z-10"></div>
+                        
+                        <div class="px-5 pt-6 pb-2 text-center shrink-0">
+                            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3 text-[#C60024]">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-800">签署保密承诺书</h3>
+                            <p class="text-xs text-gray-500 mt-1">根据合规要求，请先完成签署</p>
+                        </div>
+                        
+                        <div id="globalScrollArea" class="flex-1 overflow-y-auto px-5 py-2 text-gray-600 text-sm leading-relaxed text-justify relative space-y-3">
+                            <p class="font-medium text-gray-800">尊敬的护卫军：</p>
+                            <p>为保障平台健康运营与内部信息安全，系统新增了《东风护卫军保密承诺书》。</p>
+                            <p>鉴于您在履职或参与相关任务期间，您可能会接触到东风汽车集团<strong>尚未公开的商业机密、未上市车型信息</strong>、内部运营策略及其他敏感数据。为保护商业秘密，请您仔细阅读并遵守以下条款：</p>
+                            <p class="font-bold text-gray-800">第一条 保密内容</p>
+                            <p>您在护卫军平台所获取的任何带有“保密”、“内部”标识的文档、图片、音视频，以及在闭门会议、内测活动中接触到的未公开信息。</p>
+                            <p class="font-bold text-gray-800">第二条 保密义务</p>
+                            <ol class="list-decimal pl-4 space-y-1 text-gray-500 text-xs mb-2">
+                                <li>未经官方书面授权，<strong>不得以任何形式（包括但不限于截图、转发、口头转述）</strong>向第三方披露保密信息。</li>
+                                <li>一切任务执行需遵循合法合规原则。</li>
+                                <li>若违反保密义务，平台有权封停账号并追责。</li>
+                            </ol>
+                            <p class="font-bold text-gray-800">第三条 附加条款演示一</p>
+                            <p>这部分内容用于模拟长协议的滚动效果。合规团队要求所有的协议条款必须经过用户的物理滑动检阅。以下是模拟的大段法律免责声明文字，用于测试用户的滚动交互路径是否正常。</p>
+                            <p class="font-bold text-gray-800">第四条 附加条款演示二</p>
+                            <p>如果您在未授权的情况下，将伪装车照片、未上市配置表、内部评测文档发布至小红书、抖音、懂车帝等任何公开媒体或私人社群，将面临极其严重的违约追责与诉讼。</p>
+                            <p class="font-bold text-gray-800">第五条 附加条款演示三</p>
+                            <p>为了保障您的体验，请仔细阅读本页面的所有角落。在真实的业务场景下，这份协议甚至可能会包含更多的附件内容以及保密协议的免责条款。</p>
+                            <p>点击下方“同意”即代表您已阅读并自愿遵守该承诺书全部条款。</p>
+                        </div>
+                        
+                        <div class="p-4 bg-gray-50 flex gap-3 border-t border-gray-100 shrink-0">
+                            <button onclick="showRejectConfirm()" class="flex-1 bg-white border border-gray-300 text-gray-600 font-medium py-2 rounded-lg text-sm hover:bg-gray-50 transition shrink-0">
+                                暂不同意
+                            </button>
+                            <button id="globalAgreeBtn" disabled onclick="openSignatureGlobal()" class="flex-[1.5] bg-[#C60024] opacity-50 cursor-not-allowed text-white font-medium py-1.5 rounded-lg text-sm transition shadow-md shadow-red-200 flex flex-col items-center justify-center leading-tight">
+                                <span>同意并继续</span>
+                                <span class="text-[9px] font-normal text-white/70 hint-text">（请阅读完整协议内容）</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 二次确认拒绝小弹窗 -->
+                    <div id="rejectConfirmModal" class="absolute inset-0 bg-black/40 z-30 hidden flex items-center justify-center fade-in">
+                        <div class="bg-white w-[75%] rounded-xl p-5 text-center shadow-lg slide-up">
+                            <h4 class="text-base font-bold text-gray-800 mb-2">是否确认拒绝？</h4>
+                            <p class="text-xs text-gray-500 mb-5 text-left">护卫军系统包含企业未公开信息，为保障双方权益，必须同意保密承诺方可继续使用本平台。</p>
+                            <div class="flex gap-2">
+                                <button onclick="finalReject()" class="flex-1 bg-gray-100 text-gray-600 py-2 rounded text-sm font-medium">仍不同意</button>
+                                <button onclick="hideRejectConfirm()" class="flex-1 bg-[#1E5BBC] text-white py-2 rounded text-sm font-medium">我再看看</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧设备：情况B 签约界面 -->
+        <div class="relative shrink-0">
+            <!-- 图钉批注：场景2 -->
+            <div class="absolute -top-3 -left-3 bg-blue-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-2xl shadow-xl z-[100] border-4 border-white">2</div>
+            <div class="device-mockup bg-gray-50">
+                <!-- 导航栏 -->
+                <div class="bg-[#C60024] text-white px-4 py-3 flex items-center justify-between pt-12 shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    <h1 class="text-lg font-medium">东风护卫军</h1>
+                    <div class="w-16 h-8 bg-black/20 rounded-full flex items-center justify-evenly border border-white/20">
+                        <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        <div class="w-px h-4 bg-white/30"></div>
+                        <div class="w-4 h-4 rounded-full border-2 border-white flex items-center justify-center"><div class="w-1.5 h-1.5 bg-white rounded-full"></div></div>
+                    </div>
+                </div>
+
+                <!-- 内容区 -->
+                <div class="flex-1 p-6 flex flex-col relative overflow-y-auto">
+                    <h2 class="text-2xl font-bold text-gray-800 mt-4 mb-8">填写个人信息，签约护卫军</h2>
+                    
+                    <div class="space-y-4 mb-8">
+                        <input type="text" placeholder="请输入真实姓名" class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition text-gray-700">
+                        <input type="text" placeholder="请输入身份证号码" class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition text-gray-700">
+                    </div>
+
+                    <div class="mt-auto mb-6 flex items-start gap-2">
+                        <div class="mt-0.5 relative shrink-0 cursor-pointer" onclick="handleCheckboxClick()">
+                            <input type="checkbox" id="agreementCheckbox" class="peer sr-only">
+                            <div class="w-5 h-5 rounded-full border border-gray-300 peer-checked:bg-[#1E5BBC] peer-checked:border-[#1E5BBC] flex items-center justify-center transition-colors">
+                                <svg class="w-3 h-3 text-white opacity-0 peer-checked:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                        </div>
+                        <label class="text-sm text-gray-500 leading-snug cursor-pointer" onclick="handleCheckboxClick()">
+                            我已认真阅读，理解并同意 <span class="text-[#C60024]" onclick="event.stopPropagation(); alert('模拟打开用户协议')">《用户协议》</span> 与 <span class="text-[#C60024]">《保密承诺书》</span>
+                        </label>
+                    </div>
+
+                    <button id="signBtn" class="w-full bg-[#1E5BBC] opacity-50 text-white font-medium py-3.5 rounded-lg transition" disabled onclick="showToast('签约成功！')">
+                        立即签约
+                    </button>
+                </div>
+
+                <!-- 签名画板 (情况B 签约表单) -->
+                <div id="signatureModalInner" class="absolute inset-0 bg-white z-[60] hidden overflow-hidden slide-up">
+                    <div class="absolute top-0 left-0 flex flex-col bg-white" style="width: 812px; height: 375px; transform-origin: top left; transform: translateY(812px) rotate(-90deg);">
+                        <div class="px-6 py-3 flex items-center justify-between border-b border-gray-100 bg-white shrink-0">
+                            <div class="flex items-center gap-1.5 text-gray-700 cursor-pointer active:text-gray-400 transition" onclick="closeSignatureInner()">
+                                <i class="fas fa-chevron-left text-lg"></i>
+                                <span class="text-[15px]">返回</span>
+                            </div>
+                            <h3 class="font-bold text-gray-800 text-[17px]">手写签名</h3>
+                            <div class="flex items-center gap-3 border border-gray-200 rounded-full px-3 py-1 text-gray-600 text-sm">
+                                <i class="fas fa-ellipsis-h"></i>
+                                <div class="w-px h-3 bg-gray-200"></div>
+                                <i class="far fa-dot-circle"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1 p-5 flex flex-col relative bg-gray-50">
+                            <div class="flex-1 border border-dashed border-gray-300 rounded-xl relative overflow-hidden bg-white shadow-sm" style="touch-action: none;">
+                                <canvas id="sigCanvasInner" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+                                <div id="sigPlaceholderInner" class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center gap-2">
+                                    <span class="text-[64px] font-extralight tracking-[0.35em] select-none" style="color: rgba(209,213,219,0.45); font-family: 'STKaiti', 'KaiTi', serif;">张三丰</span>
+                                    <span class="text-xs text-gray-300 select-none tracking-wider">请在此处签写您的姓名</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-6 pb-6 flex gap-4 bg-gray-50 shrink-0 justify-center">
+                            <button onclick="clearSignatureInner()" class="w-[140px] bg-white border border-gray-300 text-gray-600 font-medium py-2.5 rounded-lg text-sm hover:bg-gray-100 transition shadow-sm">清空</button>
+                            <button onclick="confirmSignatureInner()" class="w-[200px] bg-[#1E5BBC] text-white font-medium py-2.5 rounded-lg text-sm shadow-md transition hover:bg-blue-700">签名确认</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 内部弹窗：保密承诺书（签约表单用，底部抽屉） -->
+                <div id="innerAgreementModal" class="absolute inset-0 bg-black/60 hidden z-50 flex items-end fade-in">
+                    <div class="bg-white w-full h-[85%] rounded-t-2xl flex flex-col slide-up shadow-2xl relative">
+                        <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
+                            <h3 class="text-[17px] font-bold text-gray-800">保密承诺书</h3>
+                            <button onclick="closeInnerModal()" class="p-1.5 text-gray-400 hover:text-gray-600 bg-gray-50 rounded-full transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                        <div id="innerScrollArea" class="flex-1 overflow-y-auto px-5 py-4 text-gray-600 text-sm leading-relaxed text-justify relative space-y-3">
+                            <p class="font-medium text-gray-800">尊敬的护卫军：</p>
+                            <p>鉴于您即将成为东风护卫军的一员，在履职或参与相关任务期间，您可能会接触到东风汽车集团尚未公开的商业机密、未上市车型信息、内部运营策略及其他敏感数据。为保护商业秘密，请您仔细阅读并遵守以下条款：</p>
+                            <p><strong>第一条 保密内容</strong><br>您在护卫军平台所获取的任何带有“保密”、“内部”标识的文档、图片、音视频，以及在闭门会议、内测活动中接触到的未公开信息。</p>
+                            <p><strong>第二条 保密义务</strong><br>1. 未经官方书面授权，不得以任何形式（包括但不限于截图、转发、口头转述）向第三方披露保密信息。<br>2. 仅能在官方指定的任务范围内使用保密信息，不得用于任何个人私利或商业牟利目的。</p>
+                            <p><strong>第三条 违约责任</strong><br>若您违反本承诺，东风汽车集团有权立即取消您的护卫军身份，扣除所有成长值与权益，并保留追究法律责任及经济赔偿的权利。</p>
+                            <p><strong>第四条 补充条款（仅演示过长文本）</strong><br>这是一段用于演示滚动交互的长文本。在实际业务中，由于协议内容往往涉及多项繁复的法律声明与细则，其长度可能会达到三至五屏。</p>
+                            <p><strong>第五条 知识产权及竞业禁止</strong><br>您在此承诺，在参与系统任务期间产出的所有包含未公开信息的创意、评测内容、图片与视频素材，其著作权及相关知识产权在未发布前均归属东风汽车集团所有。严禁擅自提前发布或泄露给竞品及第三方媒体平台。</p>
+                            <p><strong>第六条 争议解决</strong><br>如因本承诺书引发任何争议，双方应首先通过友好协商解决。如协商不成，任何一方均有权向东风汽车集团所在地有管辖权的人民法院提起诉讼。在争议解决期间，本承诺书不涉及争议部分的条款仍须继续履行。</p>
+                            <p><strong>第七条 附则</strong><br>本承诺书自您在系统中点击“同意”或以其他明确形式确认之日起生效。即使您未来退出护卫军或注销账号，本承诺书中的保密义务仍将长期有效，直至相关机密信息被官方正式公开披露为止。</p>
+                            <p class="pt-8 pb-4 text-center text-gray-400">（请阅读至底部）</p>
+                        </div>
+                        <div class="p-4 bg-white flex border-t border-gray-100 shrink-0 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+                            <button id="innerAgreeBtn" disabled onclick="openSignatureInner()" class="w-full bg-[#C60024] opacity-50 cursor-not-allowed text-white font-medium py-2.5 rounded-lg text-sm transition shadow-sm flex flex-col items-center justify-center leading-tight">
+                                <span class="text-[15px]">我已阅读并同意</span>
+                                <span class="text-[10px] font-normal text-white/70 hint-text mt-0.5">（请阅读完整协议内容）</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 批注区域 -->
+        <div class="w-[450px] shrink-0 space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">① 【场景 1：全局弹窗拦截】(对应左侧设备)</h3>
+                <p class="text-sm text-gray-600 mb-2"><strong>适用对象：</strong>老用户、情况A（身份匹配自动签约的新用户）。</p>
+                <p class="text-sm text-gray-600 mb-2"><strong>触发逻辑（研发与QA重点）：</strong>全局路由守卫拦截。只要接口返回 <code>is_signed = false</code>，进入前端<strong>任何路由/页面</strong>均强制弹窗。底层真实业务DOM进行 <code>blur</code> 高斯模糊处理，严防数据泄露。</p>
+                <div class="text-sm text-gray-600 space-y-1">
+                    <strong>交互与测试流转说明：</strong>
+                    <ul class="list-decimal pl-4 space-y-1">
+                        <li><strong>防误触/盲签：</strong>默认【同意并继续】按钮置灰，必须监听 <code>scroll</code> 触底事件后方可高亮解锁。</li>
+                        <li><strong>唤起画板：</strong>点击解锁后的同意，划出手写签名区。</li>
+                        <li><strong>签名校验测试：</strong>空白画布直接点提交，需Toast阻断提示“请先完成手写签名”。画线后点击“清空”，状态需重置为空白拦截状态。</li>
+                        <li><strong>提交闭环：</strong>签名确认后，向后端提交 <code>Base64图片/流</code>。后端保存存根并修改状态 <code>is_signed=true</code>。前端收到成功回调后，销毁弹窗并解除底部页面的模糊遮罩。</li>
+                        <li><strong>拒绝异常流：</strong>点击【暂不同意】出二次确认，执意拒绝则页面转为无权限空状态，彻底销毁/隐藏真实业务DOM。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">② 【场景 2：签约表单嵌入】(对应右侧设备)</h3>
+                <p class="text-sm text-gray-600 mb-2"><strong>适用对象：</strong>情况B（需手填注册表单的新用户）。</p>
+                <p class="text-sm text-gray-600 mb-2"><strong>触发时机：</strong>用户在新注册填表页底部勾选协议时触发。</p>
+                <div class="text-sm text-gray-600 space-y-1">
+                    <strong>交互与测试流转说明：</strong>
+                    <ul class="list-decimal pl-4 space-y-1">
+                        <li><strong>强阻断拉起：</strong>用户无法直接在表单页打勾。点击单选框或《保密承诺书》文本时，从底部弹出协议正文抽屉。</li>
+                        <li><strong>滑动解锁：</strong>必须物理滑动协议抽屉内容到底部，【我已阅读并同意】按钮才会由灰变红。</li>
+                        <li><strong>唤起画板：</strong>点击同意后，滑出手写签名区。</li>
+                        <li><strong>中断重置测试：</strong>在签名区点击左上角“返回( < )”，需同时收起签名板和协议抽屉。表单页的单选框<strong>必须恢复为未勾选状态</strong>。</li>
+                        <li><strong>提交闭环：</strong>签名确认（非空校验）后，收起弹窗，表单页的单选框变为<strong>已勾选状态</strong>（解锁“立即签约”大按钮）。最后点击签约时将表单数据与签名图片一同Submit给后端。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- End Flex Container -->
+
+    <!-- 时序图区域 -->
+    <div class="w-full max-w-5xl mx-auto mt-12 bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <i class="fas fa-project-diagram text-[#C60024]"></i> 后端交互时序图 (供研发参考)
+        </h3>
+        <div class="mermaid flex justify-center">
+sequenceDiagram
+    participant U as 用户 (C端前端)
+    participant S as 服务端 (Backend)
+
+    Note over U, S: 全局拦截逻辑 (如进入任意页面时)
+    U->>S: 访问前端系统 (获取用户 Token/状态)
+    S-->>U: 返回用户信息 (包含 is_signed 签字状态)
+    
+    alt is_signed == false (未签状态)
+        U->>U: 强制弹出【保密协议】遮罩层
+        U->>U: 物理滑动到底部，解锁同意按钮
+        U->>U: 点击“同意并继续” -> 弹出【手写签名画板】
+        
+        opt 用户中断 (点击返回)
+            U->>U: 隐藏签名画板与协议弹窗，恢复阻断/空状态
+        end
+        
+        U->>U: 在 Canvas 完成手写签名
+        U->>U: 点击“签名确认” (前端校验画板非空)
+        U->>S: 提交签约请求 (包含签字图片的 Base64/文件流)
+        S->>S: 保存签字图片存根，更新用户状态为已签
+        S-->>U: 返回签约成功
+        U->>U: 解除全局弹窗与页面模糊遮罩，正常访问系统
+    else is_signed == true (已签状态)
+        U->>U: 正常渲染并进入业务页面
+    end
+        </div>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div id="toast" class="fixed top-10 left-1/2 -translate-x-1/2 bg-gray-800/90 backdrop-blur-sm text-white px-6 py-3 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 z-[999] text-sm font-medium"></div>
+
+    <script>
+        // ======= Signature Pad 绘图类 =======
+        class SignaturePad {
+            constructor(canvasId, placeholderId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.placeholder = document.getElementById(placeholderId);
+                this.isDrawing = false;
+                this.hasDrawn = false;
+                
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                
+                this.bindEvents();
+            }
+            
+            resize() {
+                const parent = this.canvas.parentElement;
+                this.canvas.width = parent.offsetWidth;
+                this.canvas.height = parent.offsetHeight;
+                this.ctx.lineWidth = 4;
+                this.ctx.lineCap = 'round';
+                this.ctx.lineJoin = 'round';
+                this.ctx.strokeStyle = '#000000';
+            }
+            
+            bindEvents() {
+                const getPos = (e) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    let clientX, clientY;
+                    if (e.touches && e.touches.length > 0) {
+                        clientX = e.touches[0].clientX;
+                        clientY = e.touches[0].clientY;
+                    } else {
+                        clientX = e.clientX;
+                        clientY = e.clientY;
+                    }
+                    // 因为父容器使用了 translateY(812px) rotate(-90deg) 进行横屏旋转
+                    // 所以屏幕上的 XY 坐标需要做一次逆向映射，回到 Canvas 的逻辑坐标系中
+                    let x_screen = clientX - rect.left;
+                    let y_screen = clientY - rect.top;
+                    return { 
+                        x: this.canvas.width - y_screen, 
+                        y: x_screen 
+                    };
+                };
+
+                const start = (e) => {
+                    e.preventDefault();
+                    this.isDrawing = true;
+                    this.hasDrawn = true;
+                    if (this.placeholder) this.placeholder.style.display = 'none';
+                    const pos = getPos(e);
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(pos.x, pos.y);
+                };
+
+                const draw = (e) => {
+                    e.preventDefault();
+                    if (!this.isDrawing) return;
+                    const pos = getPos(e);
+                    this.ctx.lineTo(pos.x, pos.y);
+                    this.ctx.stroke();
+                };
+
+                const end = (e) => {
+                    e.preventDefault();
+                    if (this.isDrawing) {
+                        this.ctx.closePath();
+                        this.isDrawing = false;
+                    }
+                };
+
+                this.canvas.addEventListener('mousedown', start);
+                this.canvas.addEventListener('mousemove', draw);
+                this.canvas.addEventListener('mouseup', end);
+                this.canvas.addEventListener('mouseout', end);
+
+                this.canvas.addEventListener('touchstart', start, {passive: false});
+                this.canvas.addEventListener('touchmove', draw, {passive: false});
+                this.canvas.addEventListener('touchend', end);
+            }
+            
+            clear() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.hasDrawn = false;
+                if (this.placeholder) this.placeholder.style.display = 'flex';
+            }
+            
+            isEmpty() { return !this.hasDrawn; }
+        }
+
+        // ======= Toast 逻辑 =======
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.remove('opacity-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+            }, 2500);
+        }
+
+        // ======= 场景2：签约表单逻辑 =======
+        const checkbox = document.getElementById('agreementCheckbox');
+        const signBtn = document.getElementById('signBtn');
+        const innerModal = document.getElementById('innerAgreementModal');
+
+        function handleCheckboxClick() {
+            if (!checkbox.checked) {
+                innerModal.classList.remove('hidden');
+                // 弹窗显示后，重新检查一次是否需要滚动（可能屏幕足够大不需要滑）
+                if (typeof innerScrollCheck === 'function') {
+                    setTimeout(innerScrollCheck, 100);
+                }
+            } else {
+                checkbox.checked = false;
+                updateBtnState();
+            }
+        }
+
+        function closeInnerModal() {
+            innerModal.classList.add('hidden');
+        }
+
+        function openSignatureInner() {
+            closeInnerModal();
+            const modal = document.getElementById('signatureModalInner');
+            modal.classList.remove('hidden');
+            if (!window.sigPadInner) {
+                window.sigPadInner = new SignaturePad('sigCanvasInner', 'sigPlaceholderInner');
+            } else {
+                window.sigPadInner.resize();
+            }
+        }
+
+        function closeSignatureInner() {
+            // 左边场景：点击返回，直接跳回到填写表单页面（隐藏签名板和协议弹窗）
+            document.getElementById('signatureModalInner').classList.add('hidden');
+            document.getElementById('innerAgreementModal').classList.add('hidden');
+            // 取消 checkbox 勾选状态（因为没有完成签名）
+            checkbox.checked = false;
+            updateBtnState();
+        }
+
+        function confirmSignatureInner() {
+            if (window.sigPadInner.isEmpty()) {
+                showToast('请先完成手写签名');
+                return;
+            }
+            document.getElementById('signatureModalInner').classList.add('hidden');
+            checkbox.checked = true;
+            updateBtnState();
+            showToast('签署成功！');
+        }
+
+        function clearSignatureInner() {
+            window.sigPadInner.clear();
+        }
+
+        function updateBtnState() {
+            if (checkbox.checked) {
+                signBtn.removeAttribute('disabled');
+                signBtn.classList.remove('opacity-50');
+            } else {
+                signBtn.setAttribute('disabled', 'disabled');
+                signBtn.classList.add('opacity-50');
+            }
+        }
+
+        // ======= 场景1：全局弹窗阻断逻辑 =======
+        const globalModalOverlay = document.getElementById('globalModalOverlay');
+        const rejectConfirmModal = document.getElementById('rejectConfirmModal');
+        const blockedState = document.getElementById('blockedState');
+        const homeContent = document.getElementById('homeContent');
+
+        function showGlobalModal() {
+            globalModalOverlay.classList.remove('hidden');
+            blockedState.classList.add('hidden');
+        }
+
+        function openSignatureGlobal() {
+            globalModalOverlay.classList.add('hidden');
+            const modal = document.getElementById('signatureModalGlobal');
+            modal.classList.remove('hidden');
+            if (!window.sigPadGlobal) {
+                window.sigPadGlobal = new SignaturePad('sigCanvasGlobal', 'sigPlaceholderGlobal');
+            } else {
+                window.sigPadGlobal.resize();
+            }
+        }
+
+        function closeSignatureGlobal() {
+            document.getElementById('signatureModalGlobal').classList.add('hidden');
+            globalModalOverlay.classList.remove('hidden');
+        }
+
+        function confirmSignatureGlobal() {
+            if (window.sigPadGlobal.isEmpty()) {
+                showToast('请先完成手写签名');
+                return;
+            }
+            document.getElementById('signatureModalGlobal').classList.add('hidden');
+            blockedState.classList.add('hidden');
+            homeContent.querySelectorAll('.task-card').forEach(el => el.classList.remove('blur-[3px]'));
+            showToast('签署成功！您现在可以正常访问护卫军系统了。');
+        }
+
+        function clearSignatureGlobal() {
+            window.sigPadGlobal.clear();
+        }
+
+        // 点击暂不同意 -> 弹出二次确认
+        function showRejectConfirm() {
+            rejectConfirmModal.classList.remove('hidden');
+        }
+
+        // 从二次确认返回
+        function hideRejectConfirm() {
+            rejectConfirmModal.classList.add('hidden');
+        }
+
+        // 最终拒绝 -> 物理阻断
+        function finalReject() {
+            rejectConfirmModal.classList.add('hidden');
+            globalModalOverlay.classList.add('hidden');
+            // 显示空状态阻断页
+            blockedState.classList.remove('hidden');
+            // 重置首页模糊，防止审查漏网
+            homeContent.querySelectorAll('.task-card').forEach(el => el.classList.add('blur-[3px]'));
+        }
+
+        // ======= 强制阅读滚动解锁逻辑 =======
+        function setupScrollUnlock(scrollAreaId, btnId) {
+            const scrollArea = document.getElementById(scrollAreaId);
+            const btn = document.getElementById(btnId);
+            
+            // 检查是否一开始就不需要滚动（内容太少）
+            function checkScroll() {
+                if (scrollArea.scrollHeight === 0) return; // 隐藏状态下（高度为0）不处理，防止一加载就自动解锁
+                if (scrollArea.scrollTop + scrollArea.clientHeight >= scrollArea.scrollHeight - 10) {
+                    btn.removeAttribute('disabled');
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    const hint = btn.querySelector('.hint-text');
+                    if(hint) hint.style.display = 'none';
+                    // 如果有 hover 样式，可以动态加上
+                    if(btnId === 'globalAgreeBtn') btn.classList.add('hover:bg-red-700');
+                }
+            }
+            
+            // 绑定滚动事件
+            scrollArea.addEventListener('scroll', checkScroll);
+            
+            // 初始检查一下，防止高度足够不需要滚动
+            // 使用 setTimeout 确保 DOM 渲染完成
+            setTimeout(checkScroll, 100);
+            
+            return checkScroll;
+        }
+
+        const innerScrollCheck = setupScrollUnlock('innerScrollArea', 'innerAgreeBtn');
+        const globalScrollCheck = setupScrollUnlock('globalScrollArea', 'globalAgreeBtn');
+
+    </script>
+</body>
+</html>
