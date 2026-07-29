@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>护卫军 - 56项系统标签点阵图(蓝白风格)</title>
+    <style>
+        :root {
+            --bg-color: #F8FAFC; 
+            --grid-line: rgba(30, 64, 175, 0.05);
+            --dist-color: #2563EB; /* 核心蓝 - 分发 */
+            --risk-color: #DC2626; /* 红色 - 风控 */
+            --honor-color: #D97706; /* 金色 - 荣誉 */
+            --text-main: #0F172A;
+            --text-sub: #475569;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #E2E8F0;
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .slide-canvas {
+            width: 1024px;
+            height: 576px;
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            padding: 30px 40px; /* Reduced top/bottom padding to give more vertical space */
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+            background-image: 
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 32px 32px;
+            background-position: center center;
+        }
+        
+        .header {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            margin-bottom: 24px; /* Reduced margin */
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 26px; /* Slightly smaller */
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--text-main);
+        }
+        .header h1 span {
+            color: var(--dist-color);
+        }
+        .header p {
+            margin: 6px 0 0 0;
+            color: var(--text-sub);
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        /* The Dot Matrix Container */
+        .matrix-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px; /* Slightly reduced gap */
+            height: 420px; /* Increased height so items don't overflow */
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Cluster */
+        .cluster {
+            flex: 1;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 20px 16px; /* Reduced padding */
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+        }
+        .cluster-title {
+            font-size: 15px;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+        }
+        .cluster-title .dot-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        /* Distribution (Blue) */
+        .cluster.dist .cluster-title { color: var(--dist-color); }
+        .cluster.dist .dot-indicator { background-color: var(--dist-color); box-shadow: 0 0 8px rgba(37, 99, 235, 0.4); }
+        /* Risk (Red) */
+        .cluster.risk .cluster-title { color: var(--risk-color); }
+        .cluster.risk .dot-indicator { background-color: var(--risk-color); box-shadow: 0 0 8px rgba(220, 38, 38, 0.4); }
+        /* Honor (Gold) */
+        .cluster.honor .cluster-title { color: var(--honor-color); }
+        .cluster.honor .dot-indicator { background-color: var(--honor-color); box-shadow: 0 0 8px rgba(217, 119, 6, 0.4); }
+
+        /* The Dots Grid */
+        .dots-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px; /* Reduced gap to fit more items */
+            align-content: flex-start;
+        }
+        
+        .dot-item {
+            display: flex;
+            align-items: center;
+            background: #FFFFFF;
+            border: 1px solid #CBD5E1;
+            padding: 3px 8px 3px 6px; /* Reduced padding */
+            border-radius: 20px;
+            font-size: 11px; /* Slightly smaller text */
+            color: var(--text-sub);
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+        
+        .dot-item .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+
+        /* Specific Dot Colors */
+        .cluster.dist .dot-item .dot { background-color: var(--dist-color); }
+        .cluster.risk .dot-item .dot { background-color: var(--risk-color); }
+        .cluster.honor .dot-item .dot { background-color: var(--honor-color); }
+
+        .cluster.dist .dot-item:hover { border-color: var(--dist-color); color: var(--dist-color); background: #EFF6FF; }
+        .cluster.risk .dot-item:hover { border-color: var(--risk-color); color: var(--risk-color); background: #FEF2F2; }
+        .cluster.honor .dot-item:hover { border-color: var(--honor-color); color: var(--honor-color); background: #FFFBEB; }
+
+        /* Highlighted dots */
+        .dot-item.core {
+            border-color: #94A3B8;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        /* Stats at bottom of cluster */
+        .cluster-stats {
+            margin-top: auto;
+            font-size: 24px;
+            font-weight: 700;
+            color: #E2E8F0;
+            text-align: right;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        /* Legends / Footer */
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            left: 40px;
+            right: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+        }
+        .legend-item .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-canvas">
+        <div class="header">
+            <h1>56 项自动标签 <span>全景点阵图</span></h1>
+            <p>基于“分发-风控-荣誉”三大标签池的自动化流转</p>
+        </div>
+
+        <div class="matrix-container">
+            <!-- Distribution -->
+            <div class="cluster dist">
+                <div class="cluster-title">
+                    <div class="dot-indicator"></div> 分发标签池 (29)
+                </div>
+                <div class="dots-grid">
+                    <div class="dot-item core"><div class="dot"></div>大师</div>
+                    <div class="dot-item core"><div class="dot"></div>专家</div>
+                    <div class="dot-item"><div class="dot"></div>熟练期</div>
+                    <div class="dot-item"><div class="dot"></div>新手期</div>
+                    <div class="dot-item core"><div class="dot"></div>近7天活跃</div>
+                    <div class="dot-item"><div class="dot"></div>近30天高频</div>
+                    <div class="dot-item"><div class="dot"></div>微信能力</div>
+                    <div class="dot-item core"><div class="dot"></div>抖音能力</div>
+                    <div class="dot-item"><div class="dot"></div>其他平台能力</div>
+                    <div class="dot-item"><div class="dot"></div>能力(原创)</div>
+                    <div class="dot-item"><div class="dot"></div>兴趣偏好</div>
+                    <div class="dot-item"><div class="dot"></div>微信视频号</div>
+                    <div class="dot-item"><div class="dot"></div>微博绑定</div>
+                    <div class="dot-item"><div class="dot"></div>知乎绑定</div>
+                    <div class="dot-item"><div class="dot"></div>微信公众号</div>
+                    <div class="dot-item"><div class="dot"></div>头条号绑定</div>
+                    <div class="dot-item"><div class="dot"></div>快手绑定</div>
+                    <div class="dot-item"><div class="dot"></div>抖音绑定</div>
+                    <div class="dot-item"><div class="dot"></div>B站绑定</div>
+                    <div class="dot-item"><div class="dot"></div>小红书绑定</div>
+                    <div class="dot-item"><div class="dot"></div>懂车帝绑定</div>
+                    <div class="dot-item"><div class="dot"></div>汽车之家绑定</div>
+                    <div class="dot-item"><div class="dot"></div>易车绑定</div>
+                    <div class="dot-item"><div class="dot"></div>尖兵队</div>
+                    <div class="dot-item"><div class="dot"></div>守卫队</div>
+                    <!-- Extracted more compact list so it definitely fits -->
+                    <div class="dot-item"><div class="dot"></div>微信绑定</div>
+                    <div class="dot-item"><div class="dot"></div>...</div>
+                </div>
+                <div class="cluster-stats">01</div>
+            </div>
+
+            <!-- Risk -->
+            <div class="cluster risk">
+                <div class="cluster-title">
+                    <div class="dot-indicator"></div> 风险拦截池 (15)
+                </div>
+                <div class="dots-grid">
+                    <div class="dot-item core"><div class="dot"></div>数据作假</div>
+                    <div class="dot-item core"><div class="dot"></div>敷衍了事</div>
+                    <div class="dot-item core"><div class="dot"></div>态度不佳</div>
+                    <div class="dot-item"><div class="dot"></div>高频申诉</div>
+                    <div class="dot-item"><div class="dot"></div>申诉失败高</div>
+                    <div class="dot-item"><div class="dot"></div>跨平台申诉</div>
+                    <div class="dot-item"><div class="dot"></div>不看作业要求</div>
+                    <div class="dot-item"><div class="dot"></div>抵触心理</div>
+                    <div class="dot-item"><div class="dot"></div>问题人物</div>
+                    <div class="dot-item core"><div class="dot"></div>流失风险用户</div>
+                    <div class="dot-item"><div class="dot"></div>近7天未登录</div>
+                    <div class="dot-item"><div class="dot"></div>近30天未登录</div>
+                    <div class="dot-item"><div class="dot"></div>沉默1个月</div>
+                    <div class="dot-item"><div class="dot"></div>沉默2个月</div>
+                    <div class="dot-item"><div class="dot"></div>沉默3个月</div>
+                </div>
+                <div class="cluster-stats">02</div>
+            </div>
+
+            <!-- Honor -->
+            <div class="cluster honor">
+                <div class="cluster-title">
+                    <div class="dot-indicator"></div> 荣誉评优池 (12)
+                </div>
+                <div class="dots-grid">
+                    <div class="dot-item core"><div class="dot"></div>上月积分Top100</div>
+                    <div class="dot-item core"><div class="dot"></div>当年命中X次尖兵</div>
+                    <div class="dot-item"><div class="dot"></div>上月命中尖兵</div>
+                    <div class="dot-item"><div class="dot"></div>当年命中X次守卫</div>
+                    <div class="dot-item"><div class="dot"></div>上月命中守卫</div>
+                    <div class="dot-item"><div class="dot"></div>当年命中守卫/尖兵</div>
+                    <div class="dot-item"><div class="dot"></div>当年命中X次王牌</div>
+                    <div class="dot-item"><div class="dot"></div>上月命中王牌</div>
+                    <div class="dot-item"><div class="dot"></div>近1个月活跃</div>
+                    <div class="dot-item"><div class="dot"></div>近2个月活跃</div>
+                    <div class="dot-item"><div class="dot"></div>近3个月活跃</div>
+                    <div class="dot-item"><div class="dot"></div>120天注册用户</div>
+                </div>
+                <div class="cluster-stats">03</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="legend">
+                <div class="legend-item"><div class="dot" style="background: var(--dist-color);"></div> 分发算力池</div>
+                <div class="legend-item"><div class="dot" style="background: var(--risk-color);"></div> 风险拦截池</div>
+                <div class="legend-item"><div class="dot" style="background: var(--honor-color);"></div> 荣誉评优池</div>
+            </div>
+            <div style="color: #94A3B8; font-size: 11px; font-weight: 500;">DONGFENG TAG SYSTEM • T+1 00:00 UPDATED</div>
+        </div>
+    </div>
+</body>
+</html>

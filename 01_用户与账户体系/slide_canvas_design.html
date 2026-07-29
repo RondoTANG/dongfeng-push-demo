@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>护卫军 - 标签自动化分发方案展示</title>
+    <style>
+        :root {
+            --dongfeng-red: #E01E2E;
+            --bg-dark: #0B0F19;
+            --card-bg: #1A2133;
+            --text-main: #FFFFFF;
+            --text-sub: #94A3B8;
+            --accent: #38BDF8;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .slide-canvas {
+            width: 1024px;
+            height: 576px;
+            background: linear-gradient(135deg, #111827 0%, #0F172A 100%);
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            padding: 48px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Top Decorative Line */
+        .slide-canvas::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--dongfeng-red) 0%, #F43F5E 50%, var(--accent) 100%);
+        }
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        .header-accent {
+            width: 8px;
+            height: 32px;
+            background-color: var(--dongfeng-red);
+            border-radius: 4px;
+            margin-right: 16px;
+        }
+        .title h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .title p {
+            margin: 8px 0 0 0;
+            color: var(--text-sub);
+            font-size: 14px;
+        }
+        /* Grid Layout */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            height: calc(100% - 100px);
+        }
+        /* Cards */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 32px;
+            position: relative;
+        }
+        .card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(224,30,46,0.1) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 16px;
+        }
+        .card-number {
+            background: rgba(224,30,46,0.2);
+            color: #FCA5A5;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-right: 16px;
+        }
+        .card h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .list-item {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .list-icon {
+            color: var(--accent);
+            margin-right: 12px;
+            font-size: 18px;
+        }
+        .list-content h3 {
+            margin: 0 0 4px 0;
+            font-size: 16px;
+            color: #E2E8F0;
+        }
+        .list-content p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-sub);
+            line-height: 1.5;
+        }
+        /* Bottom Watermark */
+        .watermark {
+            position: absolute;
+            bottom: 24px;
+            left: 48px;
+            color: rgba(255,255,255,0.2);
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-canvas">
+        <div class="header">
+            <div class="header-accent"></div>
+            <div class="title">
+                <h1>标签自动化与分发引擎 (去痛点直达方案)</h1>
+                <p>Data-driven tag mapping & automated task distribution engine</p>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <!-- Left Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-number">01</div>
+                    <h2>系统级标签自动化 (XP联动)</h2>
+                </div>
+                <div class="list-item">
+                    <div class="list-icon">⚡️</div>
+                    <div class="list-content">
+                        <h3>动态算力代替导表拉群</h3>
+                        <p>系统每日自动计算全盘用户的经验值 (XP)，无需运营手工维护名单。</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-icon">🎯</div>
+                    <div class="list-content">
+                        <h3>千人千面精准打标</h3>
+                        <p>一旦XP达标且符合原创/互动偏好，系统即刻为其烙印“专家/大师”业务标签。</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-icon">🔄</div>
+                    <div class="list-content">
+                        <h3>去人工化实时闭环</h3>
+                        <p>谁达标谁就自动进池子，数据驱动筛选，确保每次任务的受众绝对精准。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-number">02</div>
+                    <h2>轮回覆盖池分发引擎</h2>
+                </div>
+                <div class="list-item">
+                    <div class="list-icon">🛡️</div>
+                    <div class="list-content">
+                        <h3>三大阶梯覆盖池</h3>
+                        <p>依托标签划定：大师覆盖池（原尖兵队）、专家覆盖池（原守卫队）、全员池。</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-icon">⚖️</div>
+                    <div class="list-content">
+                        <h3>防呆互斥与绝对公平</h3>
+                        <p>严禁人工排除池内名单；达标者自动按批次序列轮回，打破固化垄断。</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-icon">📊</div>
+                    <div class="list-content">
+                        <h3>跨轮补给与名额释放</h3>
+                        <p>需求超额自动跨轮取人；作业被拒/撤回立即释放人数回退进度，全链路可视化。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="watermark">DONGFENG GROWTH SYSTEM V2.0</div>
+    </div>
+</body>
+</html>

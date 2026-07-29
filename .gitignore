@@ -6,3 +6,16 @@
 !02_作业与任务引擎/公众号授权/
 !02_作业与任务引擎/公众号授权/**
 !.gitignore
+!01_用户与账户体系/
+!01_用户与账户体系/**
+
+# Project-level Agent context and maintainable memory
+!AGENTS.md
+!.agents/
+!.agents/AGENTS.md
+!.agents/PROJECT_UNDERSTANDING.md
+!docs/
+!docs/project-memory/
+!docs/project-memory/INDEX.md
+!docs/project-memory/CURRENT.md
+!docs/project-memory/CHANGELOG.md

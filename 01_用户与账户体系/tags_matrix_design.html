@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>护卫军 - 56项自动标签矩阵展示</title>
+    <style>
+        :root {
+            --dongfeng-red: #E01E2E;
+            --bg-light: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --text-main: #1E293B;
+            --text-sub: #64748B;
+            
+            --dist-color: #3B82F6; /* 分发 - 蓝 */
+            --risk-color: #EF4444; /* 风控 - 红 */
+            --honor-color: #F59E0B; /* 荣誉 - 金 */
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #E2E8F0;
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .slide-canvas {
+            width: 1024px;
+            height: 576px;
+            background-color: var(--bg-light);
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+            padding: 40px 48px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Top Decorative Line */
+        .slide-canvas::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--dongfeng-red) 0%, var(--honor-color) 50%, var(--dist-color) 100%);
+        }
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        .header-accent {
+            width: 6px;
+            height: 32px;
+            background-color: var(--dongfeng-red);
+            border-radius: 4px;
+            margin-right: 16px;
+        }
+        .title h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
+            color: #0F172A;
+            letter-spacing: 0.5px;
+        }
+        .title p {
+            margin: 6px 0 0 0;
+            color: var(--text-sub);
+            font-size: 14px;
+        }
+        
+        /* Grid Layout for the 3 pillars */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 24px;
+            height: calc(100% - 130px);
+        }
+        
+        /* Cards */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #F1F5F9;
+        }
+        
+        .card.dist .card-header { border-bottom-color: rgba(59, 130, 246, 0.2); }
+        .card.risk .card-header { border-bottom-color: rgba(239, 68, 68, 0.2); }
+        .card.honor .card-header { border-bottom-color: rgba(245, 158, 11, 0.2); }
+        
+        .icon-box {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            margin-right: 12px;
+            color: white;
+        }
+        .card.dist .icon-box { background-color: var(--dist-color); }
+        .card.risk .icon-box { background-color: var(--risk-color); }
+        .card.honor .icon-box { background-color: var(--honor-color); }
+        
+        .card h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #1E293B;
+        }
+        
+        /* Inner Tags Section */
+        .tag-group {
+            margin-bottom: 16px;
+        }
+        .tag-group h3 {
+            font-size: 13px;
+            color: #94A3B8;
+            margin: 0 0 8px 0;
+            font-weight: 600;
+        }
+        .tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .tag {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 100px;
+            background-color: #F1F5F9;
+            color: #475569;
+            font-weight: 500;
+            border: 1px solid #E2E8F0;
+        }
+        
+        /* Highlighted tags based on pillar */
+        .card.dist .tag.highlight { background-color: rgba(59, 130, 246, 0.1); color: #1D4ED8; border-color: rgba(59, 130, 246, 0.3); }
+        .card.risk .tag.highlight { background-color: rgba(239, 68, 68, 0.1); color: #B91C1C; border-color: rgba(239, 68, 68, 0.3); }
+        .card.honor .tag.highlight { background-color: rgba(245, 158, 11, 0.1); color: #B45309; border-color: rgba(245, 158, 11, 0.3); }
+        
+        .stats-box {
+            margin-top: auto;
+            background-color: #F8FAFC;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            color: #64748B;
+            display: flex;
+            justify-content: space-between;
+            border: 1px dashed #CBD5E1;
+        }
+        .stats-number {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .card.dist .stats-number { color: var(--dist-color); }
+        .card.risk .stats-number { color: var(--risk-color); }
+        .card.honor .stats-number { color: var(--honor-color); }
+
+        /* Bottom Footer */
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            left: 48px;
+            right: 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .watermark {
+            color: #94A3B8;
+            font-size: 11px;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        .badge {
+            background-color: rgba(224,30,46,0.1);
+            color: var(--dongfeng-red);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-canvas">
+        <div class="header">
+            <div class="header-accent"></div>
+            <div class="title">
+                <h1>全局 56 项自动标签矩阵：构建“分发-风控-荣誉”算力闭环</h1>
+                <p>将全部自动标签收敛为三大中枢引擎，实现高优作业的精准过滤与自动触达</p>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <!-- Pillar 1: Distribution -->
+            <div class="card dist">
+                <div class="card-header">
+                    <div class="icon-box">🚀</div>
+                    <h2>圈层 1：分发引擎 (决定去向)</h2>
+                </div>
+                <div class="tag-group">
+                    <h3>🎯 核心身份与成长 (5个)</h3>
+                    <div class="tag-cloud">
+                        <span class="tag highlight">大师</span>
+                        <span class="tag highlight">专家</span>
+                        <span class="tag">熟练期</span>
+                        <span class="tag">新手期</span>
+                    </div>
+                </div>
+                <div class="tag-group">
+                    <h3>活跃度与能力认证 (11个)</h3>
+                    <div class="tag-cloud">
+                        <span class="tag highlight">近7天活跃</span>
+                        <span class="tag">近30天高频</span>
+                        <span class="tag highlight">抖音能力</span>
+                        <span class="tag">微信能力</span>
+                    </div>
+                </div>
+                <div class="tag-group">
+                    <h3>跨平台绑定 (13个)</h3>
+                    <div class="tag-cloud">
+                        <span class="tag">微信视频号</span>
+                        <span class="tag">懂车帝</span>
+                        <span class="tag">汽车之家</span>
+                        <span class="tag">+10项</span>
+                    </div>
+                </div>
+                <div class="stats-box">
+                    <span>覆盖标签总量</span>
+                    <span class="stats-number">共 29 项标签</span>
+                </div>
+            </div>
+
+            <!-- Pillar 2: Risk Control -->
+            <div class="card risk">
+                <div class="card-header">
+                    <div class="icon-box">🛡️</div>
+                    <h2>圈层 2：风控引擎 (决定剔除)</h2>
+                </div>
+                <div class="tag-group">
+                    <h3>🚨 高危行为阻断 (9个)</h3>
+                    <div class="tag-cloud">
+                        <span class="tag highlight">数据作假</span>
+                        <span class="tag highlight">敷衍了事</span>
+                        <span class="tag highlight">态度不佳</span>
+                        <span class="tag">抵触心理</span>
+                        <span class="tag">高频申诉</span>
+                        <span class="tag">问题人物</span>
+                    </div>
+                </div>
+                <div class="tag-group">
+                    <h3>休眠与流失预警 (6个)</h3>
+                    <div class="tag-cloud">
+                        <span class="tag highlight">流失风险用户</span>
+                        <span class="tag">近30天未登录</span>
+                        <span class="tag">沉默3个月</span>
+                    </div>
+                </div>
+                <div class="stats-box">
+                    <span>负责拦截/降权的黑名单</span>
+                    <span class="stats-number">共 15 项标签</span>
+                </div>
+            </div>
+
+            <!-- Pillar 3: Honor -->
+            <div class="card honor">
+                <div class="card-header">
+                    <div class="icon-box">👑</div>
+                    <h2>圈层 3：荣誉引擎 (决定表彰)</h2>
+                </div>
+                <div class="tag-group">
+                    <h3>🏆 历届王牌命中 (7个)</h3>
+                    <div class="tag-cloud">
+                        <span class="tag highlight">当年命中X次尖兵</span>
+                        <span class="tag highlight">上月命中守卫</span>
+                        <span class="tag">上月命中王牌</span>
+                        <span class="tag">当年命中守卫/尖兵</span>
+                    </div>
+                </div>
+                <div class="tag-group">
+                    <h3>📈 积分排名与资历 (5个)</h3>
+                    <div class="tag-cloud">
+                        <span class="tag highlight">上月积分榜Top100</span>
+                        <span class="tag">120天注册用户</span>
+                        <span class="tag">60天注册用户</span>
+                    </div>
+                </div>
+                <div class="stats-box">
+                    <span>用于精神激励与评优</span>
+                    <span class="stats-number">共 12 项标签</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="watermark">DONGFENG GROWTH SYSTEM V2.0</div>
+            <div class="badge">系统数据每日凌晨 0:00 (T+1) 自动更新</div>
+        </div>
+    </div>
+</body>
+</html>

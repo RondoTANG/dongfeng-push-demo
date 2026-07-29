@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+file_path = "/Users/RondoT/Documents/护卫军相关/01_用户与账户体系/C端_用户签约与保密协议演示.html"
+
+new_html = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -119,34 +121,30 @@
                 </div>
 
                 <!-- 签名画板 (情况A 全局阻断) -->
-                <div id="signatureModalGlobal" class="absolute inset-0 bg-white z-[60] hidden overflow-hidden slide-up">
-                    <div class="absolute top-0 left-0 flex flex-col bg-white" style="width: 812px; height: 375px; transform-origin: top left; transform: translateX(375px) rotate(90deg);">
-                        <div class="px-12 py-3 flex items-center justify-between border-b border-gray-100 bg-white shrink-0">
-                            <div class="flex items-center gap-1.5 text-gray-700 cursor-pointer active:text-gray-400 transition" onclick="closeSignatureGlobal()">
-                                <i class="fas fa-chevron-left text-lg"></i>
-                                <span class="text-[15px]">返回</span>
-                            </div>
-                            <h3 class="font-bold text-gray-800 text-[17px]">手写签名</h3>
-                            <div class="flex items-center gap-3 border border-gray-200 rounded-full px-3 py-1 text-gray-600 text-sm">
-                                <i class="fas fa-ellipsis-h"></i>
-                                <div class="w-px h-3 bg-gray-200"></div>
-                                <i class="far fa-dot-circle"></i>
-                            </div>
+                <div id="signatureModalGlobal" class="absolute inset-0 bg-white z-[60] hidden flex flex-col slide-up">
+                    <div class="px-4 py-3 flex items-center justify-between border-b border-gray-100 bg-white shrink-0 pt-12">
+                        <div class="flex items-center gap-4 text-gray-700">
+                            <i class="fas fa-chevron-left text-xl cursor-pointer" onclick="closeSignatureGlobal()"></i>
+                            <i class="fas fa-home text-lg"></i>
                         </div>
-                        <div class="flex-1 px-12 py-5 flex flex-col relative bg-gray-50">
-                            <div class="flex-1 border border-dashed border-gray-300 rounded-xl relative overflow-hidden bg-white shadow-sm" style="touch-action: none;">
-                                <canvas id="sigCanvasGlobal" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
-                                <div id="sigPlaceholderGlobal" class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center gap-2">
-                                    <!-- 【研发注意】底纹姓名需读取【员工表】中的真实姓名（注：因注册表的姓名系统无校验，不可用）。若后台由于重名问题在姓名后加了数字（如“张三丰1”），前端需过滤掉数字仅展示姓名本身 -->
-                                    <span class="text-[64px] font-extralight tracking-[0.35em] select-none" style="color: rgba(209,213,219,0.45); font-family: 'STKaiti', 'KaiTi', serif;">张三丰</span>
-                                    <span class="text-xs text-gray-300 select-none tracking-wider">请在此处签写您的姓名</span>
-                                </div>
+                        <h3 class="font-bold text-gray-800 text-[17px]">手写签名</h3>
+                        <div class="flex items-center gap-3 border border-gray-200 rounded-full px-3 py-1 text-gray-600 text-sm">
+                            <i class="fas fa-ellipsis-h"></i>
+                            <div class="w-px h-3 bg-gray-200"></div>
+                            <i class="far fa-dot-circle"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 p-5 flex flex-col relative bg-white">
+                        <div class="flex-1 border border-dashed border-gray-300 rounded relative overflow-hidden bg-white" style="touch-action: none;">
+                            <canvas id="sigCanvasGlobal" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+                            <div id="sigPlaceholderGlobal" class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                                <span class="text-4xl font-bold tracking-[0.2em] text-gray-100 rotate-[-15deg] select-none">请在此处签名</span>
                             </div>
                         </div>
-                        <div class="px-12 pb-6 flex gap-4 bg-gray-50 shrink-0 justify-center">
-                            <button onclick="clearSignatureGlobal()" class="w-[140px] bg-white border border-gray-300 text-gray-600 font-medium py-2.5 rounded-lg text-sm hover:bg-gray-100 transition shadow-sm">清空</button>
-                            <button onclick="confirmSignatureGlobal()" class="w-[200px] bg-[#1E5BBC] text-white font-medium py-2.5 rounded-lg text-sm shadow-md transition hover:bg-blue-700">签名确认</button>
-                        </div>
+                    </div>
+                    <div class="px-5 pb-8 pt-4 flex gap-4 bg-white shrink-0">
+                        <button onclick="clearSignatureGlobal()" class="flex-1 bg-white border border-gray-300 text-gray-600 font-medium py-3 rounded-lg text-sm hover:bg-gray-50 transition">清空</button>
+                        <button onclick="confirmSignatureGlobal()" class="flex-[1.5] bg-[#2196F3] text-white font-medium py-3 rounded-lg text-sm shadow-md transition hover:bg-blue-600">签名确认</button>
                     </div>
                 </div>
                 
@@ -216,15 +214,6 @@
             <!-- 图钉批注：场景2 -->
             <div class="absolute -top-3 -left-3 bg-blue-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-2xl shadow-xl z-[100] border-4 border-white">2</div>
             <div class="device-mockup bg-gray-50">
-                <!-- 废弃遮罩 -->
-                <div class="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-[200] flex flex-col items-center justify-center">
-                    <div class="w-24 h-24 rounded-full border-4 border-gray-400 text-gray-500 flex items-center justify-center -rotate-12 mb-4 opacity-80">
-                        <span class="text-2xl font-bold tracking-widest">已废弃</span>
-                    </div>
-                    <p class="text-xs font-bold text-gray-600 bg-white/90 px-4 py-2 rounded-full shadow-sm">
-                        此场景交互已取消，不再保留
-                    </p>
-                </div>
                 <!-- 导航栏 -->
                 <div class="bg-[#C60024] text-white px-4 py-3 flex items-center justify-between pt-12 shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -265,33 +254,30 @@
                 </div>
 
                 <!-- 签名画板 (情况B 签约表单) -->
-                <div id="signatureModalInner" class="absolute inset-0 bg-white z-[60] hidden overflow-hidden slide-up">
-                    <div class="absolute top-0 left-0 flex flex-col bg-white" style="width: 812px; height: 375px; transform-origin: top left; transform: translateX(375px) rotate(90deg);">
-                        <div class="px-12 py-3 flex items-center justify-between border-b border-gray-100 bg-white shrink-0">
-                            <div class="flex items-center gap-1.5 text-gray-700 cursor-pointer active:text-gray-400 transition" onclick="closeSignatureInner()">
-                                <i class="fas fa-chevron-left text-lg"></i>
-                                <span class="text-[15px]">返回</span>
-                            </div>
-                            <h3 class="font-bold text-gray-800 text-[17px]">手写签名</h3>
-                            <div class="flex items-center gap-3 border border-gray-200 rounded-full px-3 py-1 text-gray-600 text-sm">
-                                <i class="fas fa-ellipsis-h"></i>
-                                <div class="w-px h-3 bg-gray-200"></div>
-                                <i class="far fa-dot-circle"></i>
-                            </div>
+                <div id="signatureModalInner" class="absolute inset-0 bg-white z-[60] hidden flex flex-col slide-up">
+                    <div class="px-4 py-3 flex items-center justify-between border-b border-gray-100 bg-white shrink-0 pt-12">
+                        <div class="flex items-center gap-4 text-gray-700">
+                            <i class="fas fa-chevron-left text-xl cursor-pointer" onclick="closeSignatureInner()"></i>
+                            <i class="fas fa-home text-lg"></i>
                         </div>
-                        <div class="flex-1 px-12 py-5 flex flex-col relative bg-gray-50">
-                            <div class="flex-1 border border-dashed border-gray-300 rounded-xl relative overflow-hidden bg-white shadow-sm" style="touch-action: none;">
-                                <canvas id="sigCanvasInner" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
-                                <div id="sigPlaceholderInner" class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center gap-2">
-                                    <span class="text-[64px] font-extralight tracking-[0.35em] select-none" style="color: rgba(209,213,219,0.45); font-family: 'STKaiti', 'KaiTi', serif;">张三丰</span>
-                                    <span class="text-xs text-gray-300 select-none tracking-wider">请在此处签写您的姓名</span>
-                                </div>
+                        <h3 class="font-bold text-gray-800 text-[17px]">手写签名</h3>
+                        <div class="flex items-center gap-3 border border-gray-200 rounded-full px-3 py-1 text-gray-600 text-sm">
+                            <i class="fas fa-ellipsis-h"></i>
+                            <div class="w-px h-3 bg-gray-200"></div>
+                            <i class="far fa-dot-circle"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 p-5 flex flex-col relative bg-white">
+                        <div class="flex-1 border border-dashed border-gray-300 rounded relative overflow-hidden bg-white" style="touch-action: none;">
+                            <canvas id="sigCanvasInner" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+                            <div id="sigPlaceholderInner" class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                                <span class="text-4xl font-bold tracking-[0.2em] text-gray-100 rotate-[-15deg] select-none">请在此处签名</span>
                             </div>
                         </div>
-                        <div class="px-12 pb-6 flex gap-4 bg-gray-50 shrink-0 justify-center">
-                            <button onclick="clearSignatureInner()" class="w-[140px] bg-white border border-gray-300 text-gray-600 font-medium py-2.5 rounded-lg text-sm hover:bg-gray-100 transition shadow-sm">清空</button>
-                            <button onclick="confirmSignatureInner()" class="w-[200px] bg-[#1E5BBC] text-white font-medium py-2.5 rounded-lg text-sm shadow-md transition hover:bg-blue-700">签名确认</button>
-                        </div>
+                    </div>
+                    <div class="px-5 pb-8 pt-4 flex gap-4 bg-white shrink-0">
+                        <button onclick="clearSignatureInner()" class="flex-1 bg-white border border-gray-300 text-gray-600 font-medium py-3 rounded-lg text-sm hover:bg-gray-50 transition">清空</button>
+                        <button onclick="confirmSignatureInner()" class="flex-[1.5] bg-[#2196F3] text-white font-medium py-3 rounded-lg text-sm shadow-md transition hover:bg-blue-600">签名确认</button>
                     </div>
                 </div>
                 
@@ -331,14 +317,13 @@
         <div class="w-[450px] shrink-0 space-y-6">
             <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
                 <h3 class="text-lg font-bold text-gray-800 mb-2">① 【场景 1：全局弹窗拦截】(对应左侧设备)</h3>
-                <p class="text-sm text-gray-600 mb-2"><strong>适用对象：</strong>所有未签署承诺书的用户（含原情况B注册成功后的统一拦截）。</p>
+                <p class="text-sm text-gray-600 mb-2"><strong>适用对象：</strong>老用户、情况A（身份匹配自动签约的新用户）。</p>
                 <p class="text-sm text-gray-600 mb-2"><strong>触发逻辑（研发与QA重点）：</strong>全局路由守卫拦截。只要接口返回 <code>is_signed = false</code>，进入前端<strong>任何路由/页面</strong>均强制弹窗。底层真实业务DOM进行 <code>blur</code> 高斯模糊处理，严防数据泄露。</p>
                 <div class="text-sm text-gray-600 space-y-1">
                     <strong>交互与测试流转说明：</strong>
                     <ul class="list-decimal pl-4 space-y-1">
                         <li><strong>防误触/盲签：</strong>默认【同意并继续】按钮置灰，必须监听 <code>scroll</code> 触底事件后方可高亮解锁。</li>
                         <li><strong>唤起画板：</strong>点击解锁后的同意，划出手写签名区。</li>
-                        <li><strong>底纹姓名读取与脱敏：</strong><span class="text-red-600 font-bold">画板中的姓名底纹需读取【员工表】的姓名（注：由于注册表填写的姓名系统没校验，所以不可用）。若后端返回的姓名带有因重名追加的数字（如"张三丰1"），前端需利用正则过滤掉数字，仅显示汉字姓名本身。</span></li>
                         <li><strong>签名校验测试：</strong>空白画布直接点提交，需Toast阻断提示“请先完成手写签名”。画线后点击“清空”，状态需重置为空白拦截状态。</li>
                         <li><strong>提交闭环：</strong>签名确认后，向后端提交 <code>Base64图片/流</code>。后端保存存根并修改状态 <code>is_signed=true</code>。前端收到成功回调后，销毁弹窗并解除底部页面的模糊遮罩。</li>
                         <li><strong>拒绝异常流：</strong>点击【暂不同意】出二次确认，执意拒绝则页面转为无权限空状态，彻底销毁/隐藏真实业务DOM。</li>
@@ -346,19 +331,13 @@
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-gray-400 opacity-80">
-                <div class="flex items-center gap-2 mb-2">
-                    <h3 class="text-lg font-bold text-gray-500 line-through">② 【场景 2：签约表单嵌入】(对应右侧设备)</h3>
-                    <span class="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded font-bold">已废弃</span>
-                </div>
-                <p class="text-sm text-red-600 font-bold mb-4 bg-red-50 p-3 rounded-lg border border-red-100">
-                    业务最新决议：取消该场景，保持原有的简单注册流程。注册成功的用户将统一触发【场景 1】进行全局拦截签署。右侧设备仅作历史记录展示。
-                </p>
-                <p class="text-sm text-gray-500 mb-2 line-through"><strong>适用对象：</strong>情况B（需手填注册表单的新用户）。</p>
-                <p class="text-sm text-gray-500 mb-2 line-through"><strong>触发时机：</strong>用户在新注册填表页底部勾选协议时触发。</p>
-                <div class="text-sm text-gray-500 space-y-1">
-                    <strong class="line-through">交互与测试流转说明：</strong>
-                    <ul class="list-decimal pl-4 space-y-1 opacity-50 line-through">
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">② 【场景 2：签约表单嵌入】(对应右侧设备)</h3>
+                <p class="text-sm text-gray-600 mb-2"><strong>适用对象：</strong>情况B（需手填注册表单的新用户）。</p>
+                <p class="text-sm text-gray-600 mb-2"><strong>触发时机：</strong>用户在新注册填表页底部勾选协议时触发。</p>
+                <div class="text-sm text-gray-600 space-y-1">
+                    <strong>交互与测试流转说明：</strong>
+                    <ul class="list-decimal pl-4 space-y-1">
                         <li><strong>强阻断拉起：</strong>用户无法直接在表单页打勾。点击单选框或《保密承诺书》文本时，从底部弹出协议正文抽屉。</li>
                         <li><strong>滑动解锁：</strong>必须物理滑动协议抽屉内容到底部，【我已阅读并同意】按钮才会由灰变红。</li>
                         <li><strong>唤起画板：</strong>点击同意后，滑出手写签名区。</li>
@@ -426,9 +405,9 @@ sequenceDiagram
             }
             
             resize() {
-                const parent = this.canvas.parentElement;
-                this.canvas.width = parent.offsetWidth;
-                this.canvas.height = parent.offsetHeight;
+                const rect = this.canvas.parentElement.getBoundingClientRect();
+                this.canvas.width = rect.width;
+                this.canvas.height = rect.height;
                 this.ctx.lineWidth = 4;
                 this.ctx.lineCap = 'round';
                 this.ctx.lineJoin = 'round';
@@ -446,14 +425,7 @@ sequenceDiagram
                         clientX = e.clientX;
                         clientY = e.clientY;
                     }
-                    // 因为父容器使用了 translateX(375px) rotate(90deg) 进行横屏旋转
-                    // 所以屏幕上的 XY 坐标需要做一次逆向映射，回到 Canvas 的逻辑坐标系中
-                    let x_screen = clientX - rect.left;
-                    let y_screen = clientY - rect.top;
-                    return { 
-                        x: y_screen, 
-                        y: this.canvas.height - x_screen 
-                    };
+                    return { x: clientX - rect.left, y: clientY - rect.top };
                 };
 
                 const start = (e) => {
@@ -673,4 +645,9 @@ sequenceDiagram
 
     </script>
 </body>
-</html>
+</html>"""
+
+with open(file_path, "w", encoding="utf-8") as f:
+    f.write(new_html)
+
+print("HTML rebuild complete.")
