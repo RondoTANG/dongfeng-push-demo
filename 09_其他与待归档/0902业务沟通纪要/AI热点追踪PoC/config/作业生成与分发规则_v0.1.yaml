@@ -1,0 +1,161 @@
+version: "0.1"
+updated_at: "2026-09-03"
+owner: "产品"
+reviewer: "运营"
+
+stage_control:
+  poc_mode: draft_only
+  auto_publish_enabled: false
+  manual_approval_required: true
+  response_window_hours: 24
+  approval_roles:
+    - "运营"
+
+task_type_mapping:
+  relevant_event_clue:
+    allowed_task_types:
+      - original_comment
+      - original_content
+    default_task_type: original_content
+  brand_content_opportunity:
+    allowed_task_types:
+      - original_comment
+      - original_content
+      - like_boost_observation
+    default_task_type: original_content
+  manual_review:
+    allowed_task_types: []
+    default_task_type: null
+  watch:
+    allowed_task_types: []
+    default_task_type: null
+
+platform_recommendation:
+  source_platform_is_not_target_platform: true
+  supported_target_platforms:
+    - weibo
+    - douyin
+    - wechat_official_account
+    - wechat_channels
+  rules:
+    - rule_id: PLT001
+      condition: "事件证据主要来自微博且内容适合短文本观点"
+      recommend:
+        - weibo
+    - rule_id: PLT002
+      condition: "事件具备视频表达素材或现场内容"
+      recommend:
+        - douyin
+        - wechat_channels
+    - rule_id: PLT003
+      condition: "事件适合中长篇事实梳理或观点表达"
+      recommend:
+        - wechat_official_account
+    - rule_id: PLT004
+      condition: "无法确定内容形态"
+      recommend: []
+      action: "运营选择目标平台"
+
+member_selection:
+  source: "护卫军现有平台能力标签"
+  required_label_dimension: platform_capability
+  rules:
+    - "微博任务只进入微博能力标签匹配人群"
+    - "抖音任务只进入抖音能力标签匹配人群"
+    - "公众号任务只进入公众号能力标签匹配人群"
+    - "视频号任务只进入视频号能力标签匹配人群"
+    - "用户可同时进入多个平台人群，但同一任务不得重复下发"
+  missing_label_action: "不自动选择用户，进入运营人工选人"
+  label_api: null
+  label_api_status: pending_integration
+
+task_draft_template:
+  required_fields:
+    - task_title
+    - task_brief
+    - response_deadline
+    - recommended_platforms
+    - target_member_tags
+    - evidence_source_ids
+    - official_fact_summary
+    - prohibited_claims
+    - risk_notes
+  generation_rule: "仅基于已核验证据生成任务背景和创作方向，不生成用户可直接复制的话术"
+  hotspot_disclaimer_rule: "事件仅来自搜索来源时，草案必须显示‘公开信息线索，非真实热点结论’，不得使用爆发、热搜、全网热议等未经原生数据证明的表述"
+  default_status: draft_pending_review
+
+early_publish_reward:
+  enabled: false
+  status: pending_business_confirmation
+  required_metrics:
+    - publish_time
+    - platform_content_id
+    - engagement_snapshot
+  scoring_rule: null
+  note: "会议提出越早发布、流量越高应有更高奖励；具体倍率和结算时间未确认"
+
+boost_followup:
+  enabled: true
+  status: poc_after_existing_collector_integration
+  trigger_metric_source: existing_engagement_collector
+  trigger_threshold: "按平台配置，当前待业务与运营确认"
+  submission_entry:
+    required_fields:
+      - published_task_id
+      - user_id
+      - submitted_platform
+      - submitted_url
+      - submitted_at
+    url_rule: "用户完成原创后必须回填公开内容链接；系统规范化URL并校验平台与任务要求是否一致"
+  snapshot_policy:
+    baseline: "链接回填并校验通过后立即采集"
+    followup_offsets_hours: [3, 24]
+    offsets_status: pending_business_confirmation
+    minimum_snapshots_for_growth: 2
+    missing_metric_value: null
+    missing_metric_rule: "不可采或失败不得按0处理"
+  platform_rules:
+    douyin:
+      metrics: [like_count, comment_count]
+      threshold: null
+    kuaishou:
+      metrics: [like_count, comment_count, share_count]
+      threshold: null
+    weibo:
+      metrics: [repost_count, comment_count, like_count]
+      threshold: null
+    news_aggregator:
+      applies_to: [toutiao]
+      metrics: [play_count, like_count, comment_count]
+      threshold: null
+    xiaohongshu:
+      metrics: [like_count, comment_count]
+      threshold: null
+    zhihu:
+      metrics: [upvote_count, comment_count, share_count]
+      threshold: null
+    bilibili:
+      metrics: [like_count, comment_count]
+      threshold: null
+    yiche:
+      metrics: [comment_count, like_count, engagement_count]
+      threshold: null
+    dongchedi:
+      metrics: [comment_count, like_count, engagement_count]
+      threshold: null
+    autohome:
+      metrics: [read_count, comment_count, like_count, engagement_count]
+      threshold: null
+    wechat_official_account:
+      auto_metric_collection: false
+      action: manual_evidence_required
+    wechat_channels:
+      auto_metric_collection: false
+      action: manual_evidence_required
+  decision_rule: "只比较同一平台、同一投稿链接在不同时间点的可采指标增量；不得跨平台直接比较绝对值"
+  target_task_types:
+    - like_boost
+    - positive_comment
+  output_status: boost_task_draft_pending_review
+  auto_publish_enabled: false
+  note: "现有采集可支持非微信平台的回填链接效果跟踪；PoC生成加热作业草案，运营审批后再下发"

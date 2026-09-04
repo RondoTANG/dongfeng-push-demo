@@ -1,0 +1,73 @@
+version: "0.1"
+updated_at: "2026-09-03"
+mode: "poc_read_only"
+
+business_scope:
+  purpose: "发现与东风相关、适合在24小时内组织原创响应或后续加热的热点候选"
+  brands:
+    - 东风汽车
+    - 东风风神
+    - 岚图汽车
+    - 猛士汽车
+    - 东风奕派
+    - 东风日产
+    - 东风本田
+    - 东风标致
+    - 东风雪铁龙
+  platforms:
+    - 微博
+    - 抖音
+    - 视频号
+    - 公众号
+
+collection:
+  lookback_hours: 24
+  providers:
+    - name: "doubao_global_search"
+      endpoint: "https://open.feedcoopapi.com/search_api/global_search"
+      enabled_when: "存在DOUBAO_SEARCH_API_KEY或macOS Keychain的guard-army-doubao-search/api-key"
+      role: "补充公开网页召回，不能单独决定是否下发"
+    - name: "codex_web_search"
+      enabled: true
+      role: "公开搜索、来源打开与交叉核验；同时作为豆包失败时的兜底"
+  search_lanes:
+    - "东风汽车 最新 新闻"
+    - "东风风神 最新 新闻"
+    - "岚图汽车 最新 新闻"
+    - "猛士汽车 最新 新闻"
+  source_priority:
+    - "东风及旗下品牌官方站点"
+    - "政府、央媒及权威行业媒体"
+    - "主流科技与汽车媒体"
+    - "可公开访问的社交平台页面"
+  prohibited:
+    - "绕过登录、验证码、付费墙或反爬机制"
+    - "采集个人敏感信息"
+    - "把搜索摘要直接当作已核实事实"
+
+decision_rules:
+  required:
+    - "主体与东风或旗下品牌直接相关"
+    - "事件发生或首次公开传播时间原则上不超过24小时"
+    - "至少有一个可访问来源和可摘录的事实证据"
+    - "能够明确转化为原创评论、原创内容或加热观察任务"
+  review_gate:
+    - "只有单一二手来源"
+    - "涉及销量、价格、事故、安全、监管、竞品对比或高阶智驾"
+    - "存在负面舆情、事实冲突或上下文缺失"
+  exclude:
+    - "纯招投标、采购或内部行政信息"
+    - "旧闻重新索引但无新增事实"
+    - "与品牌无直接关系的同名词"
+    - "仅有广告口号、无可核验事件"
+
+output:
+  statuses:
+    - "建议人工复核"
+    - "持续观察"
+    - "不建议下发"
+  task_types:
+    - "原创评论任务草案"
+    - "原创内容任务草案"
+    - "点赞加热观察"
+  publish_rule: "PoC阶段不得自动下发；必须由运营人工确认事实、口径、平台和人群"

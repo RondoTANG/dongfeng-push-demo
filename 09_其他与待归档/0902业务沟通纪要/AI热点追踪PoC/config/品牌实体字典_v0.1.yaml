@@ -1,0 +1,176 @@
+version: "0.1"
+updated_at: "2026-09-04"
+owner: "产品"
+reviewer: "运营"
+
+registry_policy:
+  active_status: "active"
+  master_data_scope:
+    - brand
+  active_only_for_deterministic_match: true
+  unknown_brand_action: "保留原始名称并随事件进入人工审核，不自动新增品牌主数据"
+  alias_uniqueness_required: true
+  weak_alias_requires_automotive_context: true
+  status_enum:
+    - active
+    - pending_confirmation
+    - inactive
+  change_requirements:
+    - "记录修改人、修改时间、修改原因和规则版本"
+    - "别名不得同时绑定两个active实体"
+    - "品牌归属变更后只影响新运行批次，不回写历史证据"
+
+event_entity_resolution:
+  entity_types:
+    - model
+    - person
+    - campaign
+    - organization
+  master_registry_required: false
+  confirmed_in_event_when:
+    - "原文明确出现实体名称，且可访问证据能够支持其与事件、品牌的关系"
+    - "名称、身份或归属不存在互相冲突的证据"
+  uncertain_when:
+    - "疑似新车型、新活动或新人物身份，现有证据不足以确认是否正式存在"
+    - "车型与品牌、人物与职务、活动与品牌之间的关系存在冲突"
+    - "只有单一弱来源或搜索摘要，无法打开正文核验"
+    - "名称存在同名、简称、错别字或时间版本歧义"
+  uncertain_action: "写入event.entity_uncertainties，并将该事件置为manual_review"
+  required_uncertainty_fields:
+    - entity_name_raw
+    - entity_type
+    - uncertainty_reason
+    - proposed_relation
+    - evidence_source_ids
+  manual_result_scope: "只确认当前事件中的表述与关系，不自动回写全局实体主数据"
+
+brands:
+  - brand_id: BR001
+    canonical_name: "东风汽车"
+    entity_type: "group_brand"
+    status: active
+    exact_aliases:
+      - "东风汽车集团"
+    weak_aliases:
+      - "东风"
+    weak_alias_context_terms:
+      - "汽车"
+      - "车型"
+      - "新能源"
+      - "车展"
+      - "智能驾驶"
+    official_domains:
+      - "dfmc.com.cn"
+    official_accounts: []
+
+  - brand_id: BR002
+    canonical_name: "东风风神"
+    entity_type: "brand"
+    status: active
+    exact_aliases:
+      - "东风风神"
+    weak_aliases:
+      - "风神"
+    weak_alias_context_terms:
+      - "东风"
+      - "汽车"
+      - "车型"
+    official_domains: []
+    official_accounts: []
+
+  - brand_id: BR003
+    canonical_name: "岚图汽车"
+    entity_type: "brand"
+    status: active
+    exact_aliases:
+      - "岚图汽车"
+      - "岚图"
+    weak_aliases: []
+    weak_alias_context_terms: []
+    official_domains:
+      - "voyah.com.cn"
+    official_accounts: []
+
+  - brand_id: BR004
+    canonical_name: "猛士汽车"
+    entity_type: "brand"
+    status: active
+    exact_aliases:
+      - "猛士汽车"
+    weak_aliases:
+      - "猛士"
+    weak_alias_context_terms:
+      - "东风"
+      - "汽车"
+      - "越野"
+      - "车型"
+    official_domains: []
+    official_accounts: []
+
+  - brand_id: BR005
+    canonical_name: "东风奕派"
+    entity_type: "brand"
+    status: active
+    exact_aliases:
+      - "东风奕派"
+    weak_aliases:
+      - "奕派"
+      - "东风eπ"
+    weak_alias_context_terms:
+      - "东风"
+      - "汽车"
+      - "车型"
+    official_domains: []
+    official_accounts: []
+
+  - brand_id: BR006
+    canonical_name: "东风日产"
+    entity_type: "brand"
+    status: active
+    exact_aliases:
+      - "东风日产"
+    weak_aliases: []
+    weak_alias_context_terms: []
+    official_domains: []
+    official_accounts: []
+
+  - brand_id: BR007
+    canonical_name: "东风本田"
+    entity_type: "brand"
+    status: active
+    exact_aliases:
+      - "东风本田"
+    weak_aliases: []
+    weak_alias_context_terms: []
+    official_domains: []
+    official_accounts: []
+
+  - brand_id: BR008
+    canonical_name: "东风标致"
+    entity_type: "brand"
+    status: active
+    exact_aliases:
+      - "东风标致"
+    weak_aliases:
+      - "标致"
+    weak_alias_context_terms:
+      - "东风"
+      - "汽车"
+      - "车型"
+    official_domains: []
+    official_accounts: []
+
+  - brand_id: BR009
+    canonical_name: "东风雪铁龙"
+    entity_type: "brand"
+    status: active
+    exact_aliases:
+      - "东风雪铁龙"
+    weak_aliases:
+      - "雪铁龙"
+    weak_alias_context_terms:
+      - "东风"
+      - "汽车"
+      - "车型"
+    official_domains: []
+    official_accounts: []

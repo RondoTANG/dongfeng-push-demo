@@ -1,0 +1,274 @@
+version: "0.1"
+updated_at: "2026-09-04"
+owner: "产品"
+
+enums:
+  source_status:
+    - valid
+    - invalid
+    - fetch_failed
+  event_status:
+    - relevant_event_clue
+    - brand_content_opportunity
+    - manual_review
+    - watch
+  hotspot_status:
+    - unknown
+    - normal
+    - rising
+    - breaking
+    - sustained
+    - declining
+  relation_status:
+    - direct_mention
+    - verified_relation
+    - no_relation
+    - unresolved
+  review_result:
+    - pending
+    - approved
+    - approved_after_edit
+    - rejected
+  task_status:
+    - draft_pending_review
+    - approved_pending_publish
+    - published
+    - cancelled
+
+datasets:
+  collection_run:
+    primary_key: run_id
+    required_fields:
+      - run_id
+      - trigger_type
+      - started_at
+      - finished_at
+      - config_versions
+      - query_coverage
+      - provider_summary
+    query_coverage_fields:
+      - expected_query_count
+      - executed_query_count
+      - success_query_count
+      - failed_query_count
+      - missing_query_ids
+
+  raw_provider_result:
+    primary_key: raw_result_id
+    required_fields:
+      - raw_result_id
+      - run_id
+      - provider_id
+      - query_id
+      - request_started_at
+      - response_received_at
+      - request_status
+      - raw_payload_ref
+    security_rule: "raw_payload_ref不得包含API Key、Authorization、Cookie或个人敏感信息"
+
+  source_item:
+    primary_key: source_id
+    required_fields:
+      - source_id
+      - run_id
+      - retrieved_by
+      - query_ids
+      - source_status
+      - source_platform
+      - source_site_name
+      - original_url
+      - canonical_url
+      - title
+      - snippet
+      - fetched_at
+      - first_seen_at
+    nullable_fields:
+      - source_account_id
+      - source_account_name
+      - source_account_url
+      - published_at
+      - event_at
+      - body_text
+      - provider_authority_level
+    evidence_fields:
+      - publisher_type
+      - is_official
+      - is_repost
+      - duplicate_of_source_id
+      - time_confidence
+      - entity_matches
+
+  invalid_log:
+    primary_key: invalid_id
+    required_fields:
+      - invalid_id
+      - run_id
+      - source_id_or_raw_result_id
+      - invalid_rule_id
+      - invalid_reason
+      - discarded_at
+    visible_in_main_workbench: false
+    human_review_required: false
+
+  event:
+    primary_key: event_id
+    required_fields:
+      - event_id
+      - event_title
+      - primary_entity_id_or_name
+      - event_action
+      - event_date
+      - source_ids
+      - source_count
+      - independent_source_count
+      - source_platforms
+      - brand_relations
+      - entity_mentions
+      - entity_uncertainties
+      - risk_tags
+      - missing_evidence
+      - hotspot_judgement_available
+      - hotspot_status
+      - hotspot_unavailable_reason
+      - event_status
+      - decision_reason
+    field_rules:
+      hotspot_judgement_available: "仅当数据源满足平台原生指标、连续快照、UGC/作者标识和覆盖审计等热点判定数据准入条件时可为true"
+      hotspot_status: "搜索来源固定为unknown；不得由搜索排名、结果数、转载数或AI主观判断推导"
+      source_count: "表示证据条数，不表示平台热度"
+      independent_source_count: "表示独立证据广度，不表示用户讨论量"
+      entity_mentions: "事件内已由证据支持的车型、人物、活动或机构识别结果；不要求维护完整全局实体表"
+      entity_uncertainties: "证据不足或关系冲突时记录原始名称、类型、不确定原因、建议关系和证据来源；非空时事件进入manual_review"
+
+  platform_metric_snapshot:
+    phase: "用户回填链接后，非微信平台PoC可用；前置热点发现仍需生产数据源"
+    primary_key: metric_snapshot_id
+    required_fields:
+      - metric_snapshot_id
+      - submission_id
+      - provider_id
+      - source_platform
+      - content_url
+      - snapshot_at
+      - collected_at
+      - metric_schema_version
+      - raw_metric_ref
+    nullable_fields:
+      - platform_content_id
+      - view_or_play_count
+      - read_count
+      - like_count
+      - comment_count
+      - repost_or_share_count
+      - engagement_count
+      - collect_count
+    missing_metric_rule: "平台不支持或本次采集失败时保持null并记录metric_unavailable_reason，不得按0处理"
+    metric_fields_by_platform:
+      - view_or_play_count
+      - like_count
+      - comment_count
+      - share_count
+      - collect_count
+      - author_follower_count
+    rule: "不支持的平台指标保留null并说明原因，不得跨平台强行补齐或换算"
+
+  task_submission:
+    phase: poc_after_task_publish
+    primary_key: submission_id
+    required_fields:
+      - submission_id
+      - published_task_id
+      - user_id
+      - submitted_platform
+      - submitted_url
+      - submitted_at
+      - url_validation_status
+      - metric_collection_status
+    nullable_fields:
+      - normalized_url
+      - platform_content_id
+      - published_at
+      - first_metric_snapshot_id
+    wechat_rule: "公众号、视频号metric_collection_status=manual_evidence_required，并进入人工凭证流程"
+
+  submission_metric_delta:
+    phase: poc_after_task_publish
+    primary_key: metric_delta_id
+    required_fields:
+      - metric_delta_id
+      - submission_id
+      - source_platform
+      - baseline_snapshot_id
+      - current_snapshot_id
+      - window_start
+      - window_end
+      - available_metric_deltas
+      - boost_rule_version
+      - boost_decision
+      - decision_reason
+    boost_decision_enum:
+      - not_evaluated
+      - threshold_not_met
+      - boost_draft_pending_review
+      - manual_evidence_required
+
+  event_timeseries:
+    phase: production_data_source_required
+    primary_key: event_timeseries_id
+    required_fields:
+      - event_timeseries_id
+      - event_id
+      - source_platform
+      - window_start
+      - window_end
+      - content_count
+      - unique_author_count
+      - engagement_delta
+      - velocity
+      - coverage_note
+    optional_fields:
+      - cross_platform_spread_count
+      - weighted_author_score
+      - baseline_version
+      - hotspot_status
+
+  candidate_review:
+    primary_key: candidate_id
+    required_fields:
+      - candidate_id
+      - event_id
+      - event_status
+      - evidence_summary
+      - risk_summary
+      - recommended_action
+      - review_result
+    review_audit_fields:
+      - reviewer
+      - reviewed_at
+      - review_reason
+      - before_version
+      - after_version
+
+  task_draft:
+    primary_key: task_draft_id
+    required_fields:
+      - task_draft_id
+      - event_id
+      - task_type
+      - task_title
+      - task_brief
+      - recommended_platforms
+      - target_member_tags
+      - response_deadline
+      - evidence_source_ids
+      - prohibited_claims
+      - risk_notes
+      - task_status
+    downstream_optional_fields:
+      - published_task_id
+      - actual_platforms
+      - distributed_user_count
+      - first_submission_at
+      - result_metrics
+      - source_submission_id
+      - boost_rule_version

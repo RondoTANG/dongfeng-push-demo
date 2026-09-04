@@ -1,0 +1,126 @@
+version: "0.1"
+updated_at: "2026-09-03"
+owner: "产品"
+
+execution:
+  full_coverage_each_run: true
+  cost_limit_enabled: false
+  manual_trigger_enabled: true
+  scheduled_trigger_enabled: false
+  scheduled_cron: null
+  lookback_hours: 24
+  late_signal_hours: 72
+  base_providers:
+    - doubao_global_search
+    - codex_web_search
+  relation_providers:
+    - doubao_global_search
+    - codex_web_search
+  page_open_provider:
+    - codex_web_search
+  provider_failure_policy: "记录失败并继续其他采集器；不得把未执行视为无结果"
+
+brand_queries:
+  - query_id: B01
+    brand_id: BR001
+    query: "东风汽车 最新动态"
+    enabled: true
+  - query_id: B02
+    brand_id: BR002
+    query: "东风风神 最新动态"
+    enabled: true
+  - query_id: B03
+    brand_id: BR003
+    query: "岚图汽车 最新动态"
+    enabled: true
+  - query_id: B04
+    brand_id: BR004
+    query: "猛士汽车 最新动态"
+    enabled: true
+  - query_id: B05
+    brand_id: BR005
+    query: "东风奕派 最新动态"
+    enabled: true
+  - query_id: B06
+    brand_id: BR006
+    query: "东风日产 最新动态"
+    enabled: true
+  - query_id: B07
+    brand_id: BR007
+    query: "东风本田 最新动态"
+    enabled: true
+  - query_id: B08
+    brand_id: BR008
+    query: "东风标致 最新动态"
+    enabled: true
+  - query_id: B09
+    brand_id: BR009
+    query: "东风雪铁龙 最新动态"
+    enabled: true
+
+topic_queries:
+  - query_id: T01
+    topic_id: automotive_industry_hotspot
+    query: "汽车行业 最新热点"
+    enabled: true
+  - query_id: T02
+    topic_id: new_energy_safety_quality
+    query: "新能源汽车 安全 质量 最新动态"
+    enabled: true
+  - query_id: T03
+    topic_id: intelligent_driving_l3
+    query: "智能驾驶 L3 最新动态"
+    enabled: true
+  - query_id: T04
+    topic_id: automotive_overseas
+    query: "汽车出海 海外市场 最新动态"
+    enabled: true
+  - query_id: T05
+    topic_id: launch_presale_delivery
+    query: "新车上市 预售 交付 最新动态"
+    enabled: true
+  - query_id: T06
+    topic_id: recall_regulation_complaint
+    query: "汽车召回 监管 投诉 最新动态"
+    enabled: true
+  - query_id: T07
+    topic_id: technology_test_durability
+    query: "汽车技术 测评 耐久 最新动态"
+    enabled: true
+  - query_id: T08
+    topic_id: brand_sentiment_dispute
+    query: "汽车品牌 舆情 争议 最新动态"
+    enabled: true
+
+industry_brand_relation:
+  enabled: true
+  trigger: "行业结果通过来源级有效性过滤后"
+  scope: all_active_brands
+  query_template: "{event_core_term} {brand_name}"
+  providers:
+    - doubao_global_search
+    - codex_web_search
+  relation_status_enum:
+    - direct_mention
+    - verified_relation
+    - no_relation
+    - unresolved
+  pass_status:
+    - direct_mention
+    - verified_relation
+  no_relation_action: "写入invalid_log，原因industry_event_without_target_brand_relation"
+
+evidence_expansion:
+  enabled: true
+  trigger_conditions:
+    - "只有品牌官方来源，没有独立外部来源"
+    - "只有二手来源，没有官方事实"
+    - "发布时间、事件时间或主体存在冲突"
+    - "命中高风险主题"
+  query_templates:
+    - "{primary_entity} {event_action}"
+    - "{event_core_term} {primary_entity}"
+  all_templates_each_trigger: true
+  providers:
+    - doubao_global_search
+    - codex_web_search

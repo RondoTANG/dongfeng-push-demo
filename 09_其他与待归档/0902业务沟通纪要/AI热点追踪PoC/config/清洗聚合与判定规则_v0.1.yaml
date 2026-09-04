@@ -1,0 +1,221 @@
+version: "0.1"
+updated_at: "2026-09-04"
+owner: "产品"
+reviewer: "运营"
+
+source_validation:
+  required_fields:
+    - original_url
+    - title_or_snippet
+    - retrieved_by
+    - fetched_at
+  invalid_rules:
+    - rule_id: INV001
+      name: "无法访问或无有效URL"
+      condition: "original_url为空，或重试后仍无法访问且无可核验证据"
+      action: auto_discard
+    - rule_id: INV002
+      name: "同名词误匹配"
+      condition: "未匹配active品牌实体，且不满足行业事件品牌关联"
+      action: auto_discard
+    - rule_id: INV003
+      name: "纯招投标采购招聘行政信息"
+      condition: "内容类型只属于招标、采购、招聘、组织任免或内部行政，且无外部传播事件"
+      action: auto_discard
+    - rule_id: INV004
+      name: "纯促销引流"
+      condition: "仅包含经销商报价、优惠、联系方式或到店引流，无新的品牌事件"
+      action: auto_discard
+    - rule_id: INV005
+      name: "旧闻重新索引"
+      condition: "event_at或published_at超过72小时，且无新增事实、新回应或新一轮传播"
+      action: auto_discard
+    - rule_id: INV006
+      name: "无实际事件"
+      condition: "只有品牌口号、导航页、百科页或产品常驻页，无新增动作或事实"
+      action: auto_discard
+    - rule_id: INV007
+      name: "行业事件无目标品牌关系"
+      condition: "行业事件经9品牌完整关联补采后仍为no_relation"
+      action: auto_discard
+  invalid_output: invalid_log
+  invalid_requires_human_review: false
+
+url_normalization:
+  remove_tracking_parameters: true
+  tracking_parameter_prefixes:
+    - utm_
+    - from
+    - source
+    - share_token
+  resolve_short_url: true
+  preserve_original_url: true
+  deduplicate_by_canonical_url: true
+  merge_retrieved_by_when_same_url: true
+
+source_resolution:
+  config_ref: "来源平台字典_v0.1.yaml"
+  resolve_by_final_domain: true
+  extract_visible_account_only: true
+  unresolved_account_value: null
+  unresolved_account_flag: account_unresolved
+  unknown_domain_action: pending_source_confirmation
+
+time_normalization:
+  timezone: "Asia/Shanghai"
+  fields:
+    - published_at
+    - event_at
+    - first_seen_at
+  confidence_enum:
+    - high
+    - medium
+    - low
+    - unknown
+  missing_time_action: "进入watch，不得默认当前时间"
+  window_rules:
+    - window: "0-24h"
+      action: eligible
+    - window: "24-72h"
+      action: "仅有新增事实、新回应或传播增长时进入watch，否则auto_discard"
+    - window: ">72h"
+      action: "无新增事实时auto_discard"
+
+entity_resolution:
+  config_ref: "品牌实体字典_v0.1.yaml"
+  brand_resolution:
+    deterministic_match_status:
+      - active
+    exact_alias_first: true
+    weak_alias_requires_context: true
+  event_entity_resolution:
+    entity_types:
+      - model
+      - person
+      - campaign
+      - organization
+    master_registry_required: false
+    evidence_sufficient_action: "写入event.entity_mentions，并保留证据来源"
+    uncertainty_output_field: entity_uncertainties
+    uncertainty_action: manual_review_with_event
+    required_uncertainty_fields:
+      - entity_name_raw
+      - entity_type
+      - uncertainty_reason
+      - proposed_relation
+      - evidence_source_ids
+    no_global_confirmation_queue: true
+
+content_deduplication:
+  levels:
+    - level: exact_url
+      action: "合并为一个source_item，累加retrieved_by和query_ids"
+    - level: exact_content_fingerprint
+      action: "保留一个正文记录，其他记录标记duplicate_of_source_id"
+    - level: repost
+      action: "保留各发布来源并标记is_repost，不计为独立事实来源"
+
+event_clustering:
+  event_key_components:
+    - primary_entity_id_or_name
+    - event_action
+    - event_object
+    - event_date
+  minimum_cluster_evidence: 1
+  aggregation_rule: "不同URL但事件键一致时聚合为同一event；所有source_item必须保留"
+  independent_source_rule: "同一原始发布主体的跨平台转载只计1个独立来源"
+  aggregation_page_rule: "一个列表页包含多个事件时，按事件动作拆分为多个event，并保留同一source_id作为证据"
+  evidence_breadth_rule: "independent_source_count只表示证据广度，不得作为平台热度或传播规模"
+
+hotspot_data_readiness:
+  required_capabilities:
+    - platform_content_id
+    - native_engagement_metrics
+    - metric_timeseries
+    - author_or_unique_ugc_identity
+    - platform_coverage_and_collected_at
+  missing_any_capability_output:
+    hotspot_judgement_available: false
+    hotspot_status: unknown
+    hotspot_unavailable_reason: "列出缺失能力"
+  search_provider_default:
+    hotspot_judgement_available: false
+    hotspot_status: unknown
+    hotspot_unavailable_reason: "公开搜索不提供平台原生互动指标、连续快照与完整覆盖"
+  prohibited_heat_signals:
+    - search_rank
+    - total_search_result_count
+    - media_repost_count
+    - provider_authority_level
+    - ai_subjective_score
+  production_rule: "只有满足来源平台字典定义的热点判定数据准入条件后，才能按平台配置热度模型；不同平台不得直接共用统一原始数值阈值"
+
+industry_brand_relation:
+  direct_match_requires_active_entity: true
+  direct_match_status: direct_mention
+  expanded_match_requires_accessible_evidence: true
+  expanded_match_status: verified_relation
+  no_evidence_status: no_relation
+  no_relation_action: auto_discard
+
+risk_gate:
+  risk_tags:
+    - sales_volume
+    - price_or_discount
+    - accident_or_safety
+    - recall
+    - regulation
+    - competitor_comparison
+    - intelligent_driving_l3
+    - negative_sentiment
+    - fact_conflict
+  high_risk_action: manual_review
+  ai_may_clear_high_risk: false
+
+event_decision:
+  - status: relevant_event_clue
+    conditions:
+      - "event_at或published_at在72小时内，优先展示24小时内线索"
+      - "品牌关系为direct_mention或verified_relation"
+      - "至少1条可访问且能支持核心事实的来源"
+      - "能够形成原创评论或原创内容任务"
+      - "不存在未解除的高风险门禁"
+      - "hotspot_status保持unknown，不输出真实热点结论"
+  - status: brand_content_opportunity
+    conditions:
+      - "event_at或published_at在24小时内"
+      - "至少1个已确认品牌官方来源"
+      - "存在明确新增事实"
+      - "属于品牌主动内容机会，不声称已形成外部热点"
+      - "不存在未解除的高风险门禁"
+  - status: manual_review
+    any_conditions:
+      - "命中高风险标签"
+      - "只有单一二手来源但事件可能有作业价值"
+      - "事实、主体或时间存在冲突"
+      - "品牌关系为unresolved"
+      - "entity_uncertainties非空，包含无法确认的车型、人物、活动或机构关系"
+  - status: watch
+    any_conditions:
+      - "时间缺失但来源可访问"
+      - "24至72小时内出现新增回应或传播增长"
+      - "事件有效但尚不满足任务生成条件"
+
+task_generation:
+  allowed_event_status:
+    - relevant_event_clue
+    - brand_content_opportunity
+  poc_action: "生成draft_pending_review，不自动下发"
+  supported_task_types:
+    - original_comment
+    - original_content
+    - like_boost_observation
+  required_fields:
+    - event_id
+    - task_type
+    - task_title
+    - recommended_platforms
+    - target_member_tags
+    - evidence_source_ids
+    - risk_notes
+  target_platform_rule: "根据事件来源平台、内容形态和用户现有平台能力标签生成建议；不得把source_platform直接等同于recommended_platforms"

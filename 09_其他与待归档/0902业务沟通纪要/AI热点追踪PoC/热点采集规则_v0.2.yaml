@@ -1,0 +1,99 @@
+version: "0.2"
+updated_at: "2026-09-04"
+mode: "poc_public_search_clue_discovery"
+status: "draft_for_review"
+
+business_goal:
+  ultimate_purpose: "识别具体平台正在快速发酵的东风相关事件，生成原创作业并按擅长平台分发，后续根据传播增长触发加热作业"
+  poc_purpose: "通过公开搜索尽可能发现24至72小时内相关信息线索，验证证据核验、品牌关联、风险检查、原创作业草案和人工审批链路"
+  end_to_end_target: "平台原生数据→事件聚合→热点增速判定→品牌关联与风险研判→原创作业→按擅长平台分发→效果监测→加热作业"
+  poc_target: "公开搜索线索→来源核验→清洗聚合→品牌关联→风险检查→任务草案→人工审批"
+  post_publish_target: "用户回填原创链接→非微信平台指标快照→增量判断→加热作业草案→人工审批"
+
+capability_boundary:
+  search_is_hotspot_source: false
+  search_output_type: relevant_event_clue
+  hotspot_judgement_available: false
+  hotspot_status: unknown
+  prohibited_interpretations:
+    - "搜索排名等于热度排名"
+    - "搜索结果数量等于讨论量"
+    - "媒体转载数量等于用户自发传播"
+    - "AI综合判断可以替代平台原生指标"
+  production_dependency: "具备平台内容ID、原生互动指标、连续快照、作者/UGC标识、覆盖与SLA的稳定数据源"
+
+config_refs:
+  entity_registry: "config/品牌实体字典_v0.1.yaml"
+  source_registry: "config/来源平台字典_v0.1.yaml"
+  query_catalog: "config/查询目录_v0.1.yaml"
+  cleaning_and_decision: "config/清洗聚合与判定规则_v0.1.yaml"
+  output_contract: "config/输出数据契约_v0.1.yaml"
+  task_generation_and_distribution: "config/作业生成与分发规则_v0.1.yaml"
+
+pipeline:
+  - step_id: P01
+    name: "生成完整基础查询任务"
+    input: "active品牌、全部topic_queries和已启用采集器"
+    output: "provider_query_tasks"
+  - step_id: P02
+    name: "豆包与Codex双路公开搜索"
+    input: "provider_query_tasks"
+    output: "raw_provider_result"
+  - step_id: P03
+    name: "来源标准化与自动无效过滤"
+    input: "raw_provider_result"
+    output: "source_item或invalid_log"
+  - step_id: P04
+    name: "来源平台、账号和实体解析"
+    input: "valid source_item"
+    output: "resolved source_item，以及事件内entity_mentions和entity_uncertainties"
+  - step_id: P05
+    name: "统一事件聚合"
+    input: "resolved source_item"
+    output: "event"
+  - step_id: P06
+    name: "行业事件与9品牌完整关联"
+    input: "未直接命中active品牌的有效行业event"
+    output: "brand_relations或invalid_log"
+  - step_id: P07
+    name: "证据补采与风险检查"
+    input: "缺证据、事实冲突或高风险event"
+    output: "enriched event"
+  - step_id: P08
+    name: "热点判定数据准入、线索分类与任务草案生成"
+    input: "enriched event"
+    output: "candidate_review和task_draft"
+  - step_id: P09
+    name: "用户回填原创内容链接"
+    input: "已发布原创任务、用户、平台和内容URL"
+    output: "task_submission"
+  - step_id: P10
+    name: "回填链接效果快照"
+    input: "非微信平台task_submission"
+    output: "platform_metric_snapshot；公众号/视频号进入manual_evidence_required"
+  - step_id: P11
+    name: "增量判断与加热草案"
+    input: "同一投稿至少2个指标快照、平台级规则"
+    output: "submission_metric_delta和boost_task_draft_pending_review"
+
+human_gates:
+  poc_publish_gate: true
+  auto_discard_invalid_source: true
+  entity_activation_requires_confirmation: true
+  source_official_activation_requires_confirmation: true
+  high_risk_event_requires_review: true
+
+security:
+  credential_storage: "环境变量或macOS Keychain；不得进入配置、日志和输出数据"
+  public_data_only: true
+  prohibited_actions:
+    - "绕过登录、验证码、付费墙或反爬机制"
+    - "采集个人敏感信息"
+    - "把搜索摘要直接当作已核实事实"
+
+non_goals:
+  - "PoC阶段不自动发布或下发作业"
+  - "PoC阶段不承诺抖音、微博、视频号、公众号封闭数据完整覆盖"
+  - "PoC阶段不使用搜索结果直接计算真实播放量、互动量或热度增长曲线"
+  - "PoC阶段不建设自动投流、自动点赞或绕过平台规则的能力"
+  - "PoC阶段加热规则只生成待审批草案，不未经运营审批自动发布"

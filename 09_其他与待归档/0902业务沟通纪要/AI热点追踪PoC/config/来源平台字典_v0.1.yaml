@@ -1,0 +1,278 @@
+version: "0.1"
+updated_at: "2026-09-03"
+owner: "产品"
+reviewer: "运营"
+
+provider_registry:
+  - provider_id: doubao_global_search
+    provider_type: search_api
+    status: active
+    role: "公开网页广召回和结构化摘要"
+    can_decide_source_authority: false
+    data_capabilities:
+      content_discovery: true
+      source_url: true
+      published_time: partial_requires_verification
+      native_engagement_metrics: false
+      metric_timeseries: false
+      platform_content_id: false
+      author_influence: false
+      full_platform_coverage: false
+      hotspot_judgement: false
+    endpoint: "https://open.feedcoopapi.com/search_api/global_search"
+    method: POST
+    credential_ref: "macOS Keychain guard-army-doubao-search/api-key 或 DOUBAO_SEARCH_API_KEY"
+    request_defaults:
+      search_type: web
+      doc_count: 3
+      max_snippet_length: 1000
+      max_image_count_per_doc: 1
+  - provider_id: codex_web_search
+    provider_type: agent_search
+    status: active_for_poc
+    role: "公开网页补召回、页面打开和证据核验"
+    can_decide_source_authority: false
+    data_capabilities:
+      content_discovery: true
+      source_url: true
+      published_time: partial_requires_verification
+      native_engagement_metrics: false
+      metric_timeseries: false
+      platform_content_id: false
+      author_influence: false
+      full_platform_coverage: false
+      hotspot_judgement: false
+    endpoint: null
+    credential_ref: null
+    production_replacement_required: true
+  - provider_id: existing_engagement_collector
+    provider_type: known_url_metric_service
+    status: available_pending_interface_integration
+    role: "用户回填原创链接后的基础互动指标采集，用于效果快照和加热判断"
+    can_decide_source_authority: false
+    endpoint: null
+    credential_ref: null
+    data_capabilities:
+      content_discovery: false
+      known_url_metric_lookup: true
+      source_url: true
+      platform_content_id: "由回填链接解析；真实字段待接口确认"
+      native_engagement_metrics: partial_by_platform
+      metric_timeseries: "系统通过多次调用保存快照形成"
+      author_influence: false
+      full_platform_coverage: false
+      hotspot_judgement: false
+    platform_metric_availability:
+      douyin:
+        available: true
+        metrics: [like_count, comment_count]
+      kuaishou:
+        available: true
+        metrics: [like_count, comment_count, share_count]
+      weibo:
+        available: true
+        metrics: [repost_count, comment_count, like_count]
+      news_aggregator:
+        available: true
+        applies_to: [toutiao]
+        metrics: [play_count, like_count, comment_count]
+      xiaohongshu:
+        available: true
+        metrics: [like_count, comment_count]
+      zhihu:
+        available: true
+        metrics: [upvote_count, comment_count, share_count]
+      bilibili:
+        available: true
+        metrics: [like_count, comment_count]
+      yiche:
+        available: true
+        metrics: [comment_count, like_count, engagement_count]
+      dongchedi:
+        available: true
+        metrics: [comment_count, like_count, engagement_count]
+      autohome:
+        available: true
+        metrics: [read_count, comment_count, like_count, engagement_count]
+      wechat_official_account:
+        available: false
+        fallback: manual_evidence
+      wechat_channels:
+        available: false
+        fallback: manual_evidence
+    source_ref: "../../../数据采集现状.xlsx"
+  - provider_id: professional_sentiment_provider
+    provider_type: platform_data_service
+    status: pending_selection_and_poc
+    role: "生产级平台内容、原生互动指标与连续快照数据源"
+    can_decide_source_authority: false
+    endpoint: null
+    credential_ref: null
+    data_capabilities:
+      content_discovery: pending_contract_verification
+      source_url: pending_contract_verification
+      published_time: pending_contract_verification
+      native_engagement_metrics: pending_contract_verification
+      metric_timeseries: pending_contract_verification
+      platform_content_id: pending_contract_verification
+      author_influence: pending_contract_verification
+      full_platform_coverage: pending_contract_verification
+      hotspot_judgement: "系统基于供应商原始数据自研，供应商结论只作参考"
+    selection_gate:
+      - "明确覆盖的平台、账号类型和内容范围"
+      - "提供平台内容ID及原始发布时间"
+      - "提供播放/曝光、点赞、评论、转发、收藏等原生指标"
+      - "支持连续快照或增量接口，可计算1h/3h/24h增长"
+      - "提供采集延迟、漏采说明、失败重试和审计留痕"
+      - "通过业务样本回放后才能激活"
+
+platform_registry:
+  - platform_id: brand_official_website
+    display_name: "品牌官方网站"
+    account_fields_supported: false
+    poc_coverage: public_web
+  - platform_id: government_or_central_media
+    display_name: "政府或央媒网站"
+    account_fields_supported: false
+    poc_coverage: public_web
+  - platform_id: industry_media
+    display_name: "行业及科技媒体网站"
+    account_fields_supported: false
+    poc_coverage: public_web
+  - platform_id: weibo
+    display_name: "微博"
+    account_fields_supported: true
+    poc_coverage: public_pages_partial
+  - platform_id: douyin
+    display_name: "抖音"
+    account_fields_supported: true
+    poc_coverage: public_pages_partial
+  - platform_id: kuaishou
+    display_name: "快手"
+    account_fields_supported: true
+    poc_coverage: known_url_metrics
+  - platform_id: xiaohongshu
+    display_name: "小红书"
+    account_fields_supported: true
+    poc_coverage: known_url_metrics
+  - platform_id: zhihu
+    display_name: "知乎"
+    account_fields_supported: true
+    poc_coverage: known_url_metrics
+  - platform_id: bilibili
+    display_name: "B站"
+    account_fields_supported: true
+    poc_coverage: known_url_metrics
+  - platform_id: yiche
+    display_name: "易车"
+    account_fields_supported: true
+    poc_coverage: known_url_metrics
+  - platform_id: dongchedi
+    display_name: "懂车帝"
+    account_fields_supported: true
+    poc_coverage: known_url_metrics
+  - platform_id: autohome
+    display_name: "汽车之家"
+    account_fields_supported: true
+    poc_coverage: known_url_metrics
+  - platform_id: wechat_official_account
+    display_name: "微信公众号"
+    account_fields_supported: true
+    poc_coverage: public_pages_partial
+  - platform_id: wechat_channels
+    display_name: "微信视频号"
+    account_fields_supported: true
+    poc_coverage: not_guaranteed
+  - platform_id: news_aggregator
+    display_name: "新闻聚合或内容平台"
+    account_fields_supported: true
+    poc_coverage: public_web
+  - platform_id: other_website
+    display_name: "其他公开网站"
+    account_fields_supported: false
+    poc_coverage: public_web
+  - platform_id: unknown
+    display_name: "待识别来源"
+    account_fields_supported: false
+    poc_coverage: unknown
+
+domain_rules:
+  - domain: "dfmc.com.cn"
+    source_platform: brand_official_website
+    source_site_name: "东风汽车集团官方网站"
+    publisher_type: brand_official
+    related_brand_ids:
+      - BR001
+    status: active
+  - domain: "voyah.com.cn"
+    source_platform: brand_official_website
+    source_site_name: "岚图汽车官方网站"
+    publisher_type: brand_official
+    related_brand_ids:
+      - BR003
+    status: active
+  - domain: "auto.cri.cn"
+    source_platform: government_or_central_media
+    source_site_name: "国际在线汽车"
+    publisher_type: media
+    related_brand_ids: []
+    status: active
+  - domain: "ithome.com"
+    source_platform: industry_media
+    source_site_name: "IT之家"
+    publisher_type: media
+    related_brand_ids: []
+    status: active
+  - domain: "ifeng.com"
+    source_platform: industry_media
+    source_site_name: "凤凰网"
+    publisher_type: media
+    related_brand_ids: []
+    status: active
+  - domain: "toutiao.com"
+    source_platform: news_aggregator
+    source_site_name: "今日头条"
+    publisher_type: content_platform
+    related_brand_ids: []
+    status: active
+  - domain: "weibo.com"
+    source_platform: weibo
+    source_site_name: "微博"
+    publisher_type: social_platform
+    related_brand_ids: []
+    status: active
+  - domain: "douyin.com"
+    source_platform: douyin
+    source_site_name: "抖音"
+    publisher_type: social_platform
+    related_brand_ids: []
+    status: active
+  - domain: "v.douyin.com"
+    source_platform: douyin
+    source_site_name: "抖音"
+    publisher_type: social_platform
+    related_brand_ids: []
+    status: active
+  - domain: "mp.weixin.qq.com"
+    source_platform: wechat_official_account
+    source_site_name: "微信公众号"
+    publisher_type: social_platform
+    related_brand_ids: []
+    status: active
+  - domain: "channels.weixin.qq.com"
+    source_platform: wechat_channels
+    source_site_name: "微信视频号"
+    publisher_type: social_platform
+    related_brand_ids: []
+    status: active
+
+resolution_policy:
+  resolve_after_redirect: true
+  unknown_domain_platform: unknown
+  unknown_domain_action: "保留记录并进入来源待确认队列"
+  account_name_rule: "只提取页面明确展示的账号名，不从标题、摘要或品牌名猜测"
+  account_id_rule: "只保存页面或接口明确返回的账号ID；无法取得时为null"
+  provider_authority_rule: "豆包HostInfo.AuthorityLevel仅保留为provider_authority_level，不映射为业务来源等级"
+  search_rank_rule: "豆包Rank与TotalDocCount、Codex搜索排序及结果数只表示搜索召回，不得解释为平台热度"
+  hotspot_capability_rule: "provider.data_capabilities.hotspot_judgement不为true时，该来源只能形成信息线索，热点状态必须为unknown"
+  official_rule: "只有domain_rules或运营确认的账号配置可标记为official"
