@@ -1,0 +1,2120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="AI热点发现与护卫军作业联动产品需求文档" />
+  <title>AI热点发现与护卫军作业联动｜产品需求文档</title>
+  <style>
+    :root {
+      --ink: #16222a;
+      --ink-soft: #43515a;
+      --paper: #f4f1ea;
+      --paper-2: #fbfaf7;
+      --line: #c9c5bb;
+      --line-strong: #8d918d;
+      --navy: #17364a;
+      --navy-2: #0f2939;
+      --orange: #e35d32;
+      --teal: #23786f;
+      --lime: #c9db86;
+      --red: #b53f35;
+      --amber: #c77a1c;
+      --shadow: 0 18px 55px rgba(24, 33, 39, .11);
+      --radius: 18px;
+      --sans: "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 26px; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(23, 54, 74, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23, 54, 74, .035) 1px, transparent 1px),
+        var(--paper);
+      background-size: 32px 32px;
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.78;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: 4px;
+      z-index: 100;
+      background: linear-gradient(90deg, var(--orange) var(--progress, 0%), rgba(22,34,42,.12) 0);
+      pointer-events: none;
+    }
+    a { color: inherit; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    code, .mono { font-family: "SFMono-Regular", Consolas, monospace; }
+    code { font-size: .92em; }
+    ::selection { background: #ffd4be; color: #111; }
+
+    .skip-link {
+      position: fixed;
+      left: 16px;
+      top: -60px;
+      z-index: 200;
+      padding: 10px 14px;
+      color: #fff;
+      background: var(--navy);
+      border-radius: 8px;
+    }
+    .skip-link:focus { top: 14px; }
+
+    .hero {
+      min-height: 520px;
+      color: #f8f5ed;
+      background:
+        radial-gradient(circle at 88% 18%, rgba(201,219,134,.12), transparent 28%),
+        radial-gradient(circle at 74% 86%, rgba(227,93,50,.14), transparent 29%),
+        linear-gradient(132deg, var(--navy-2) 0%, #193f55 55%, #102b3b 100%);
+      overflow: hidden;
+      position: relative;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 44vw;
+      height: 44vw;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 50%;
+      right: -17vw;
+      top: -20vw;
+      box-shadow: 0 0 0 64px rgba(255,255,255,.02), 0 0 0 132px rgba(255,255,255,.014);
+      pointer-events: none;
+    }
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      width: min(1500px, calc(100% - 64px));
+      margin: 0 auto;
+      padding: 34px 0 64px;
+    }
+    .hero-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding-bottom: 72px;
+    }
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+    .brand-mark::before {
+      content: "DF";
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(255,255,255,.48);
+      border-radius: 50%;
+      color: var(--lime);
+      font-family: Georgia, serif;
+      letter-spacing: -.06em;
+    }
+    .hero-grid {
+      display: block;
+      max-width: 1180px;
+    }
+    .eyebrow {
+      color: var(--lime);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .12em;
+    }
+    h1 {
+      max-width: 1180px;
+      margin: 16px 0 22px;
+      font-family: var(--sans);
+      font-size: clamp(42px, 4.4vw, 64px);
+      font-weight: 700;
+      line-height: 1.18;
+      letter-spacing: -.025em;
+    }
+    .hero-lead {
+      max-width: 980px;
+      margin: 0;
+      font-size: clamp(18px, 1.55vw, 22px);
+      line-height: 1.68;
+      color: rgba(255,255,255,.8);
+    }
+    .hero-lead strong { color: #fff; }
+    .hero-note {
+      max-width: 980px;
+      margin-top: 26px;
+      padding-left: 18px;
+      border-left: 3px solid var(--orange);
+      color: rgba(255,255,255,.72);
+      font-size: 14px;
+    }
+    .toolbar-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 80;
+      background: rgba(244,241,234,.94);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(22,34,42,.15);
+    }
+    .toolbar {
+      width: min(1540px, calc(100% - 32px));
+      margin: 0 auto;
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .toolbar-actions { display: flex; align-items: center; gap: 8px; }
+    .search-box { position: relative; width: min(380px, 40vw); }
+    .search-box input {
+      width: 100%;
+      height: 40px;
+      padding: 0 44px 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: rgba(255,255,255,.68);
+      color: var(--ink);
+      outline: none;
+    }
+    .search-box input:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(23,54,74,.12); }
+    .search-count {
+      position: absolute;
+      right: 10px;
+      top: 9px;
+      min-width: 24px;
+      text-align: center;
+      color: var(--ink-soft);
+      font-size: 12px;
+    }
+    .btn {
+      height: 40px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      color: var(--ink);
+      background: rgba(255,255,255,.62);
+    }
+    .btn:hover { border-color: var(--navy); background: white; }
+    .btn.primary { color: white; background: var(--navy); border-color: var(--navy); }
+    .mobile-toc { display: none; }
+
+    .layout {
+      width: min(1540px, calc(100% - 32px));
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 236px minmax(0, 1fr);
+      gap: 32px;
+      align-items: start;
+      padding: 56px 0 104px;
+    }
+    .toc {
+      position: sticky;
+      top: 96px;
+      align-self: start;
+      padding: 20px 0;
+      border-top: 2px solid var(--ink);
+      border-bottom: 1px solid var(--line);
+    }
+    .toc-title {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      color: var(--ink-soft);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+    .toc a {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 8px;
+      padding: 9px 8px;
+      border-left: 2px solid transparent;
+      text-decoration: none;
+      color: var(--ink-soft);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .toc a:hover, .toc a.active { color: var(--ink); background: rgba(255,255,255,.52); border-left-color: var(--orange); }
+    .toc-num { color: var(--orange); font-family: Georgia, serif; font-weight: 700; }
+    .toc-foot { margin-top: 20px; color: #6b746f; font-size: 12px; }
+    .source-link { text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+    main { min-width: 0; }
+    .module {
+      position: relative;
+      scroll-margin-top: 92px;
+      margin-bottom: 96px;
+    }
+    .module-head {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 18px;
+      align-items: start;
+      margin-bottom: 34px;
+      padding-top: 12px;
+      border-top: 2px solid var(--ink);
+    }
+    .module-no {
+      color: var(--orange);
+      font-family: Georgia, serif;
+      font-size: 44px;
+      font-weight: 700;
+      line-height: .9;
+      letter-spacing: -.04em;
+    }
+    .module-head h2 {
+      margin: 0 0 8px;
+      font-family: var(--sans);
+      font-size: clamp(30px, 2.8vw, 42px);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -.02em;
+    }
+    .module-head p { max-width: 780px; margin: 0; color: var(--ink-soft); }
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 38px 0 16px;
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+    .section-label::before { content: ""; width: 28px; height: 2px; background: currentColor; }
+    h3 { margin: 0 0 16px; font-size: 23px; line-height: 1.4; }
+    h4 { margin: 0 0 8px; font-size: 17px; }
+    p { margin: 0 0 14px; }
+    ul, ol { margin: 10px 0 18px; padding-left: 1.35em; }
+    li + li { margin-top: 5px; }
+
+    .lede {
+      margin: 0 0 30px;
+      font-family: var(--sans);
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.72;
+    }
+    .two-question {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+    .question {
+      padding: 30px;
+      background: var(--paper-2);
+    }
+    .question span { color: var(--orange); font-family: Georgia, serif; font-size: 13px; font-weight: 700; }
+    .question strong { display: block; margin-top: 16px; font-family: var(--serif); font-size: 22px; line-height: 1.5; }
+
+    .callout {
+      position: relative;
+      margin: 24px 0;
+      padding: 22px 24px 22px 28px;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--orange);
+      background: rgba(255,255,255,.62);
+    }
+    .callout strong { display: block; margin-bottom: 5px; }
+    .callout.warning { border-left-color: var(--amber); background: #fff7e7; }
+    .callout.info { border-left-color: var(--teal); background: #eef7f4; }
+    .callout.dark { color: #fff; background: var(--navy); border-color: var(--navy); border-left-color: var(--lime); }
+    .callout p:last-child { margin-bottom: 0; }
+    .decision-line { color: var(--red); font-weight: 800; }
+
+    .stage-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      margin: 22px 0 34px;
+      border: 1px solid var(--ink);
+      background: var(--ink);
+    }
+    .stage {
+      position: relative;
+      padding: 30px;
+      background: var(--paper-2);
+    }
+    .stage + .stage { border-left: 1px solid var(--ink); }
+    .stage-tag { color: var(--orange); font-size: 11px; font-weight: 800; letter-spacing: .14em; }
+    .stage h3 { margin: 14px 0 8px; }
+    .stage p { color: var(--ink-soft); }
+    .stage-output { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 14px; }
+
+    .metric-strip {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1px;
+      margin: 22px 0;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
+    .metric { padding: 20px 16px; background: rgba(255,255,255,.7); }
+    .metric b { display: block; color: var(--navy); font-family: Georgia, serif; font-size: 28px; line-height: 1.05; }
+    .metric span { display: block; margin-top: 8px; color: var(--ink-soft); font-size: 12px; }
+
+    .smart-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0,1fr));
+      gap: 10px;
+    }
+    .smart-item {
+      min-height: 210px;
+      padding: 20px 18px;
+      border-top: 4px solid var(--navy);
+      background: var(--paper-2);
+      box-shadow: 0 8px 24px rgba(25,34,40,.06);
+    }
+    .smart-item:nth-child(2) { border-top-color: var(--teal); }
+    .smart-item:nth-child(3) { border-top-color: #7e8c3d; }
+    .smart-item:nth-child(4) { border-top-color: var(--orange); }
+    .smart-item:nth-child(5) { border-top-color: var(--red); }
+    .smart-item b { display: block; font-family: Georgia, serif; font-size: 28px; }
+    .smart-item strong { display: block; margin: 6px 0 9px; font-size: 14px; }
+    .smart-item p { color: var(--ink-soft); font-size: 12px; line-height: 1.65; }
+
+    .diagram-shell {
+      margin: 24px 0 36px;
+      padding: 24px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.68);
+      box-shadow: var(--shadow);
+    }
+    .diagram-caption {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: baseline;
+      margin-bottom: 22px;
+    }
+    .diagram-caption strong { font-size: 18px; }
+    .diagram-caption span { color: var(--ink-soft); font-size: 12px; }
+    .flow-map { min-width: 1000px; }
+    .flow-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; align-items: stretch; }
+    .flow-node {
+      position: relative;
+      min-height: 116px;
+      padding: 18px 16px;
+      border: 1px solid var(--line-strong);
+      background: var(--paper-2);
+    }
+    .flow-node::after {
+      content: "→";
+      position: absolute;
+      right: -12px;
+      top: 42px;
+      z-index: 2;
+      width: 24px;
+      text-align: center;
+      color: var(--orange);
+      font-weight: 900;
+      background: var(--paper-2);
+    }
+    .flow-node:last-child::after { display: none; }
+    .flow-node b { display: block; color: var(--navy); font-size: 14px; }
+    .flow-node p { margin: 8px 0 0; color: var(--ink-soft); font-size: 12px; line-height: 1.55; }
+    .flow-row + .flow-row { margin-top: 22px; }
+    .flow-row.reverse .flow-node::after { content: "←"; left: -12px; right: auto; }
+    .flow-row.reverse .flow-node:first-child::after { display: none; }
+    .flow-bridge { width: 2px; height: 22px; margin: 0 10% 0 auto; background: var(--orange); }
+    .flow-node.gate { color: #fff; background: var(--navy); border-color: var(--navy); }
+    .flow-node.gate b, .flow-node.gate p { color: #fff; }
+    .flow-node.action { border-color: var(--teal); background: #edf6f3; }
+
+    .role-table, .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 30px;
+      background: rgba(255,255,255,.58);
+    }
+    .role-table th, .role-table td, .data-table th, .data-table td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+    .role-table th, .data-table th { color: #fff; background: var(--navy); font-weight: 700; }
+    .role-table tbody tr:hover, .data-table tbody tr:hover { background: rgba(255,255,255,.76); }
+
+    .req-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 24px 0 12px; }
+    .req-toolbar p { margin: 0; color: var(--ink-soft); font-size: 13px; }
+    .requirement-list { border-top: 1px solid var(--ink); }
+    details.requirement, details.acceptance {
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.28);
+    }
+    details[open] { background: rgba(255,255,255,.68); }
+    summary {
+      list-style: none;
+      cursor: pointer;
+      outline: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    .requirement summary {
+      display: grid;
+      grid-template-columns: 70px minmax(0,1fr) 28px;
+      gap: 16px;
+      align-items: center;
+      min-height: 72px;
+      padding: 10px 16px 10px 0;
+    }
+    .req-id { color: var(--orange); font-family: Georgia, serif; font-size: 15px; font-weight: 800; }
+    .req-title { font-size: 18px; font-weight: 700; }
+    .chev { display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid var(--line); border-radius: 50%; }
+    .chev::before { content: "+"; }
+    details[open] .chev::before { content: "−"; }
+    .req-body { padding: 0 58px 26px 86px; color: var(--ink-soft); }
+    .req-body strong { color: var(--ink); }
+    .req-body ul { margin-bottom: 0; }
+    .rule-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .rule-box { padding: 20px; border: 1px solid var(--line); background: rgba(255,255,255,.6); }
+    .rule-box.ai { border-top: 4px solid var(--teal); }
+    .rule-box.code { border-top: 4px solid var(--orange); }
+    .rule-box h4 { font-size: 20px; }
+
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+    .chip { padding: 5px 9px; border: 1px solid var(--line); background: rgba(255,255,255,.68); font-size: 12px; }
+    .chip.active { color: #fff; background: var(--navy); border-color: var(--navy); }
+    .chip.warn { color: #8f3d19; background: #fff2e8; border-color: #e7b399; }
+
+    .code-block {
+      position: relative;
+      margin: 18px 0;
+      padding: 22px;
+      overflow: auto;
+      color: #d8e7ed;
+      background: #102631;
+      border-left: 4px solid var(--lime);
+      font: 12px/1.65 "SFMono-Regular", Consolas, monospace;
+      white-space: pre;
+    }
+
+    .architecture {
+      min-width: 1020px;
+      display: grid;
+      grid-template-columns: 1fr 58px 1.25fr 58px 1fr;
+      gap: 0;
+      align-items: stretch;
+    }
+    .arch-col { padding: 20px; border: 1px solid var(--line); background: var(--paper-2); }
+    .arch-col h4 { padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+    .arch-unit { margin-top: 10px; padding: 12px; border-left: 3px solid var(--teal); background: #eef5f3; font-size: 12px; }
+    .arch-arrow { display: grid; place-items: center; color: var(--orange); font-size: 25px; font-weight: 800; }
+    .arch-col.core { color: #fff; background: var(--navy); border-color: var(--navy); }
+    .arch-col.core h4 { border-bottom-color: rgba(255,255,255,.2); }
+    .arch-col.core .arch-unit { color: var(--ink); background: #f8f6ef; }
+
+    .sequence-wrap { overflow-x: auto; }
+    .sequence { min-width: 1130px; border: 1px solid var(--line); background: var(--paper-2); }
+    .seq-actors, .seq-row { display: grid; grid-template-columns: repeat(8, 1fr); }
+    .seq-actor {
+      position: relative;
+      padding: 14px 8px;
+      text-align: center;
+      color: #fff;
+      background: var(--navy);
+      border-right: 1px solid rgba(255,255,255,.15);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .seq-row { position: relative; min-height: 46px; border-top: 1px dashed rgba(22,34,42,.12); }
+    .seq-row > div { position: relative; border-right: 1px solid rgba(22,34,42,.09); }
+    .seq-msg {
+      position: absolute;
+      top: 12px;
+      left: calc(var(--from) * 12.5% + 6.25%);
+      width: calc((var(--to) - var(--from)) * 12.5%);
+      z-index: 3;
+      height: 1px;
+      background: var(--orange);
+      text-align: center;
+    }
+    .seq-msg.reverse { left: calc(var(--to) * 12.5% + 6.25%); width: calc((var(--from) - var(--to)) * 12.5%); background: var(--teal); }
+    .seq-msg::after { content: ""; position: absolute; right: -1px; top: -4px; border-left: 7px solid var(--orange); border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+    .seq-msg.reverse::after { left: -1px; right: auto; border-left: 0; border-right: 7px solid var(--teal); }
+    .seq-msg span {
+      position: relative;
+      top: -20px;
+      display: inline-block;
+      padding: 1px 6px;
+      color: var(--ink);
+      background: var(--paper-2);
+      font-size: 10px;
+      white-space: nowrap;
+    }
+    .seq-note {
+      grid-column: var(--start) / span var(--span);
+      align-self: center;
+      margin: 7px 8px;
+      padding: 6px 8px;
+      color: #6d4a13;
+      background: #fff3cf;
+      border: 1px solid #e6c66c;
+      text-align: center;
+      font-size: 10px;
+    }
+
+    .state-flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0 26px; }
+    .state { padding: 8px 10px; border: 1px solid var(--line); background: var(--paper-2); font-size: 12px; }
+    .state-arrow { color: var(--orange); font-weight: 900; }
+    .state.unknown { color: #fff; background: var(--navy); border-color: var(--navy); }
+
+    .timeline { position: relative; margin: 26px 0 40px 18px; padding-left: 42px; border-left: 2px solid var(--ink); }
+    .timeline-item { position: relative; padding: 0 0 38px; }
+    .timeline-item::before { content: ""; position: absolute; left: -51px; top: 5px; width: 15px; height: 15px; border: 4px solid var(--paper); border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 1px var(--ink); }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-item span { color: var(--teal); font-size: 11px; font-weight: 800; letter-spacing: .13em; }
+    .timeline-item h3 { margin: 5px 0 7px; }
+
+    .risk-table td:first-child { font-weight: 700; }
+    .tbd { color: var(--red); font-weight: 800; }
+    .config-list { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+    .config-item { display: grid; grid-template-columns: 180px 1fr; gap: 24px; padding: 22px; background: var(--paper-2); }
+    .config-item h3 { margin: 0; font-size: 18px; }
+    .config-item p, .config-item ul { margin: 0; color: var(--ink-soft); font-size: 13px; }
+    .config-item ul { padding-left: 18px; }
+
+    .acceptance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    details.acceptance { border: 1px solid var(--line); }
+    .acceptance summary { display: grid; grid-template-columns: 56px 1fr 24px; gap: 10px; align-items: center; min-height: 66px; padding: 10px 14px; }
+    .acceptance .req-body { padding: 0 18px 18px; font-size: 13px; }
+
+    .knowledge {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .knowledge article { padding: 22px; border: 1px solid var(--line); background: rgba(255,255,255,.62); }
+    .knowledge article:first-child { grid-column: 1 / -1; color: #fff; background: var(--navy); border-color: var(--navy); }
+    .knowledge h3 { font-size: 19px; }
+    .knowledge p { margin: 0; color: inherit; font-size: 13px; }
+
+    .search-hidden { display: none !important; }
+    .search-hit { outline: 2px solid rgba(227,93,50,.65); outline-offset: 3px; }
+    footer {
+      color: rgba(255,255,255,.8);
+      background: var(--navy-2);
+    }
+    .footer-inner { width: min(1540px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0; display: flex; justify-content: space-between; gap: 30px; }
+    footer strong { color: #fff; }
+    footer p { margin: 3px 0 0; font-size: 12px; }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .toc { display: none; }
+      .mobile-toc { display: block; max-width: 260px; height: 40px; padding: 0 10px; border: 1px solid var(--line); background: white; }
+      .smart-grid { grid-template-columns: repeat(2, 1fr); }
+      .smart-item:last-child { grid-column: 1 / -1; min-height: auto; }
+    }
+    @media (max-width: 760px) {
+      body { font-size: 15px; }
+      .hero { min-height: auto; }
+      .hero-inner, .toolbar, .layout, .footer-inner { width: min(100% - 28px, 1540px); }
+      .hero-inner { padding-top: 24px; }
+      .hero-top { padding-bottom: 42px; }
+      h1 { font-size: 38px; line-height: 1.24; }
+      .hero-lead { font-size: 18px; }
+      .toolbar { min-height: 58px; overflow-x: auto; }
+      .search-box { width: 210px; flex: 0 0 auto; }
+      .toolbar-actions .btn:not(.primary) { display: none; }
+      .mobile-toc { flex: 0 0 155px; }
+      .layout { padding-top: 42px; }
+      .module { margin-bottom: 82px; }
+      .module-head { grid-template-columns: 54px 1fr; gap: 12px; }
+      .module-no { font-size: 36px; }
+      .module-head h2 { font-size: 30px; }
+      .two-question, .stage-split, .rule-grid, .acceptance-grid, .knowledge { grid-template-columns: 1fr; }
+      .stage + .stage { border-left: 0; border-top: 1px solid var(--ink); }
+      .metric-strip { grid-template-columns: 1fr 1fr; }
+      .smart-grid { grid-template-columns: 1fr; }
+      .smart-item:last-child { grid-column: auto; }
+      .requirement summary { grid-template-columns: 54px minmax(0,1fr) 26px; }
+      .req-body { padding-left: 0; padding-right: 18px; }
+      .config-item { grid-template-columns: 1fr; gap: 8px; }
+      .knowledge article:first-child { grid-column: auto; }
+      .data-table { display: block; overflow-x: auto; white-space: nowrap; }
+      .footer-inner { flex-direction: column; }
+    }
+
+    @media print {
+      @page { size: A4; margin: 14mm; }
+      body { background: #fff; color: #111; font-size: 10.5pt; }
+      body::before, .toolbar-wrap, .toc, .mobile-toc, .btn { display: none !important; }
+      .hero { min-height: auto; color: #111; background: #fff; border-bottom: 2px solid #111; }
+      .hero::after { display: none; }
+      .hero-inner { width: 100%; padding: 0 0 10mm; }
+      .hero-top { padding-bottom: 16mm; }
+      .brand-mark::before { color: #111; border-color: #111; }
+      .hero-lead, .hero-note { color: #333; }
+      .eyebrow { color: #111; }
+      h1 { font-size: 34pt; }
+      .layout { display: block; width: 100%; padding: 10mm 0 0; }
+      .module { margin-bottom: 15mm; page-break-before: always; }
+      .module:first-child { page-break-before: auto; }
+      .module-head { break-after: avoid; }
+      .diagram-shell { box-shadow: none; break-inside: avoid; }
+      details { break-inside: avoid; }
+      details > summary .chev { display: none; }
+      .architecture, .flow-map, .sequence { transform-origin: top left; }
+      a { text-decoration: none; }
+      footer { display: none; }
+    }
+
+    /* 技术文档门户风格：参照现有公众号技术 PRD 的阅读体验 */
+    :root {
+      --ink: #0f172a;
+      --ink-soft: #475569;
+      --paper: #f8fafc;
+      --paper-2: #ffffff;
+      --line: #e2e8f0;
+      --line-strong: #cbd5e1;
+      --navy: #2563eb;
+      --navy-2: #0f172a;
+      --orange: #2563eb;
+      --teal: #0f766e;
+      --lime: #dbeafe;
+      --red: #dc2626;
+      --amber: #d97706;
+      --shadow: 0 1px 3px rgba(15, 23, 42, .05);
+      --radius: 10px;
+      --sans: Inter, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+    }
+
+    html { scroll-padding-top: 86px; }
+    body {
+      padding-left: 280px;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.72;
+    }
+    body::before {
+      z-index: 160;
+      height: 3px;
+      background: linear-gradient(90deg, var(--navy) var(--progress, 0%), rgba(37,99,235,.10) 0);
+    }
+    ::selection { color: var(--ink); background: #dbeafe; }
+
+    .toolbar-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 120;
+      background: rgba(255,255,255,.96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 1px 2px rgba(15,23,42,.025);
+    }
+    .toolbar {
+      width: min(1120px, calc(100% - 64px));
+      min-height: 64px;
+      gap: 18px;
+    }
+    .toolbar-title {
+      min-width: 260px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+    }
+    .toolbar-title strong { font-size: 14px; }
+    .toolbar-title span {
+      padding: 3px 9px;
+      border-radius: 999px;
+      color: var(--navy);
+      background: #eff6ff;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .search-box { width: min(320px, 30vw); margin-left: auto; }
+    .search-box input {
+      height: 38px;
+      border-color: var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+    .search-box input:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+    .btn {
+      height: 38px;
+      border-color: var(--line);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 13px;
+    }
+    .btn:hover { color: var(--navy); border-color: #93c5fd; background: #f8fbff; }
+    .btn.primary { background: var(--navy); border-color: var(--navy); }
+
+    .hero {
+      min-height: auto;
+      color: var(--ink);
+      background: transparent;
+      overflow: visible;
+    }
+    .hero::after { display: none; }
+    .hero-inner {
+      width: min(1120px, calc(100% - 64px));
+      padding: 48px 0 30px;
+    }
+    .hero-grid { max-width: 100%; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 0 10px;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      color: var(--navy);
+      background: #eff6ff;
+      font-size: 12px;
+      letter-spacing: .04em;
+    }
+    h1 {
+      max-width: none;
+      margin: 16px 0 12px;
+      font-size: clamp(30px, 3vw, 40px);
+      line-height: 1.28;
+      letter-spacing: -.02em;
+    }
+    .hero-lead {
+      max-width: 980px;
+      color: var(--ink-soft);
+      font-size: 17px;
+      line-height: 1.75;
+    }
+    .hero-lead strong { color: var(--ink); }
+    .hero-note {
+      max-width: 980px;
+      margin: 18px 0 0;
+      padding: 12px 16px;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--navy);
+      border-radius: 0 8px 8px 0;
+      color: var(--ink-soft);
+      background: #fff;
+      font-size: 13px;
+    }
+
+    .layout {
+      width: min(1120px, calc(100% - 64px));
+      display: block;
+      padding: 14px 0 96px;
+    }
+    .toc {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 140;
+      width: 280px;
+      height: 100vh;
+      padding: 30px 22px 24px;
+      overflow-y: auto;
+      border: 0;
+      border-right: 1px solid var(--line);
+      background: #f1f5f9;
+    }
+    .side-brand { margin-bottom: 30px; }
+    .side-brand strong {
+      display: block;
+      color: var(--ink);
+      font-size: 19px;
+      line-height: 1.35;
+    }
+    .side-brand span {
+      display: block;
+      margin-top: 5px;
+      color: var(--navy);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+    .toc-title {
+      margin-bottom: 10px;
+      color: #64748b;
+      font-size: 11px;
+      letter-spacing: .04em;
+    }
+    .toc a {
+      grid-template-columns: 25px 1fr;
+      gap: 7px;
+      margin: 3px 0;
+      padding: 9px 10px;
+      border: 1px solid transparent;
+      border-left: 3px solid transparent;
+      border-radius: 8px;
+      color: var(--ink-soft);
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+    .toc a:hover,
+    .toc a.active {
+      color: var(--navy);
+      border-color: #bfdbfe;
+      border-left-color: var(--navy);
+      background: rgba(255,255,255,.65);
+    }
+    .toc-num { color: inherit; font-family: var(--sans); font-size: 11px; }
+    .toc-foot { padding-top: 16px; border-top: 1px dashed var(--line-strong); color: #64748b; }
+
+    main { width: 100%; }
+    .module {
+      scroll-margin-top: 84px;
+      margin-bottom: 68px;
+    }
+    .module-head {
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      margin-bottom: 25px;
+      padding: 0 0 12px;
+      border-top: 0;
+      border-bottom: 1px solid var(--line);
+      align-items: baseline;
+    }
+    .module-no {
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 24px;
+      font-weight: 750;
+      line-height: 1.3;
+      letter-spacing: -.02em;
+    }
+    .module-no::after { content: "."; }
+    .module-head h2 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.35;
+      letter-spacing: -.01em;
+    }
+    .module-head p {
+      grid-column: 1 / -1;
+      max-width: 880px;
+      margin: 2px 0 0;
+      color: #64748b;
+      font-size: 13px;
+    }
+    .section-label {
+      display: block;
+      margin: 30px 0 13px;
+      color: #1e293b;
+      font-size: 18px;
+      line-height: 1.45;
+      letter-spacing: 0;
+    }
+    .section-label::before { display: none; }
+    h3 { font-size: 18px; }
+    h4 { font-size: 15px; }
+    p, li { color: var(--ink-soft); }
+    .lede { max-width: 920px; font-size: 16px; line-height: 1.8; }
+
+    .two-question,
+    .stage-split,
+    .metric-strip,
+    .config-list { gap: 12px; border: 0; background: transparent; }
+    .question,
+    .stage,
+    .metric,
+    .smart-item,
+    .rule-box,
+    .knowledge article,
+    .config-item {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+    .question { padding: 22px; }
+    .question span { color: var(--navy); font-family: var(--sans); font-size: 11px; }
+    .question strong { margin-top: 9px; font-family: var(--sans); font-size: 17px; }
+    .stage { padding: 24px; }
+    .stage + .stage { border-left: 1px solid var(--line); }
+    .stage-tag { color: var(--navy); }
+    .metric { padding: 18px 15px; }
+    .metric b { color: var(--navy); font-family: var(--sans); font-size: 24px; }
+    .smart-item { min-height: 190px; border-top: 3px solid var(--navy); box-shadow: var(--shadow); }
+    .smart-item b { color: var(--navy); font-family: var(--sans); font-size: 24px; }
+
+    .callout {
+      padding: 16px 18px 16px 20px;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--navy);
+      border-radius: 0 8px 8px 0;
+      background: #f8fbff;
+    }
+    .callout.warning { border-left-color: var(--amber); background: #fffbeb; }
+    .callout.info { border-left-color: var(--teal); background: #f0fdfa; }
+    .callout.dark { color: #fff; border-color: var(--navy-2); border-left-color: #60a5fa; background: var(--navy-2); }
+
+    .diagram-shell {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+    .flow-node,
+    .arch-col,
+    .sequence,
+    .state { border-color: var(--line-strong); background: #fff; }
+    .flow-node::after,
+    .seq-msg span { background: #fff; }
+    .flow-node.gate,
+    .arch-col.core,
+    .seq-actor,
+    .state.unknown { background: var(--navy-2); border-color: var(--navy-2); }
+    .flow-node.action,
+    .arch-unit { background: #f0fdfa; }
+    .arch-col.core .arch-unit { background: #fff; }
+
+    .role-table,
+    .data-table {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+    .role-table th,
+    .data-table th { color: var(--ink); background: #f1f5f9; }
+    .role-table th,
+    .role-table td,
+    .data-table th,
+    .data-table td { border-color: var(--line); }
+    .role-table tbody tr:hover,
+    .data-table tbody tr:hover { background: #f8fafc; }
+
+    .requirement-list { border-top-color: var(--line); }
+    details.requirement,
+    details.acceptance { border-color: var(--line); background: #fff; }
+    details.requirement { border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+    details[open] { background: #f8fbff; }
+    .req-id { color: var(--navy); font-family: var(--sans); }
+    .chev { border-color: var(--line-strong); }
+    .chip { border-radius: 6px; background: #fff; }
+    .chip.active { background: var(--navy); border-color: var(--navy); }
+    .code-block { border-radius: 8px; border-left-color: #60a5fa; background: #0f172a; }
+
+    .timeline { border-left-color: #94a3b8; }
+    .timeline-item::before { border-color: var(--paper); background: var(--navy); }
+    .timeline-item span { color: var(--navy); }
+    .config-item { grid-template-columns: 190px 1fr; }
+    details.acceptance { border-radius: 8px; overflow: hidden; box-shadow: var(--shadow); }
+    .knowledge article:first-child { border-color: var(--navy-2); background: var(--navy-2); }
+    .search-hit { outline-color: rgba(37,99,235,.55); }
+
+    footer { color: #64748b; border-top: 1px solid var(--line); background: #fff; }
+    .footer-inner { width: min(1120px, calc(100% - 64px)); padding: 28px 0; }
+    footer strong { color: var(--ink); }
+
+    @media (max-width: 1240px) {
+      body { padding-left: 0; }
+      .toc { display: none; }
+      .mobile-toc { display: block; max-width: 190px; height: 38px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+      .toolbar-title { display: none; }
+      .toolbar, .hero-inner, .layout, .footer-inner { width: min(100% - 36px, 920px); }
+      .search-box { margin-left: 0; }
+    }
+    @media (max-width: 760px) {
+      .toolbar, .hero-inner, .layout, .footer-inner { width: min(100% - 28px, 920px); }
+      .toolbar { min-height: 58px; }
+      .hero-inner { padding: 30px 0 22px; }
+      h1 { font-size: 30px; }
+      .hero-lead { font-size: 16px; }
+      .layout { padding-top: 8px; }
+      .module { margin-bottom: 54px; }
+      .module-head { grid-template-columns: auto 1fr; gap: 7px; }
+      .module-no, .module-head h2 { font-size: 22px; }
+      .section-label { font-size: 17px; }
+      .two-question, .stage-split, .rule-grid, .acceptance-grid, .knowledge { grid-template-columns: 1fr; }
+      .stage + .stage { border-top: 1px solid var(--line); }
+      .config-item { grid-template-columns: 1fr; }
+      .mobile-toc { flex: 0 0 138px; }
+      .search-box { width: 190px; }
+    }
+    @media print {
+      body { padding-left: 0; background: #fff; }
+      .toolbar-wrap, .toc { display: none !important; }
+      .hero-inner, .layout { width: 100%; }
+      .hero { border-bottom: 1px solid #bbb; }
+      .hero-note { background: #fff; }
+    }
+  </style>
+  <style id="refined-document-ui">
+    :root {
+      --ink: #172033;
+      --ink-soft: #566176;
+      --ink-faint: #8791a2;
+      --paper: #f3f5f8;
+      --paper-2: #ffffff;
+      --line: #e4e8ef;
+      --line-strong: #ccd4e0;
+      --navy: #245eea;
+      --navy-2: #172033;
+      --orange: #245eea;
+      --teal: #0d7b6c;
+      --red: #c83945;
+      --amber: #b86c09;
+      --radius: 12px;
+      --shadow: 0 16px 44px rgba(26, 39, 69, .07);
+      --sans: "HarmonyOS Sans SC", "MiSans", "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", sans-serif;
+      --mono: "SFMono-Regular", "Roboto Mono", Consolas, monospace;
+    }
+
+    html { scroll-padding-top: 78px; }
+    body {
+      padding-left: 264px;
+      color: var(--ink);
+      background: var(--paper);
+      font: 15px/1.72 var(--sans);
+      letter-spacing: .005em;
+    }
+    body::before {
+      z-index: 180;
+      height: 2px;
+      background: linear-gradient(90deg, var(--navy) var(--progress, 0%), transparent 0);
+    }
+    ::selection { color: var(--ink); background: #dfe9ff; }
+
+    .toolbar-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 120;
+      border-bottom: 1px solid rgba(204, 212, 224, .78);
+      background: rgba(255, 255, 255, .9);
+      box-shadow: none;
+      backdrop-filter: blur(18px) saturate(1.2);
+    }
+    .toolbar {
+      width: min(1240px, calc(100% - 56px));
+      min-height: 58px;
+      margin: 0 auto;
+      gap: 10px;
+    }
+    .toolbar-spacer { flex: 1 1 auto; }
+    .toolbar-title { display: none; }
+    .search-box { width: min(330px, 34vw); margin-left: 0; }
+    .search-box input {
+      height: 36px;
+      padding-left: 14px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      color: var(--ink);
+      background: #f7f8fa;
+      font-family: var(--sans);
+    }
+    .search-box input:focus {
+      border-color: #9bb6fa;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(36, 94, 234, .1);
+    }
+    .search-count { color: var(--ink-faint); }
+    .toolbar-actions { gap: 7px; }
+    .btn {
+      height: 36px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      color: #465166;
+      background: #fff;
+      font: 600 12px var(--sans);
+      box-shadow: none;
+    }
+    .btn:hover { color: var(--navy); border-color: #a9bdf2; background: #f6f9ff; transform: none; }
+    .btn.primary { border-color: var(--navy); color: #fff; background: var(--navy); }
+    .btn.primary:hover { color: #fff; background: #174dcc; }
+
+    .toc {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 140;
+      width: 264px;
+      height: 100vh;
+      padding: 26px 18px 22px;
+      overflow-y: auto;
+      border: 0;
+      border-right: 1px solid var(--line);
+      background: #f8f9fb;
+      box-shadow: inset -1px 0 rgba(255, 255, 255, .7);
+    }
+    .side-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 4px 28px;
+    }
+    .side-brand > .brand-icon {
+      display: grid;
+      flex: 0 0 38px;
+      width: 38px;
+      height: 38px;
+      margin: 0;
+      place-items: center;
+      border-radius: 11px;
+      color: #fff;
+      background: var(--ink);
+      font: 700 12px/1 var(--mono);
+      letter-spacing: .08em;
+    }
+    .side-brand strong {
+      display: block;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.25;
+    }
+    .side-brand small {
+      display: block;
+      margin-top: 4px;
+      color: var(--ink-faint);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .08em;
+    }
+    .toc-title {
+      margin: 0 8px 8px;
+      color: var(--ink-faint);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+    }
+    .toc nav { display: grid; gap: 3px; }
+    .toc a {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 7px;
+      margin: 0;
+      padding: 9px 10px;
+      border: 0;
+      border-radius: 9px;
+      color: #5f6a7e;
+      font-size: 12px;
+      line-height: 1.5;
+      transition: color .18s ease, background .18s ease;
+    }
+    .toc a:hover,
+    .toc a.active {
+      color: var(--navy);
+      border: 0;
+      background: #eaf0ff;
+      box-shadow: inset 3px 0 var(--navy);
+    }
+    .toc-num { color: inherit; font: 700 10px/1.7 var(--mono); }
+    .toc-foot {
+      margin: 18px 8px 0;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      font-size: 11px;
+    }
+    .source-link { color: #6a7485; text-decoration: none; }
+    .source-link:hover { color: var(--navy); }
+    .toc-foot .source-link,
+    .toc-foot .source-link:hover {
+      display: inline;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      color: #6a7485;
+      background: transparent;
+      box-shadow: none;
+      font-size: 11px;
+    }
+    .toc-foot .source-link:hover { color: var(--navy); }
+
+    .hero { min-height: auto; overflow: visible; color: var(--ink); background: transparent; }
+    .hero::after { display: none; }
+    .hero-inner {
+      width: min(1240px, calc(100% - 56px));
+      margin: 28px auto 0;
+      padding: 46px 54px 38px;
+      border: 1px solid var(--line);
+      border-bottom: 0;
+      border-radius: 16px 16px 0 0;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+    .hero-grid { max-width: 100%; }
+    h1 {
+      max-width: none;
+      margin: 0 0 13px;
+      color: var(--ink);
+      font-size: clamp(32px, 3vw, 42px);
+      font-weight: 760;
+      line-height: 1.24;
+      letter-spacing: -.035em;
+    }
+    .hero-lead {
+      max-width: 880px;
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    .layout {
+      width: min(1240px, calc(100% - 56px));
+      display: block;
+      margin: 0 auto 72px;
+      padding: 6px 54px 90px;
+      border: 1px solid var(--line);
+      border-top: 0;
+      border-radius: 0 0 16px 16px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+    main { width: 100%; min-width: 0; }
+    .module { scroll-margin-top: 78px; margin-bottom: 72px; }
+    .module-head {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 26px;
+      padding: 42px 0 17px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .module:first-child .module-head { padding-top: 26px; }
+    .module-no {
+      display: inline-grid;
+      width: 34px;
+      height: 24px;
+      place-items: center;
+      border-radius: 6px;
+      color: var(--navy);
+      background: #edf2ff;
+      font: 700 11px/1 var(--mono);
+      letter-spacing: .03em;
+    }
+    .module-no::after { content: ""; }
+    .module-head h2 {
+      margin: -2px 0 0;
+      color: var(--ink);
+      font-size: 23px;
+      font-weight: 720;
+      line-height: 1.35;
+      letter-spacing: -.02em;
+    }
+    .module-head p {
+      grid-column: 2;
+      max-width: 820px;
+      margin: 4px 0 0;
+      color: var(--ink-faint);
+      font-size: 12.5px;
+    }
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 32px 0 14px;
+      color: #263147;
+      font-size: 17px;
+      font-weight: 720;
+      line-height: 1.45;
+    }
+    .section-label::before {
+      display: block;
+      width: 3px;
+      height: 16px;
+      border-radius: 2px;
+      background: var(--navy);
+      content: "";
+    }
+    h3 { color: var(--ink); font-size: 17px; }
+    h4 { color: var(--ink); font-size: 15px; }
+    p, li { color: var(--ink-soft); }
+    .lede { max-width: 900px; font-size: 15.5px; line-height: 1.8; }
+
+    .two-question,
+    .stage-split,
+    .metric-strip,
+    .config-list { gap: 12px; border: 0; background: transparent; }
+    .question,
+    .stage,
+    .metric,
+    .smart-item,
+    .rule-box,
+    .knowledge article,
+    .config-item {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: none;
+    }
+    .question { padding: 20px; }
+    .question span { color: var(--navy); font: 700 10px var(--sans); letter-spacing: .08em; }
+    .question strong { margin-top: 8px; font-family: var(--sans); font-size: 16px; line-height: 1.65; }
+    .stage { padding: 22px; }
+    .stage + .stage { border-left: 1px solid var(--line); }
+    .stage-tag { color: var(--navy); font-size: 11px; }
+    .metric { padding: 17px 14px; }
+    .metric b { color: var(--navy); font: 750 22px var(--sans); }
+    .smart-item { min-height: 176px; border-top: 3px solid var(--navy); }
+    .smart-item b { color: var(--navy); font: 750 22px var(--sans); }
+
+    .callout {
+      padding: 15px 18px;
+      border: 1px solid #dce5f7;
+      border-left: 3px solid var(--navy);
+      border-radius: 8px;
+      background: #f7f9fe;
+    }
+    .callout.warning { border-color: #ecd9b8; border-left-color: var(--amber); background: #fffaf1; }
+    .callout.info { border-color: #cfe7e1; border-left-color: var(--teal); background: #f4fbf9; }
+    .callout.dark { color: #fff; border-color: var(--ink); border-left-color: #7fa3ff; background: var(--ink); }
+
+    .role-table,
+    .data-table {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: none;
+    }
+    .role-table th,
+    .data-table th {
+      color: #354057;
+      background: #f6f7f9;
+      font-weight: 700;
+    }
+    .role-table th,
+    .role-table td,
+    .data-table th,
+    .data-table td { padding: 12px 13px; border-color: var(--line); }
+    .role-table tbody tr:hover,
+    .data-table tbody tr:hover { background: #fafbfc; }
+
+    .diagram-shell {
+      padding: 20px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: none;
+    }
+    .diagram-caption { margin-bottom: 18px; }
+    .flow-node,
+    .arch-col,
+    .sequence,
+    .state { border-color: var(--line-strong); background: #fff; }
+    .flow-node::after,
+    .seq-msg span { background: #fff; }
+    .flow-node.gate,
+    .arch-col.core,
+    .seq-actor,
+    .state.unknown { border-color: var(--ink); background: var(--ink); }
+    .flow-node.action,
+    .arch-unit { background: #f4faf8; }
+    .arch-col.core .arch-unit { background: #fff; }
+    .architecture { min-width: 980px; }
+    .sequence { min-width: 1100px; }
+
+    .req-toolbar { margin: 0 0 6px; }
+    .req-toolbar p { color: var(--ink-faint); font-size: 12.5px; }
+    .requirement-list { display: grid; gap: 0; border: 0; }
+    .requirement-group {
+      padding: 24px 0 28px;
+      border-top: 1px solid var(--line);
+    }
+    .requirement-group:first-child { border-top: 0; }
+    .requirement-group-head {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 14px;
+    }
+    .requirement-group-head > span {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border: 1px solid #c9d7fb;
+      border-radius: 9px;
+      color: var(--navy);
+      background: #f5f8ff;
+      font: 700 10px/1 var(--mono);
+    }
+    .requirement-group-head h3 { margin: 0; font-size: 16px; line-height: 1.35; }
+    .requirement-group-head p { margin: 4px 0 0; color: var(--ink-faint); font-size: 12px; }
+    .requirement-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    details.requirement {
+      align-self: start;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    details.requirement:hover { border-color: #c6d1e3; background: #fbfcfe; }
+    details.requirement[open] {
+      grid-column: 1 / -1;
+      border-color: #aebff0;
+      background: #fff;
+      box-shadow: 0 10px 26px rgba(30, 53, 105, .07);
+    }
+    .requirement-grid > details.requirement:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .requirement summary {
+      display: flex;
+      min-height: 54px;
+      gap: 11px;
+      align-items: center;
+      padding: 11px 13px;
+    }
+    .req-id {
+      display: inline-flex;
+      min-width: 38px;
+      height: 24px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      color: var(--navy);
+      background: #edf2ff;
+      font: 700 11px/1 var(--mono);
+      letter-spacing: .02em;
+    }
+    .req-title { color: #263147; font-size: 14.5px; font-weight: 700; line-height: 1.4; }
+    .chev {
+      display: grid;
+      flex: 0 0 24px;
+      width: 24px;
+      height: 24px;
+      margin-left: auto;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: #6d788b;
+      background: #fff;
+    }
+    .req-body {
+      padding: 16px 18px 18px;
+      border-top: 1px solid var(--line);
+      color: var(--ink-soft);
+      font-size: 13.5px;
+    }
+    .req-body > :first-child { margin-top: 0; }
+    .req-body > :last-child { margin-bottom: 0; }
+    .req-body strong { color: var(--ink); }
+
+    .rule-grid { gap: 12px; }
+    .rule-box { padding: 19px; }
+    .chip { border-radius: 6px; background: #fff; }
+    .chip.active { border-color: var(--navy); background: var(--navy); }
+    .code-block { border-radius: 9px; border-left-color: #7fa3ff; background: #151e2f; }
+    .timeline { border-left-color: #a7b2c3; }
+    .timeline-item::before { border-color: #fff; background: var(--navy); }
+    .timeline-item span { color: var(--navy); }
+    .config-item { grid-template-columns: 184px 1fr; padding: 20px; }
+
+    .acceptance-grid { gap: 10px; }
+    details.acceptance {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: none;
+    }
+    details.acceptance[open] { background: #fff; box-shadow: 0 8px 22px rgba(30, 53, 105, .06); }
+    .acceptance summary {
+      display: flex;
+      min-height: 58px;
+      gap: 10px;
+      align-items: center;
+      padding: 11px 13px;
+    }
+    .acceptance .req-body { padding: 15px 17px 17px; }
+    .knowledge article:first-child { border-color: var(--ink); background: var(--ink); }
+    .search-hit { outline-color: rgba(36, 94, 234, .55); }
+
+    footer { color: var(--ink-faint); border: 0; background: transparent; }
+    .footer-inner {
+      width: min(1240px, calc(100% - 56px));
+      margin: 0 auto;
+      padding: 0 8px 40px;
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      font-size: 11px;
+    }
+    .footer-inner a { color: var(--navy); text-decoration: none; }
+
+    @media (max-width: 1320px) {
+      body { padding-left: 0; }
+      .toc { display: none; }
+      .mobile-toc {
+        display: block;
+        flex: 0 0 180px;
+        max-width: 180px;
+        height: 36px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: #fff;
+        font-family: var(--sans);
+      }
+      .toolbar-spacer { display: none; }
+      .toolbar, .hero-inner, .layout, .footer-inner { width: min(1120px, calc(100% - 36px)); }
+      .search-box { margin-left: auto; }
+    }
+    @media (max-width: 820px) {
+      .toolbar, .hero-inner, .layout, .footer-inner { width: min(100% - 24px, 720px); }
+      .toolbar { min-height: 56px; }
+      .toolbar-actions .btn:not(.primary) { display: none; }
+      .search-box { width: min(230px, 38vw); }
+      .hero-inner { margin-top: 12px; padding: 30px 24px 26px; }
+      h1 { font-size: 30px; }
+      .hero-lead { font-size: 15px; }
+      .layout { padding: 2px 24px 62px; margin-bottom: 36px; }
+      .module { margin-bottom: 56px; }
+      .module-head { grid-template-columns: 36px 1fr; gap: 9px; padding-top: 32px; }
+      .module-no { width: 30px; }
+      .module-head h2 { font-size: 21px; }
+      .section-label { font-size: 16px; }
+      .two-question, .stage-split, .rule-grid, .acceptance-grid, .knowledge, .requirement-grid { grid-template-columns: 1fr; }
+      .stage + .stage { border-top: 1px solid var(--line); }
+      details.requirement[open],
+      .requirement-grid > details.requirement:last-child:nth-child(odd) { grid-column: auto; }
+      .config-item { grid-template-columns: 1fr; gap: 8px; }
+      .role-table, .data-table { display: block; overflow-x: auto; }
+      .footer-inner { padding-bottom: 28px; }
+    }
+    @media (max-width: 560px) {
+      .mobile-toc { flex-basis: 132px; max-width: 132px; }
+      .search-box { display: none; }
+      .toolbar-actions { margin-left: auto; }
+      .hero-inner { padding: 26px 20px 22px; }
+      .layout { padding-right: 20px; padding-left: 20px; }
+      h1 { font-size: 27px; }
+      .module-head p { grid-column: 1 / -1; }
+      .footer-inner { display: grid; gap: 8px; }
+    }
+    @media print {
+      body { padding-left: 0; background: #fff; }
+      .toolbar-wrap, .toc { display: none !important; }
+      .hero-inner, .layout { width: 100%; border: 0; box-shadow: none; }
+      .hero-inner { margin: 0; padding: 0 0 8mm; }
+      .layout { padding: 0; }
+      .requirement-grid { grid-template-columns: 1fr; }
+      details.requirement[open] { grid-column: auto; box-shadow: none; }
+      footer { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#content">跳到正文</a>
+
+  <div class="toolbar-wrap">
+    <div class="toolbar">
+      <div class="toolbar-spacer" aria-hidden="true"></div>
+      <select class="mobile-toc" id="mobileToc" aria-label="跳转到模块">
+        <option value="#module-1">01 执行摘要</option><option value="#module-2">02 用户体验与功能</option><option value="#module-3">03 AI系统要求</option><option value="#module-4">04 技术规格</option><option value="#module-5">05 风险与路线图</option><option value="#module-6">06 配置说明</option><option value="#module-7">07 验收场景</option>
+      </select>
+      <div class="search-box">
+        <input id="searchInput" type="search" placeholder="搜索功能、规则或验收场景" aria-label="搜索PRD内容" />
+        <span class="search-count" id="searchCount">⌕</span>
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn" id="collapseAll" type="button">收起全部</button>
+        <button class="btn" id="expandAll" type="button">展开全部</button>
+        <button class="btn primary" id="printDoc" type="button">打印 / PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <header class="hero" id="top">
+    <div class="hero-inner">
+      <div class="hero-grid">
+        <div>
+          <h1>AI热点发现与护卫军作业联动</h1>
+          <p class="hero-lead">从公开信息线索发现、证据研判，到原创作业草案与投稿效果回流，形成可验证的业务联动方案。</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="文档目录">
+      <div class="side-brand"><span class="brand-icon">DF</span><div><strong>东风护卫军</strong><small>产品设计资料</small></div></div>
+      <div class="toc-title"><span>目录</span><span>7个模块</span></div>
+      <nav>
+        <a href="#module-1" class="active"><span class="toc-num">01</span><span>执行摘要<br />问题、两阶段、SMART</span></a>
+        <a href="#module-2"><span class="toc-num">02</span><span>用户体验与功能<br />角色、流程、F01—F15</span></a>
+        <a href="#module-3"><span class="toc-num">03</span><span>AI系统要求<br />职责、契约、评估</span></a>
+        <a href="#module-4"><span class="toc-num">04</span><span>技术规格<br />架构、时序、数据、接口</span></a>
+        <a href="#module-5"><span class="toc-num">05</span><span>风险与路线图<br />四阶段与依赖</span></a>
+        <a href="#module-6"><span class="toc-num">06</span><span>配置项说明<br />业务影响与责任</span></a>
+        <a href="#module-7"><span class="toc-num">07</span><span>验收测试<br />AT01—AT15</span></a>
+      </nav>
+      <p class="toc-foot"><a class="source-link" href="./AI热点业务规划与现阶段线索PoC解决方案_PRD_v0.2.md">查看 Markdown 源文档</a></p>
+    </aside>
+
+    <main id="content">
+      <section class="module searchable" id="module-1" data-title="执行摘要">
+        <header class="module-head"><div class="module-no">01</div><div><h2>执行摘要</h2><p>先统一业务终局、现阶段能力边界与本轮PoC验收口径。</p></div></header>
+
+        <div class="section-label">业务问题</div>
+        <p class="lede">业务不是要“搜到新闻”，而是要在有效响应窗口内判断：<strong>哪里正在发酵、值不值得行动、行动后是否继续加热。</strong></p>
+        <div class="two-question">
+          <article class="question"><span>业务问题一</span><strong>哪个平台、哪个东风相关事件正在快速发酵，是否值得组织护卫军响应？</strong></article>
+          <article class="question"><span>业务问题二</span><strong>原创内容发布后是否出现传播增长，是否需要进一步组织点赞、评论等加热作业？</strong></article>
+        </div>
+
+        <div class="section-label">问题拆解与业务闭环</div>
+        <p>把两个业务问题拆成“发现、判断、决策、执行、反馈”五个连续环节，后续产品能力围绕这条闭环建设。</p>
+        <table class="data-table">
+          <thead><tr><th>问题拆解</th><th>需要回答的问题</th><th>对应产品设计</th></tr></thead>
+          <tbody>
+            <tr><td><strong>发现</strong></td><td>哪些平台出现了新的东风相关内容和讨论</td><td>持续采集或检索、来源标准化、平台与账号识别</td></tr>
+            <tr><td><strong>判断</strong></td><td>多条内容是否属于同一事件，事件是否正在发酵</td><td>无效过滤、转载去重、事件聚合、热点数据准入与分平台趋势计算</td></tr>
+            <tr><td><strong>决策</strong></td><td>事件是否与东风相关、是否值得响应、有哪些表达风险</td><td>品牌关系、实体存疑原因、事实证据、风险提示与运营复核</td></tr>
+            <tr><td><strong>执行</strong></td><td>生成什么原创作业，发给哪些擅长该平台的成员</td><td>原创作业草案、运营审批、平台能力标签匹配与正式分发</td></tr>
+            <tr><td><strong>反馈</strong></td><td>投稿是否起量，是否需要继续组织加热</td><td>用户回填链接、效果快照、分平台增量判断与加热作业草案</td></tr>
+          </tbody>
+        </table>
+        <div class="diagram-shell">
+          <div class="diagram-caption"><strong>从发现到加热的完整业务闭环</strong><span>先定义业务终局，各阶段覆盖范围在下方说明</span></div>
+          <div class="flow-map" role="img" aria-label="AI热点发现到加热作业业务流程图">
+            <div class="flow-row">
+              <div class="flow-node"><b>01 持续发现</b><p>9品牌、8主题；公开搜索或未来平台原生数据</p></div>
+              <div class="flow-node"><b>02 来源处理</b><p>标准化平台、网站、账号、URL、正文与时间</p></div>
+              <div class="flow-node"><b>03 事件聚合</b><p>过滤无效、去重转载、聚合同一业务事件</p></div>
+              <div class="flow-node gate"><b>04 数据准入</b><p>决定能否输出真实热点状态；未通过为 unknown</p></div>
+              <div class="flow-node"><b>05 研判与草案</b><p>品牌关联、风险、证据、原创方向与禁止表述</p></div>
+            </div>
+            <div class="flow-bridge"></div>
+            <div class="flow-row reverse">
+              <div class="flow-node action"><b>10 加热草案</b><p>达到分平台增量条件，仅生成待审批草案</p></div>
+              <div class="flow-node"><b>09 效果增量</b><p>同一投稿至少两个有效快照后计算变化</p></div>
+              <div class="flow-node"><b>08 用户回填</b><p>回填真实平台链接；微信系走人工凭证</p></div>
+              <div class="flow-node"><b>07 按平台分发</b><p>匹配现有平台能力标签，保留人群快照</p></div>
+              <div class="flow-node action"><b>06 运营审批</b><p>通过、修改后通过、驳回或继续观察</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-label">分阶段落地方案</div>
+        <div class="stage-split">
+          <article class="stage"><span class="stage-tag">阶段一｜当前验证</span><h3>公开信息线索与作业联动PoC</h3><p>以豆包、Codex公开搜索及可访问网页为数据基础，验证公开线索清洗、事件研判、原创作业草案，以及用户回填后非微信平台效果增量和加热草案链路；不验收真实热点发现能力。</p><div class="stage-output"><strong>输出：</strong>相关事件线索、品牌内容机会、人工复核项、原创作业草案、投稿效果增量、加热作业草案</div></article>
+          <article class="stage"><span class="stage-tag">阶段二｜目标能力</span><h3>真实热点能力</h3><p>接入稳定的平台原生数据或专业舆情数据源，回答哪个平台、哪个事件正在快速发酵以及是否达到响应时机。</p><div class="stage-output"><strong>输出：</strong>分平台热点状态、增速、风险等级、响应建议</div></article>
+        </div>
+
+        <div class="section-label">关键判断</div>
+        <div class="callout warning"><ol><li><strong>公开搜索只能帮助发现线索，不能独立证明真实热点。</strong>真实热点仍需平台原生互动、短时增速、独立作者/UGC规模、账号影响力和覆盖审计。</li><li><strong>AI负责整理证据、辅助聚合、提示风险和生成草案，</strong>高风险事实与正式发布仍由运营决策。</li><li><strong>现有采集可支持后置效果验证。</strong>用户回填链接后，非微信平台可通过多次快照计算增量并生成加热草案。</li><li><strong>自动化联动后续选型。</strong>可以推送标准数据由护卫军按规则生成作业，也可以采用受控MCP工具调用；本阶段不预设技术路径。</li></ol></div>
+
+        <div class="section-label">阶段一与业务期望对照</div>
+        <p>阶段一只验证现有搜索、AI分析、护卫军业务能力和投稿效果采集可以支撑的部分，不把未具备的数据能力包装成已实现。</p>
+        <table class="data-table">
+          <thead><tr><th>业务规划步骤</th><th>业务期望</th><th>阶段一能做到</th><th>差距与结论</th></tr></thead>
+          <tbody>
+            <tr><td><strong>持续监测目标平台</strong></td><td>持续发现微博、抖音等平台的新内容和新增讨论</td><td>按9个品牌、8个行业主题触发豆包与Codex公开搜索</td><td>搜索不是平台持续采集，<strong>不能承诺发现全部热点</strong></td></tr>
+            <tr><td><strong>判断哪里正在发酵</strong></td><td>依据原生互动量、短时增速和独立作者/UGC规模判定热度</td><td>核验公开页面、发布时间、来源证据和事件更新，形成相关事件线索</td><td>缺少未知链接前的原生指标、连续快照和覆盖审计，<strong>不能输出真实热点评级、增速或预警</strong></td></tr>
+            <tr><td><strong>判断是否值得响应</strong></td><td>识别东风关系、事实风险和行动价值</td><td>完成来源清洗、事件聚合、东风关联、风险提示和人工复核分流</td><td><strong>可以验证</strong>；高风险事实、存疑实体和最终行动仍由运营审核</td></tr>
+            <tr><td><strong>生成原创作业</strong></td><td>达到响应条件后形成原创任务</td><td>生成附证据、风险说明、建议平台和禁止表述的作业草案</td><td><strong>可以验证草案质量，不能自动发布</strong></td></tr>
+            <tr><td><strong>按擅长平台分发</strong></td><td>根据平台能力标签选择目标人群并下发</td><td>复用现有平台能力标签形成建议人群和分发快照</td><td><strong>可以验证匹配逻辑</strong>；真实下发依赖接口联调和人工审批</td></tr>
+            <tr><td><strong>监测起量并加热</strong></td><td>依据原创内容增长继续组织点赞、评论等加热</td><td>已知链接回填后，非微信平台可采部分指标并以多次快照计算增量、生成加热草案</td><td><strong>可以验证非微信后置链路</strong>；微信系人工凭证，加热草案不得自动发布</td></tr>
+          </tbody>
+        </table>
+        <div class="callout info"><strong>阶段一验收口径</strong><p>对外称为“公开信息线索与作业联动PoC”。达标表示线索研判、原创草案和非微信投稿效果加热链路可行；不表示已经具备全平台持续发现或真实热点判定能力。</p></div>
+
+        <div class="section-label">阶段目标（SMART）</div>
+        <div class="smart-grid">
+          <article class="smart-item"><b>S</b><strong>具体</strong><p>对9个品牌及8个行业主题执行公开搜索，完成来源核验、事件聚合、品牌关联、风险提示和原创作业草案；回填后验证非微信平台效果增量。</p></article>
+          <article class="smart-item"><b>M</b><strong>可衡量</strong><p>每次17条基础查询、34个双路任务；记录覆盖率、来源完整率、过滤误杀、聚合准确、候选通过、已知线索漏检和人工时长。</p></article>
+          <article class="smart-item"><b>A</b><strong>可实现</strong><p>使用现有豆包、Codex、规则处理、人工审核及已知链接效果采集；公众号、视频号以人工凭证兜底。</p></article>
+          <article class="smart-item"><b>R</b><strong>相关</strong><p>验证终局中的信息发现、事件研判、原创任务生成和后置效果加热，并量化真实热点数据源缺口。</p></article>
+          <article class="smart-item"><b>T</b><strong>有时限</strong><p>10个工作日：配置冻结1天、连续运行7天、汇总2天；不建设生产定时任务和7×24监控。</p></article>
+        </div>
+
+        <div class="section-label">成功标准</div>
+        <div class="metric-strip">
+          <div class="metric"><b>100%</b><span>基础查询覆盖；失败、无结果、未执行分开记录</span></div>
+          <div class="metric"><b>100%</b><span>有效来源必填字段完整或明确缺失原因</span></div>
+          <div class="metric"><b>0</b><span>公开搜索事件输出真实热点评级</span></div>
+          <div class="metric"><b>≥2</b><span>非微信投稿有效快照后才计算增量</span></div>
+          <div class="metric"><b>10天</b><span>形成可复算基线，不验收热点准确率</span></div>
+        </div>
+        <ol>
+          <li>明确无效来源不进入运营候选主列表；误杀率目标在PoC样本后标定为 <span class="tbd">[TBD]</span>。</li>
+          <li>每个任务草案均包含品牌关系、事实证据、风险说明、建议平台和禁止表述。</li>
+          <li>形成事件聚合准确率、候选通过率、人工已知线索漏检率和审核时长的可复算基线。</li>
+          <li>公众号、视频号投稿必须进入人工凭证流程；自动数据源验证通过后才可调整。</li>
+        </ol>
+      </section>
+
+      <section class="module searchable" id="module-2" data-title="用户体验与功能">
+        <header class="module-head"><div class="module-no">02</div><div><h2>用户体验与功能</h2><p>以运营审核为中心，把“链接堆积”变成可判断、可审批、可追溯的事件与任务工作流。</p></div></header>
+
+        <div class="section-label">角色与职责</div>
+        <table class="role-table">
+          <thead><tr><th>角色</th><th>核心任务</th><th>关键权限</th></tr></thead>
+          <tbody>
+            <tr><td><strong>运营审核人</strong></td><td>查看线索、证据、品牌关系、风险与AI建议</td><td>通过、修改后通过、驳回、观察；审批原创/加热草案</td></tr>
+            <tr><td><strong>内容运营</strong></td><td>补充官方事实、素材与允许表达</td><td>选择作业方向、目标平台与禁用表述</td></tr>
+            <tr><td><strong>产品管理员</strong></td><td>维护品牌、来源、查询和业务规则</td><td>发布、停用、回溯配置版本</td></tr>
+            <tr><td><strong>研发运维</strong></td><td>维护适配器、规则、存储和业务接口</td><td>失败重试、监控、审计和告警</td></tr>
+            <tr><td><strong>护卫军用户</strong></td><td>执行与自身擅长平台匹配的原创作业</td><td>回填真实平台链接或人工凭证</td></tr>
+          </tbody>
+        </table>
+
+        <div class="section-label">功能需求</div>
+        <div class="req-toolbar"><p>按业务处理链路分为3组，点击条目查看完整规则</p></div>
+        <div class="requirement-list" id="requirements">
+          <section class="requirement-group" aria-labelledby="req-group-input">
+            <header class="requirement-group-head"><span>01</span><div><h3 id="req-group-input">采集与标准化</h3><p>配置业务范围，生成采集任务，并把不同来源整理为统一数据。</p></div></header>
+            <div class="requirement-grid">
+          <details class="requirement searchable"><summary><span class="req-id">F01</span><span class="req-title">配置管理</span><span class="chev"></span></summary><div class="req-body"><p>统一管理品牌与别名、来源平台/域名/官方账号、查询目录、过滤去重与聚合、事件实体/品牌关系/风险分类、热点数据准入与分平台模型、任务/投稿/加热及输出枚举。</p><p><strong>版本要求：</strong>所有配置必须具备版本号、生效时间、修改人、修改原因及草稿/已发布/已停用状态。新运行使用最新已发布版本，历史运行保留原版本，禁止修改已被引用的版本。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F02</span><span class="req-title">查询任务生成</span><span class="chev"></span></summary><div class="req-body"><ul><li>完整运行生成9条品牌查询＋8条行业主题查询；每条由豆包、Codex分别执行，共34个基础任务。</li><li>运行前生成覆盖清单；运行后区分成功、失败、无结果、未执行，未执行不得解释为无结果。</li><li>行业主题结果不得直接归属品牌；每个有效行业事件分别验证与9个启用品牌的关系，不轮换、不抽样。</li></ul></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F03</span><span class="req-title">公开搜索接入</span><span class="chev"></span></summary><div class="req-body"><p>豆包负责公开网页广召回；Codex负责补充召回、打开可访问页面和核验正文。两路共用查询目录但分别记录请求状态、返回时间、结果顺序和原始响应引用。</p><p>搜索排序、结果数和供应商权威等级只保留为原始字段，不进入热度计算；一路失败继续另一路，两路失败标记部分失败并支持重试。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F04</span><span class="req-title">来源标准化</span><span class="chev"></span></summary><div class="req-body"><p>每条来源统一输出运行/查询/采集来源，来源平台、网站、账号与账号链接，原始/规范化URL、标题、摘要、正文，发布时间、事件时间、首次发现/采集时间，发布者类型、官方身份、转载状态和重复来源。</p><p>平台或账号无法识别时保持未知并说明原因；只有已确认域名或账号可标记官方。</p></div></details>
+            </div>
+          </section>
+          <section class="requirement-group" aria-labelledby="req-group-analysis">
+            <header class="requirement-group-head"><span>02</span><div><h3 id="req-group-analysis">清洗与研判</h3><p>去除无效信息，聚合统一事件，完成品牌关系、数据准入和风险复核。</p></div></header>
+            <div class="requirement-grid">
+          <details class="requirement searchable"><summary><span class="req-id">F05</span><span class="req-title">自动无效过滤</span><span class="chev"></span></summary><div class="req-body"><p>确定性规则直接过滤：无可核验URL、同名误匹配、招标采购招聘任免、纯报价优惠、超过72小时且无新增事实的旧闻、无新增事件的导航/百科/常驻产品页、完成9品牌验证后仍无关的行业事件。</p><p><strong>处理：</strong>进入无效日志，不进入人工候选；记录命中规则、原因、时间和原始来源，支持抽检与恢复。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F06</span><span class="req-title">去重与事件聚合</span><span class="chev"></span></summary><div class="req-body"><ul><li>同一规范化URL只生成一个来源记录，合并采集器与查询ID。</li><li>正文指纹相同保留主记录；同一原始发布主体的转载只计一个独立事实来源。</li><li>按主体、动作、对象、事件日期聚合；列表页多业务动作必须拆事件；事件更新挂原事件并标记新增事实。</li></ul><p class="decision-line">来源数与独立来源数表示证据广度，不表示平台热度或用户讨论规模。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F07</span><span class="req-title">品牌与事件内实体判断</span><span class="chev"></span></summary><div class="req-body"><p>品牌及别名是长期主数据；仅 <code>active</code> 品牌及精确别名可确定匹配，弱别名必须有汽车上下文。车型、人物、活动和机构由AI在事件中动态识别，不维护完整清单。</p><ul><li>证据充分且无冲突：写入当前事件 <code>entity_mentions</code>。</li><li>疑似新车型/活动、身份冲突、同名歧义、无法核验或单一弱来源：写入 <code>entity_uncertainties</code>，记录原因、建议关系和证据并随事件人工审核。</li><li>人工确认只更新当前事件，不自动写回全局主数据。</li></ul></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F08</span><span class="req-title">品牌关系验证</span><span class="chev"></span></summary><div class="req-body"><div class="chip-row"><span class="chip active">direct_mention</span><span class="chip active">verified_relation</span><span class="chip warn">unresolved</span><span class="chip">no_relation</span></div><ul><li><code>direct_mention</code>：原始内容直接命中启用品牌。</li><li><code>verified_relation</code>：关联补采找到可访问品牌关系证据。</li><li><code>unresolved</code>：事实、实体或时间证据不足，进入人工复核。</li><li><code>no_relation</code>：完整验证后仍无关系，自动进入无效日志。</li></ul><p>AI只能提出关系建议，最终状态由品牌配置、来源证据和确定性规则共同生成。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F09</span><span class="req-title">热点判定数据准入规则</span><span class="chev"></span></summary><div class="req-body"><p>该规则是输出真实热点结论前的数据条件检查，不是事件价值判断，也不代表未通过就必须丢弃。</p><ol><li>可识别来源平台和平台内容ID。</li><li>可获得平台原生播放/阅读/点赞/评论/分享/收藏等指标。</li><li>同一内容或事件存在连续快照，可计算明确窗口增量与速度。</li><li>可区分独立作者或新增UGC，避免同源转载被当成讨论量。</li><li>数据源提供覆盖范围、采集时间、延迟、失败与漏采说明，可审计。</li></ol><p><strong>未通过：</strong><code>hotspot_judgement_available=false</code>、<code>hotspot_status=unknown</code>，并逐项输出不可判定原因；仍可成为线索或内容机会并生成待审核草案，但不得表述为“正在爆发”或自动下发。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F10</span><span class="req-title">风险判断与人工复核</span><span class="chev"></span></summary><div class="req-body"><p>事故、安全、召回、销量、价格、监管、竞品比较、高阶智驾，或风险词与弱信源/绝对化断言/事实冲突同时出现，或单一二手来源但可能有响应价值，或品牌/实体/时间/事实存疑，均强制人工复核。</p><p class="decision-line">风险词只用于召回和提高优先级，不能单独构成负面、抹黑或事实结论；AI不得解除高风险状态。</p></div></details>
+            </div>
+          </section>
+          <section class="requirement-group" aria-labelledby="req-group-action">
+            <header class="requirement-group-head"><span>03</span><div><h3 id="req-group-action">作业联动与效果回流</h3><p>把可行动线索转为待审核作业，并依据投稿结果形成后续加热建议。</p></div></header>
+            <div class="requirement-grid">
+          <details class="requirement searchable"><summary><span class="req-id">F11</span><span class="req-title">候选分类</span><span class="chev"></span></summary><div class="req-body"><ul><li><strong>相关事件线索：</strong>72小时内、有品牌关系和可访问证据、有原创响应价值、无未解除高风险，可生成草案。</li><li><strong>品牌内容机会：</strong>24小时内、已确认官方来源、有新增事实、适合主动传播，可生成草案。</li><li><strong>人工复核：</strong>高风险、事实冲突、关系或实体存疑；复核通过后可生成。</li><li><strong>持续观察：</strong>时间缺失、证据不足或暂不满足任务条件；不可生成。</li></ul><p>分类是运营处理优先级，不是热点等级。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F12</span><span class="req-title">原创作业草案生成</span><span class="chev"></span></summary><div class="req-body"><p>支持原创评论、原创内容、后续加热观察。草案至少包含事件ID、任务类型/标题、事实背景、原创方向、建议平台、目标用户标签、证据来源、风险说明和禁止表述。</p><p>PoC只保存 <code>draft_pending_review</code>，不自动创建正式作业、不发布、不触达用户。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F13</span><span class="req-title">运营审核</span><span class="chev"></span></summary><div class="req-body"><p>运营可查看事件、来源、平台账号、时间、品牌关系、不确定项、AI摘要、风险与补采结果；可修改任务类型、平台、标签、截止时间和表达边界；选择通过、修改后通过、驳回或观察。</p><p>所有操作记录审核人、时间、结论、原因和修改前后内容。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F14</span><span class="req-title">按擅长平台分发</span><span class="chev"></span></summary><div class="req-body"><p>系统联动阶段，任务草案根据用户现有平台能力标签匹配目标人群。平台推荐综合事件来源平台、内容形态、任务目标和用户标签，不能把来源平台直接等同于建议发布平台。</p><p>生成目标人群快照并保留频控、配额和排除原因；自动发布保持关闭。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F15</span><span class="req-title">投稿回填与效果跟踪</span><span class="chev"></span></summary><div class="req-body"><ul><li>用户回填实际发布平台和内容链接；同一用户、任务、规范化URL只保留一条有效投稿。</li><li>抖音、快手、微博、头条、小红书、知乎、B站、易车、懂车帝、汽车之家按现有能力采集部分基础指标。</li><li>公众号、视频号走人工凭证，不参与自动增量判断。</li><li>缺失指标保持 <code>null</code> 并记录原因，不得按0处理。</li><li>至少两个有效快照后才计算增量；达到分平台待确认阈值只生成加热草案，必须运营审批。</li></ul></div></details>
+            </div>
+          </section>
+        </div>
+
+        <div class="section-label">用户故事</div>
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>用户目标</th><th>关键验收</th></tr></thead>
+          <tbody>
+            <tr><td>US01</td><td>运营一次运行覆盖全部品牌和行业主题</td><td>显示17条查询、34个任务及四种执行状态；缺失查询告警</td></tr>
+            <tr><td>US02</td><td>运营按事件而非链接审核</td><td>展示全部来源、平台账号、时间、转载关系、关系/实体存疑和风险</td></tr>
+            <tr><td>US03</td><td>运营基于证据修改并审批草案</td><td>草案含证据/风险/禁用表述；未解除高风险或实体存疑不得直接通过</td></tr>
+            <tr><td>US04</td><td>护卫军用户提交实际发布链接</td><td>校验允许平台；非微信自动采集，微信系提示人工凭证</td></tr>
+            <tr><td>US05</td><td>运营基于指标增量审核加热建议</td><td>≥2快照；展示基线、当前值、增量、窗口、命中规则与缺失字段</td></tr>
+          </tbody>
+        </table>
+
+        <div class="section-label">产品页面</div>
+        <div class="config-list">
+          <div class="config-item"><h3>运行中心</h3><p>查询覆盖、采集器状态、成功/失败/未执行、耗时和重试。</p></div>
+          <div class="config-item"><h3>信息线索工作台</h3><p>相关事件线索、品牌内容机会、人工复核、持续观察。</p></div>
+          <div class="config-item"><h3>事件详情</h3><p>来源证据、平台账号、时间、品牌关系、实体不确定项、风险和审核记录。</p></div>
+          <div class="config-item"><h3>配置管理</h3><p>品牌、来源、查询、过滤、聚合、风险、热点准入、任务与效果规则。</p></div>
+          <div class="config-item"><h3>无效日志</h3><p>自动过滤规则、来源、恢复操作和抽检结果。</p></div>
+          <div class="config-item"><h3>任务草案与审批</h3><p>原创方向、目标平台、用户标签、证据、风险和审批。</p></div>
+          <div class="config-item"><h3>投稿效果与加热审批</h3><p>回填链接、指标快照、增量、缺失原因和加热草案。</p></div>
+        </div>
+
+        <div class="section-label">非目标范围</div>
+        <div class="callout"><ul><li>不绕过登录、验证码、付费墙或反爬机制。</li><li>不依靠公开搜索承诺社交平台完整覆盖，不用搜索排序、结果数、转载数或AI主观分判断热点。</li><li>不自动发布、评论、点赞、投流或未经审批自动下发正式作业。</li><li>不在证据不足时把车型、人物、活动或品牌关系写成确定事实。</li><li>不跨平台直接比较播放、阅读或互动绝对值；不把风险词直接认定为负面事实或恶意攻击。</li></ul></div>
+      </section>
+
+      <section class="module searchable" id="module-3" data-title="AI系统要求">
+        <header class="module-head"><div class="module-no">03</div><div><h2>AI系统要求</h2><p>AI处理语义与草拟；规则层处理状态、数值、阈值、结构与最终决策门槛。</p></div></header>
+
+        <div class="section-label">职责边界</div>
+        <div class="rule-grid">
+          <article class="rule-box ai"><h4>AI负责“理解与建议”</h4><ul><li>提取品牌、车型、人物、活动、机构、动作、对象和时间</li><li>识别疑似同一事件来源，汇总已核验证据、冲突和缺口</li><li>生成关联补采查询、原创作业草案及文本风险标签与理由</li></ul><p><strong>禁止：</strong>补造URL/时间/账号/互动/品牌关系；把搜索量转成热度；把动态实体写入全局主数据；解除高风险；控制正式发布。</p></article>
+          <article class="rule-box code"><h4>确定性规则负责“约束与结算”</h4><ul><li>查询覆盖、状态枚举、配置版本校验</li><li>URL规范化、明确无效过滤和精确去重</li><li>热点判定数据准入检查</li><li>数值增量、时间窗口、阈值、频控计算</li><li>JSON结构/字段类型校验和最终序列化</li></ul><p><strong>原则：</strong>生成式模型不承担机器可解析结果的字符级透传。</p></article>
+        </div>
+
+        <div class="section-label">AI输出契约</div>
+        <div class="code-block" aria-label="AI事件提取输出示例">{
+  "brand_matches": [],
+  "entity_mentions": [],
+  "entity_uncertainties": [{
+    "entity_type": "model",
+    "entity_name_raw": "原文名称",
+    "uncertainty_reason": "无法确认是否为正式车型名称",
+    "proposed_relation": {"brand_id": "BR003"},
+    "evidence_source_ids": ["SRC001"]
+  }],
+  "event_action": "事件动作",
+  "event_object": "动作对象",
+  "event_at_raw": "原始时间文本",
+  "risk_tags": [],
+  "factual_evidence": []
+}</div>
+        <p>品牌ID由规则层根据品牌配置确认；<code>entity_uncertainties</code> 非空时事件自动进入人工复核。</p>
+
+        <div class="section-label">工具与数据源</div>
+        <table class="data-table">
+          <thead><tr><th>能力</th><th>本阶段</th><th>生产要求</th></tr></thead>
+          <tbody>
+            <tr><td>公开网页召回</td><td>豆包公开搜索</td><td>辅助线索，不承担热点SLA</td></tr>
+            <tr><td>页面核验/补充召回</td><td>Codex公开搜索与页面读取</td><td>证据核验，不承担全平台采集SLA</td></tr>
+            <tr><td>未知内容持续发现</td><td>不具备</td><td>专业平台数据或合规采集服务</td></tr>
+            <tr><td>已知投稿链接效果</td><td>现有非微信平台部分基础指标</td><td>正式接口、鉴权、更新机制、错误码和SLA</td></tr>
+            <tr><td>微信系效果</td><td>人工凭证</td><td>授权数据源或长期人工兜底</td></tr>
+            <tr><td>业务系统联动</td><td>PoC不接正式下发，仅冻结事件与作业候选数据契约</td><td>标准数据/事件推送或受控MCP工具调用待选型；作业规则、审批与发布由护卫军控制</td></tr>
+          </tbody>
+        </table>
+
+        <div class="section-label">评估方法</div>
+        <p>连续运行7天形成标注集，评估以下九类指标：</p>
+        <ol><li>来源有效/无效分类准确性与误杀率。</li><li>来源平台、网站和账号识别准确性。</li><li>品牌匹配、弱别名误匹配和实体不确定原因完整性。</li><li>事件误合并率和漏合并率。</li><li>品牌直接/验证/无关/存疑关系准确性。</li><li>高风险事件漏拦截率。</li><li>运营通过、修改后通过、驳回和观察比例。</li><li>草案事实一致性、证据完整性和平台可执行性。</li><li>搜索来源100%保持热点不可判定，页面与导出无误导表述。</li></ol>
+      </section>
+
+      <section class="module searchable" id="module-4" data-title="技术规格">
+        <header class="module-head"><div class="module-no">04</div><div><h2>技术规格</h2><p>将采集、语义分析、确定性规则、人工审批和护卫军系统联动分层，确保结论可解释、可复算、可审计。</p></div></header>
+
+        <div class="section-label">系统架构</div>
+        <div class="diagram-shell">
+          <div class="diagram-caption"><strong>三层架构：数据输入｜线索与热点处理引擎｜业务闭环</strong><span>自动化联动待选型：标准数据推送或受控MCP工具调用</span></div>
+          <div class="architecture" role="img" aria-label="AI热点系统架构图">
+            <div class="arch-col"><h4>数据输入层</h4><div class="arch-unit">豆包公开搜索<br />广召回</div><div class="arch-unit">Codex公开搜索<br />补召回与页面核验</div><div class="arch-unit">未来平台原生/专业数据源<br />未知内容持续发现</div><div class="arch-unit">现有投稿效果采集<br />已知链接基础指标</div></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-col core"><h4>线索与热点处理引擎</h4><div class="arch-unit">配置服务＋运行编排</div><div class="arch-unit">原始结果＋来源标准化</div><div class="arch-unit">过滤、去重、事件聚合</div><div class="arch-unit">AI实体识别＋品牌关系＋风险</div><div class="arch-unit">热点数据准入＋分平台热度计算</div><div class="arch-unit">任务草案＋审计证据链</div></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-col"><h4>护卫军业务层</h4><div class="arch-unit">信息线索工作台</div><div class="arch-unit">运营审核与任务审批</div><div class="arch-unit">平台标签与人群快照</div><div class="arch-unit">正式作业与用户回填</div><div class="arch-unit">效果快照与加热审批</div></div>
+          </div>
+        </div>
+
+        <div class="section-label">处理时序</div>
+        <div class="diagram-shell">
+          <div class="diagram-caption"><strong>PoC核心交互时序</strong><span>横向查看完整参与方；橙色为请求，绿色为返回/结果</span></div>
+          <div class="sequence-wrap">
+            <div class="sequence" role="img" aria-label="公开信息线索与作业联动PoC处理时序图">
+              <div class="seq-actors"><div class="seq-actor">运营</div><div class="seq-actor">运行编排</div><div class="seq-actor">豆包 / Codex</div><div class="seq-actor">来源处理</div><div class="seq-actor">AI分析</div><div class="seq-actor">规则引擎</div><div class="seq-actor">作业系统</div><div class="seq-actor">指标采集</div></div>
+              <div class="seq-row"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><i class="seq-msg" style="--from:0;--to:1"><span>触发完整运行</span></i></div>
+              <div class="seq-row"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><i class="seq-msg" style="--from:1;--to:2"><span>17查询 × 双路任务</span></i></div>
+              <div class="seq-row"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><i class="seq-msg reverse" style="--from:2;--to:1"><span>原始结果 / 失败 / 无结果</span></i></div>
+              <div class="seq-row"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><i class="seq-msg" style="--from:1;--to:3"><span>标准化、过滤、去重、聚合</span></i></div>
+              <div class="seq-row"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><i class="seq-msg" style="--from:3;--to:4"><span>事件文本＋证据</span></i></div>
+              <div class="seq-row"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><i class="seq-msg reverse" style="--from:4;--to:3"><span>实体/风险/草案建议＋不确定原因</span></i></div>
+              <div class="seq-row"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><i class="seq-msg" style="--from:3;--to:5"><span>关系验证＋热点数据准入</span></i></div>
+              <div class="seq-row"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div class="seq-note" style="--start:4;--span:3">公开搜索缺原生指标/连续快照时：hotspot_status = unknown；仍可作为线索进入运营审核</div></div>
+              <div class="seq-row"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><i class="seq-msg reverse" style="--from:5;--to:0"><span>线索候选＋证据＋任务草案</span></i></div>
+              <div class="seq-row"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><i class="seq-msg" style="--from:0;--to:6"><span>人工审批后创建正式作业</span></i></div>
+              <div class="seq-row"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><i class="seq-msg" style="--from:6;--to:7"><span>用户回填链接，采集指标快照</span></i></div>
+              <div class="seq-row"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><i class="seq-msg reverse" style="--from:7;--to:0"><span>≥2快照后返回增量与加热草案</span></i></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-label">核心数据对象</div>
+        <table class="data-table">
+          <thead><tr><th>对象</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr><td><code>collection_run</code></td><td>一次运行、查询覆盖、配置版本、采集器汇总</td></tr>
+            <tr><td><code>raw_provider_result</code></td><td>采集器原始响应引用、状态和耗时</td></tr>
+            <tr><td><code>source_item</code></td><td>标准化来源、平台账号、URL、正文、时间和证据属性</td></tr>
+            <tr><td><code>invalid_log</code></td><td>自动过滤规则、原因和原始来源</td></tr>
+            <tr><td><code>event</code></td><td>统一事件、品牌关系、实体、风险、热点可判定性和候选状态</td></tr>
+            <tr><td><code>candidate_review</code></td><td>运营审核结论、原因和修改记录</td></tr>
+            <tr><td><code>task_draft</code></td><td>待审批任务草案及关联证据</td></tr>
+            <tr><td><code>task_submission</code></td><td>用户回填平台、链接和采集状态</td></tr>
+            <tr><td><code>platform_metric_snapshot</code></td><td>投稿在单个时间点的分平台指标</td></tr>
+            <tr><td><code>submission_metric_delta</code></td><td>同一投稿多个快照的可用指标增量</td></tr>
+            <tr><td><code>event_timeseries</code></td><td>生产数据源阶段的内容量、作者量、互动增量和速度</td></tr>
+          </tbody>
+        </table>
+
+        <div class="section-label">状态流转</div>
+        <h3>来源状态</h3><div class="state-flow"><span class="state">collected</span><span class="state-arrow">→</span><span class="state">valid / invalid / fetch_failed</span><span class="state-arrow">→</span><span class="state">normalized / invalid_log / retrying</span><span class="state-arrow">→</span><span class="state">clustered / fetch_failed_final</span></div>
+        <h3>事件状态</h3><div class="state-flow"><span class="state">created</span><span class="state-arrow">→</span><span class="state">relation_check</span><span class="state-arrow">→</span><span class="state">evidence_check</span><span class="state-arrow">→</span><span class="state">hotspot_data_readiness_check</span><span class="state-arrow">→</span><span class="state">clue / opportunity / manual_review / watch</span></div>
+        <h3>热点与草案状态</h3><div class="state-flow"><span class="state unknown">未通过：unknown</span><span class="state">通过：normal / rising / breaking / sustained / declining</span><span class="state-arrow">｜</span><span class="state">draft_pending_review</span><span class="state-arrow">→</span><span class="state">approved_pending_publish / cancelled</span><span class="state-arrow">→</span><span class="state">published</span></div>
+
+        <div class="section-label">接口与自动化联动</div>
+        <table class="data-table">
+          <thead><tr><th>接口/能力</th><th>用途</th><th>阶段</th></tr></thead>
+          <tbody>
+            <tr><td><code>POST /api/hotspot-runs</code></td><td>触发完整运行</td><td>PoC</td></tr>
+            <tr><td><code>GET /api/hotspot-runs/{run_id}</code></td><td>查询覆盖、采集器状态与进度</td><td>PoC</td></tr>
+            <tr><td><code>GET /api/hotspot-candidates</code></td><td>查询事件候选</td><td>PoC</td></tr>
+            <tr><td><code>GET /api/hotspot-events/{event_id}</code></td><td>查看事件证据和判断依据</td><td>PoC</td></tr>
+            <tr><td><code>POST .../review</code></td><td>提交候选或事件实体不确定项审核</td><td>PoC</td></tr>
+            <tr><td>统一事件与作业候选数据契约</td><td>让不同联动方式使用同一份可校验、可追溯的数据</td><td>PoC冻结字段</td></tr>
+            <tr><td>标准数据/事件推送</td><td>将已审核事件与作业候选推送给护卫军，由业务系统按既定规则生成草案并进入审批</td><td>系统联动路径A｜优先评估</td></tr>
+            <tr><td>受控MCP工具调用</td><td>自动化任务查询证据与标签、提交作业候选、读取处理状态</td><td>系统联动路径B｜候选方案</td></tr>
+          </tbody>
+        </table>
+        <div class="callout info"><strong>联动方式尚未确定</strong><p>下一步目标是减少人工搬运，不是预设建设MCP。优先评估标准数据/事件推送：处理引擎输出候选，护卫军按自身业务规则生成作业；如后续确有对话式编排和跨能力调用需要，再评估受控MCP。两条路径共用数据契约、鉴权、幂等、审计和人工审批，AI不得直接写入正式发布状态。</p></div>
+
+        <div class="section-label">安全与可观测性</div>
+        <div class="rule-grid">
+          <article class="rule-box"><h4>安全合规</h4><ul><li>只处理公开网页与业务授权数据；不绕过登录、验证码、付费墙、反爬。</li><li>密钥只在环境变量或密钥管理服务；日志脱敏Authorization、Cookie、Token和个人数据。</li><li>普通用户个人信息不进入搜索或LLM链路；保留周期上线前确认。</li></ul></article>
+          <article class="rule-box"><h4>运行可观测</h4><ul><li>任务覆盖、采集器耗时/重试/错误、过滤规则分布。</li><li>事件聚合/拆分、关系、不确定项和数据准入原因。</li><li>候选、草案、审核耗时、投稿解析、快照、增量与加热结果。</li></ul></article>
+        </div>
+      </section>
+
+      <section class="module searchable" id="module-5" data-title="风险与路线图">
+        <header class="module-head"><div class="module-no">05</div><div><h2>风险与路线图</h2><p>先证明下游闭环，再验证真实热点数据源；每个阶段都有清晰的进入条件与停止线。</p></div></header>
+
+        <div class="section-label">路线图</div>
+        <div class="timeline">
+          <article class="timeline-item"><span>阶段一｜10个工作日</span><h3>公开信息线索与作业联动PoC</h3><p>每日人工触发17条查询及双路搜索；有效行业事件做9品牌验证；生成草案但不下发；运营标注；选非微信投稿验证链接、快照、增量和加热草案。</p><p><strong>完成标准：</strong>形成覆盖、漏检、过滤、聚合、候选质量、人工耗时与投稿效果基线；不输出热点识别准确率。</p></article>
+          <article class="timeline-item"><span>阶段二｜数据源验证</span><h3>生产数据源与真实热点PoC</h3><p>选择一个业务优先平台和候选数据源，验证平台内容ID、原生互动、独立作者/UGC、连续快照和覆盖说明；计算1/3/24小时增量与速度，并与运营判断对照。</p><p><strong>完成标准：</strong>数据源通过热点数据准入，形成该平台热度模型、覆盖边界和SLA；未通过不进入自动热点阶段。</p></article>
+          <article class="timeline-item"><span>阶段三｜人机协同</span><h3>护卫军半自动联动</h3><p>在标准数据/事件推送与受控MCP工具调用之间完成选型；读取平台能力标签并生成目标人群快照；由护卫军按业务规则生成草案，审批后创建正式原创作业。</p></article>
+          <article class="timeline-item"><span>阶段四｜规模化运营</span><h3>效果回流与加热规模化</h3><p>稳定采集非微信平台效果；明确微信系自动数据源或长期人工方案；配置分平台增量阈值、频控、奖励；审批后发布加热作业。</p></article>
+        </div>
+
+        <div class="section-label">主要风险</div>
+        <table class="data-table risk-table">
+          <thead><tr><th>风险</th><th>影响</th><th>控制措施</th></tr></thead>
+          <tbody>
+            <tr><td>搜索结果误报为热点</td><td>错误决策和错误下发</td><td>强制热点数据准入；搜索来源固定 unknown</td></tr>
+            <tr><td>漏掉平台内高传播内容</td><td>线索漏检</td><td>人工已知样本衡量漏检；生产接稳定数据源</td></tr>
+            <tr><td>通稿大量转载</td><td>虚增证据或传播规模</td><td>转载识别和独立发布主体去重</td></tr>
+            <tr><td>动态实体证据不足</td><td>品牌归属和事实错误</td><td>记录不确定原因并随事件人工审核</td></tr>
+            <tr><td>风险词被当作事实</td><td>误伤正常内容或制造风险</td><td>风险词只做召回；结合主体、断言、证据、语境</td></tr>
+            <tr><td>AI直接放行高风险</td><td>品牌与合规风险</td><td>高风险强制人工，AI不得解除</td></tr>
+            <tr><td>跨平台指标口径不同</td><td>加热判断失真</td><td>分平台指标与阈值；禁止统一绝对值比较</td></tr>
+            <tr><td>配置频繁变化</td><td>结果不可复算</td><td>配置版本冻结、运行绑定版本、历史不回写</td></tr>
+            <tr><td>生成式输出破坏结构</td><td>数据无法解析</td><td>规则层校验、确定性序列化、回归测试</td></tr>
+          </tbody>
+        </table>
+
+        <div class="section-label">依赖与待确认事项</div>
+        <div class="rule-grid">
+          <article class="rule-box"><h4>依赖</h4><ul><li><strong>本阶段：</strong>豆包/Codex、9品牌与别名、运营审核、非微信已知链接指标采集。</li><li><strong>系统联动：</strong>统一事件/作业候选契约；数据推送或受控MCP选型；平台标签、作业规则、审批发布、投稿/快照/加热、鉴权幂等审计。</li><li><strong>真实热点：</strong>未知内容持续发现、平台ID/原生指标/快照、UGC标识、覆盖/延迟/SLA。</li></ul></article>
+          <article class="rule-box"><h4>待业务确认</h4><ul><li>真实热点优先验证平台与生产数据源采购/授权方式。</li><li>分平台热度阈值、加热阈值与奖励。</li><li>系统联动采用标准数据推送还是受控MCP工具调用。</li><li>高风险最终审批人。</li><li>公众号/视频号效果方案与数据保留周期。</li></ul></article>
+        </div>
+      </section>
+
+      <section class="module searchable" id="module-6" data-title="配置项业务说明">
+        <header class="module-head"><div class="module-no">06</div><div><h2>配置项业务说明</h2><p>配置不是“把所有规则都交给运营随时改”，而是版本化业务口径：明确影响、确认人、技术校验与发布权限。</p></div></header>
+
+        <div class="config-list">
+          <div class="config-item searchable"><h3>6.1 品牌与别名</h3><div><p>范围固定为东风汽车、东风风神、岚图、猛士、东风奕派、东风日产、东风本田、东风标致、东风雪铁龙9品牌。精确别名可匹配；“东风”“猛士”等弱别名需汽车上下文。新增/停用会改变基础查询与行业关联任务数量，只对新运行生效。</p></div></div>
+          <div class="config-item searchable"><h3>6.2 来源平台、网站与账号</h3><div><p>用于识别平台、网站、发布账号和官方身份。只有业务确认域名/账号可标官方；供应商权威等级不能替代官方身份。无法识别保持未知并说明原因；规则变化会影响平台统计、官方判断和风险优先级。</p></div></div>
+          <div class="config-item searchable"><h3>6.3 查询目录</h3><div><p>9品牌＋8行业主题全部执行，不轮换、不抽样；豆包与Codex共用基础目录。行业事件必须完成9品牌关系验证。新增、停用或修改记录版本与原因。</p></div></div>
+          <div class="config-item searchable"><h3>6.4 过滤、去重与事件聚合</h3><div><p>自动过滤只处理证据明确的技术无效数据，不处理业务价值否决。同URL、同正文、同源转载分层处理，避免重复与虚增独立来源；事件聚合保留全部原始来源，支持人工拆分/合并。</p></div></div>
+          <div class="config-item searchable"><h3>6.5 热点判定数据准入</h3><div><p>决定系统是否有资格输出真实热点状态。必填能力包括平台内容ID、原生指标、连续快照、独立作者/UGC标识和覆盖审计。未通过输出 unknown 及逐项原因，仍可作为线索；不得临时修改为“搜索结果也可判热点”。</p></div></div>
+          <div class="config-item searchable"><h3>6.6 风险与候选分类</h3><div><p>风险配置只决定复核优先级或是否强制人工，不直接判断事实真假；候选分类决定工作台分栏和是否允许生成草案，不代表热点等级。高风险规则变更由指定管理员发布并审计。</p></div></div>
+          <div class="config-item searchable"><h3>6.7 作业、平台推荐与效果加热</h3><div><p>草案必须关联事件、证据、风险与建议平台；目标人群复用现有平台能力标签，不新建另一套体系。效果按平台配置可采字段、快照窗口和阈值；加热只生成待审批草案。</p></div></div>
+        </div>
+
+        <div class="section-label">配置责任矩阵</div>
+        <table class="data-table">
+          <thead><tr><th>配置</th><th>初始录入</th><th>业务确认</th><th>技术校验</th><th>发布权限</th></tr></thead>
+          <tbody>
+            <tr><td>品牌及品牌别名</td><td>产品</td><td>运营</td><td>研发</td><td>产品管理员</td></tr>
+            <tr><td>官方域名和账号</td><td>产品</td><td>运营/品牌方</td><td>研发</td><td>产品管理员</td></tr>
+            <tr><td>查询目录</td><td>产品</td><td>运营</td><td>研发</td><td>产品管理员</td></tr>
+            <tr><td>自动过滤和事件聚合</td><td>产品</td><td>运营</td><td>研发/测试</td><td>产品管理员</td></tr>
+            <tr><td>事件内实体判断</td><td>产品</td><td>运营</td><td>研发/测试</td><td>产品管理员</td></tr>
+            <tr><td>热点判定数据准入</td><td>产品/研发</td><td>业务/运营</td><td>研发/测试</td><td>指定管理员</td></tr>
+            <tr><td>风险与候选分类</td><td>产品</td><td>业务/运营</td><td>研发/测试</td><td>指定管理员</td></tr>
+            <tr><td>平台标签与分发</td><td>产品</td><td>运营</td><td>研发</td><td>指定管理员</td></tr>
+            <tr><td>效果加热和奖励</td><td>业务</td><td>运营</td><td>产品/研发</td><td>指定管理员</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="module searchable" id="module-7" data-title="验收测试场景">
+        <header class="module-head"><div class="module-no">07</div><div><h2>验收测试场景</h2><p>验收覆盖查询完整性、证据与实体边界、热点结论约束、投稿效果与配置追溯。</p></div></header>
+        <div class="acceptance-grid" id="acceptanceList">
+          <details class="acceptance searchable" open><summary><span class="req-id">AT01</span><strong>查询覆盖</strong><span class="chev"></span></summary><div class="req-body">9品牌＋8主题必须生成17条基础查询、34个双路任务；任一未执行任务单独显示。</div></details>
+          <details class="acceptance searchable" open><summary><span class="req-id">AT02</span><strong>搜索结果不得判为热点</strong><span class="chev"></span></summary><div class="req-body">仅有公开搜索标题、摘要和URL时，必须为 <code>hotspot_status=unknown</code>，并列出缺少原生指标、连续快照或覆盖信息。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT03</span><strong>存疑车型随事件审核</strong><span class="chev"></span></summary><div class="req-body">疑似新车型无法确认时，保留原文和证据、写明原因、事件进人工复核；不得新增全局车型主数据。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT04</span><strong>弱别名误匹配</strong><span class="chev"></span></summary><div class="req-body">普通语义“东风”且无汽车上下文时，不得匹配东风汽车品牌。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT05</span><strong>双路同URL去重</strong><span class="chev"></span></summary><div class="req-body">豆包、Codex返回同一规范化URL只建一个来源，保留两个采集来源与查询ID。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT06</span><strong>聚合页拆事件</strong><span class="chev"></span></summary><div class="req-body">一个列表页包含多个独立业务动作时必须拆成多个事件，并保留同一来源作为证据。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT07</span><strong>旧闻自动过滤</strong><span class="chev"></span></summary><div class="req-body">超过72小时且无新增事实、新回应或传播变化的内容进入无效日志。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT08</span><strong>行业事件品牌验证</strong><span class="chev"></span></summary><div class="req-body">未直接出现目标品牌时执行9品牌关系验证；全部无证据则自动无效。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT09</span><strong>风险词不能单独定性</strong><span class="chev"></span></summary><div class="req-body">仅出现风险词但语境可能中性、正面或正常投诉时，不得直接判定负面攻击。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT10</span><strong>高风险人工复核</strong><span class="chev"></span></summary><div class="req-body">事故、安全、召回、销量、价格、监管、竞品或高阶智驾事件不得由AI自动解除风险。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT11</span><strong>草案证据要求</strong><span class="chev"></span></summary><div class="req-body">缺少品牌关系、事实证据、风险说明、建议平台或禁止表述，不得生成可审批草案。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT12</span><strong>非微信平台效果增量</strong><span class="chev"></span></summary><div class="req-body">回填后至少两个有效快照才计算增量；缺失字段保持 <code>null</code>。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT13</span><strong>微信系人工兜底</strong><span class="chev"></span></summary><div class="req-body">公众号、视频号投稿不进入自动指标增量判断，必须进入人工凭证流程。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT14</span><strong>加热草案审批</strong><span class="chev"></span></summary><div class="req-body">达到分平台增量条件只生成待审批草案；未经运营审批不得创建正式加热作业。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT15</span><strong>配置版本可追溯</strong><span class="chev"></span></summary><div class="req-body">运行、候选、草案和效果判断均可追溯当时的品牌、查询、过滤、风险与阈值配置版本。</div></details>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer><div class="footer-inner"><a href="#top">返回顶部 ↑</a><span>公开信息线索 · 证据研判 · 作业联动 · 效果回流</span></div></footer>
+
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const details = [...document.querySelectorAll('details')];
+      const searchable = [...document.querySelectorAll('.searchable')];
+      const input = document.getElementById('searchInput');
+      const count = document.getElementById('searchCount');
+      const tocLinks = [...document.querySelectorAll('.toc a[href^="#"]')];
+      const modules = [...document.querySelectorAll('.module')];
+      let beforePrintState = [];
+
+      const updateProgress = () => {
+        const max = document.documentElement.scrollHeight - innerHeight;
+        const value = max > 0 ? Math.min(100, Math.max(0, scrollY / max * 100)) : 0;
+        root.style.setProperty('--progress', `${value}%`);
+      };
+      addEventListener('scroll', updateProgress, { passive: true });
+      updateProgress();
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.filter(e => e.isIntersecting).sort((a,b) => b.intersectionRatio-a.intersectionRatio).slice(0,1).forEach(entry => {
+          tocLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${entry.target.id}`));
+        });
+      }, { rootMargin: '-20% 0px -68% 0px', threshold: [0, .1, .3] });
+      modules.forEach(section => observer.observe(section));
+
+      document.getElementById('expandAll').addEventListener('click', () => details.forEach(item => item.open = true));
+      document.getElementById('collapseAll').addEventListener('click', () => details.forEach(item => item.open = false));
+      document.getElementById('printDoc').addEventListener('click', () => print());
+      document.getElementById('mobileToc').addEventListener('change', (event) => document.querySelector(event.target.value)?.scrollIntoView());
+
+      input.addEventListener('input', () => {
+        const q = input.value.trim().toLowerCase();
+        document.querySelectorAll('.search-hit').forEach(el => el.classList.remove('search-hit'));
+        searchable.forEach(el => el.classList.remove('search-hidden'));
+        if (!q) { count.textContent = '⌕'; return; }
+        const leafMatches = searchable.filter(el => !el.querySelector('.searchable') && el.textContent.toLowerCase().includes(q));
+        const detailMatches = details.filter(el => el.textContent.toLowerCase().includes(q));
+        const matches = new Set([...leafMatches, ...detailMatches]);
+        details.forEach(el => {
+          const hit = el.textContent.toLowerCase().includes(q);
+          el.classList.toggle('search-hidden', !hit);
+          if (hit) { el.open = true; el.classList.add('search-hit'); matches.add(el); }
+        });
+        modules.forEach(section => {
+          const hit = section.textContent.toLowerCase().includes(q);
+          section.classList.toggle('search-hidden', !hit);
+        });
+        document.querySelectorAll('.config-item.searchable, .acceptance.searchable').forEach(el => {
+          const hit = el.textContent.toLowerCase().includes(q);
+          el.classList.toggle('search-hidden', !hit);
+          if (hit) el.classList.add('search-hit');
+        });
+        count.textContent = String(matches.size);
+      });
+
+      addEventListener('beforeprint', () => { beforePrintState = details.map(d => d.open); details.forEach(d => d.open = true); });
+      addEventListener('afterprint', () => details.forEach((d, i) => d.open = beforePrintState[i]));
+
+      document.addEventListener('keydown', (event) => {
+        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+          event.preventDefault(); input.focus();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
