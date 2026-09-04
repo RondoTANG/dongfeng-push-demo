@@ -1,0 +1,203 @@
+/* Prototype annotation runtime. All selectors are scoped with anno-. */
+#anno-toggle-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 99990;
+  width: 36px;
+  height: 36px;
+  border: 2px solid #ff4d4f;
+  border-radius: 50%;
+  background: #fff;
+  color: #ff4d4f;
+  box-shadow: 0 4px 14px rgba(255, 77, 79, 0.25);
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+#anno-toggle-btn:hover {
+  background: #fff1f0;
+}
+
+#anno-toggle-btn.anno-hidden {
+  border-color: #d9d9d9;
+  color: #8c8c8c;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+#anno-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99980;
+  pointer-events: none;
+}
+
+.anno-marker {
+  position: fixed;
+  z-index: 99981;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  background: #ff4d4f;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.35);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.anno-marker:hover {
+  transform: scale(1.12);
+}
+
+.anno-popup {
+  position: fixed;
+  z-index: 99992;
+  width: 560px;
+  min-width: min(420px, calc(100vw - 32px));
+  min-height: 300px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  resize: both;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
+  color: #262626;
+}
+
+.anno-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+  cursor: move;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.anno-popup-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.anno-popup-close {
+  border: 0;
+  background: transparent;
+  color: #8c8c8c;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.anno-popup-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.anno-popup-desc {
+  white-space: normal;
+}
+
+.anno-popup-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
+  flex-shrink: 0;
+}
+
+.anno-btn {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background: #fff;
+  color: #262626;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.anno-btn:hover {
+  border-color: #ff4d4f;
+  color: #ff4d4f;
+}
+
+.anno-btn-primary {
+  border-color: #ff4d4f;
+  background: #ff4d4f;
+  color: #fff;
+}
+
+.anno-btn-primary:hover {
+  border-color: #ff7875;
+  background: #ff7875;
+  color: #fff;
+}
+
+.anno-edit-field {
+  margin-bottom: 12px;
+}
+
+.anno-edit-label {
+  display: block;
+  margin-bottom: 4px;
+  color: #595959;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.anno-edit-input,
+.anno-edit-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #262626;
+  font: inherit;
+}
+
+.anno-edit-textarea {
+  min-height: 56px;
+  resize: vertical;
+}
+
+.anno-edit-input:focus,
+.anno-edit-textarea:focus {
+  outline: none;
+  border-color: #ff4d4f;
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.12);
+}
+
+.anno-toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  z-index: 100000;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 13px;
+}

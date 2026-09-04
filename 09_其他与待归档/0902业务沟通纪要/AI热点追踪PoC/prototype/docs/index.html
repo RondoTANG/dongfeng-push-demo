@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,">
+  <title>prototype - 说明文档</title>
+  <style>
+    :root {
+      color: #1f2937;
+      background: #f5f6f8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body { margin: 0; }
+
+    .docs-layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .docs-sidebar {
+      background: #fff;
+      border-right: 1px solid #e5e7eb;
+    }
+
+    .docs-sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .docs-sidebar-header h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.4;
+      letter-spacing: 0;
+    }
+
+    .docs-sidebar-header p {
+      margin: 6px 0 0;
+      color: #6b7280;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .docs-menu {
+      padding: 12px 0;
+    }
+
+    .docs-menu-item {
+      display: block;
+      padding: 11px 20px 11px 17px;
+      color: #2563eb;
+      background: #eff6ff;
+      border-left: 3px solid #2563eb;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .docs-main {
+      display: grid;
+      grid-template-rows: 64px minmax(0, 1fr);
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .docs-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 20px;
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .docs-toolbar h2 {
+      margin: 0;
+      font-size: 17px;
+      letter-spacing: 0;
+    }
+
+    .docs-open-link {
+      color: #2563eb;
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    .docs-frame {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 620px;
+      background: #fff;
+      border: 0;
+    }
+
+    @media (max-width: 760px) {
+      .docs-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+
+      .docs-sidebar-header { padding: 14px 16px; }
+      .docs-menu { padding: 0; }
+      .docs-menu-item { border-left: 0; border-bottom: 2px solid #2563eb; }
+      .docs-toolbar { min-height: 64px; }
+      .docs-frame { min-height: 70vh; }
+    }
+  </style>
+</head>
+<body>
+  <div class="docs-layout">
+    <aside class="docs-sidebar" aria-label="说明文档目录">
+      <header class="docs-sidebar-header">
+        <h1>说明文档</h1>
+        <p>面向产品、研发和测试的交互、状态与验收说明。</p>
+      </header>
+      <nav class="docs-menu">
+        <a class="docs-menu-item" href="interaction.html" target="docs-content">交互与验收说明</a>
+      </nav>
+    </aside>
+
+    <main class="docs-main">
+      <header class="docs-toolbar">
+        <h2>交互与验收说明</h2>
+        <a class="docs-open-link" href="interaction.html" target="_blank" rel="noopener">独立打开</a>
+      </header>
+      <iframe
+        class="docs-frame"
+        name="docs-content"
+        src="interaction.html"
+        title="项目交互与验收说明"></iframe>
+    </main>
+  </div>
+  <script src="../js/delivery-nav.js"></script>
+</body>
+</html>

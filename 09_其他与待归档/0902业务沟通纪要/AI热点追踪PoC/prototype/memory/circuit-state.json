@@ -1,0 +1,10 @@
+{
+  "threshold": 3,
+  "failures": [],
+  "lastPass": {
+    "step": "step-10",
+    "checkpoint": "global-path-and-delivery-docs",
+    "verifiedAt": "2026-09-04T17:18:00+08:00",
+    "consecutiveFailures": 0
+  }
+}

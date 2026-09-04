@@ -1,0 +1,5 @@
+# 每行填写一张 ProcessOn 流程图，空行和以 # 开头的说明会被忽略。
+# 推荐格式：分类 | 流程名称 | https://www.processon.com/embed/流程图ID
+# 简化格式：流程名称 | ProcessOn 链接
+# 最简格式：直接粘贴 ProcessOn 链接
+# 本期未提供 ProcessOn 链接。本地流程图由 flowcharts/index.html 直接加载 poc-flow.html。

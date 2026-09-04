@@ -1,0 +1,172 @@
+{
+  "toolVersion": "2026-07-14-internal-delivery-v3",
+  "createdAt": "2026-09-04T17:02:15",
+  "gate": "final",
+  "files": [
+    {
+      "path": "annotations/annotations.js",
+      "sha256": "7df94d0c524f36af51f1eb36227d136faf80ddf098d211567bea55459fd884b6",
+      "mtime": "2026-09-04T14:49:50"
+    },
+    {
+      "path": "assets/css/app.css",
+      "sha256": "4edddd306c87c564cb1671015dd22ee7f83bd2ab838b4bbf6f42fb262c00944f",
+      "mtime": "2026-09-04T16:35:58"
+    },
+    {
+      "path": "assets/css/global.css",
+      "sha256": "258cb11a7b4894b790755fa14ad1d16b0024a50125ea7bc47c603d90847c7fb2",
+      "mtime": "2026-09-04T16:15:36"
+    },
+    {
+      "path": "docs/index.html",
+      "sha256": "167fa181db8e3ade0da5fcd6a4d4f2d283a26f7d0ec9302417cc92cdfdfc1e76",
+      "mtime": "2026-09-04T15:28:53"
+    },
+    {
+      "path": "docs/interaction.html",
+      "sha256": "dddf4f87d894d3d83d81f33b5ee3da1a27022e7d7b82e14eb745090e617294a5",
+      "mtime": "2026-09-04T16:52:54"
+    },
+    {
+      "path": "flowcharts/index.html",
+      "sha256": "bcb4060716db072bd2a783c419692cf67ac0eb5a9ca434457e8a9e0c5bedd5ce",
+      "mtime": "2026-09-04T17:02:01"
+    },
+    {
+      "path": "flowcharts/poc-flow.html",
+      "sha256": "a29be7b3248142a76a205c722936e90c6cb63d64176dc41b19d153fc4273e3ff",
+      "mtime": "2026-09-04T16:44:09"
+    },
+    {
+      "path": "flowcharts/processon-links.txt",
+      "sha256": "93163e5bbaaad6855bc856f9581b41875038097ebb8c8432845c7d6979588565",
+      "mtime": "2026-09-04T17:02:01"
+    },
+    {
+      "path": "index.html",
+      "sha256": "b93436ca5dc0b408b574153ff4dda837c9f0f69cba9a500cf645d95914e056bf",
+      "mtime": "2026-09-04T16:30:35"
+    },
+    {
+      "path": "js/app.js",
+      "sha256": "e1554f18d91cc6a4a7b3619002e7d1c0bed0fe0a6bfc99495879b1c2fec07ef2",
+      "mtime": "2026-09-04T16:15:36"
+    },
+    {
+      "path": "js/common.js",
+      "sha256": "3064ac979396a3e00bd154c84f0a49c1ed6860ffe51d5d3291dfb5285caaa328",
+      "mtime": "2026-09-04T16:15:36"
+    },
+    {
+      "path": "js/components/evidence-timeline.js",
+      "sha256": "069607db982a9dabb5ed093af0aef8aaa992bc58863540e64c5aeb0537cbe9c6",
+      "mtime": "2026-09-04T16:21:37"
+    },
+    {
+      "path": "js/components/filters.js",
+      "sha256": "1378693b6944ceb13b4b535c036bf4e09b3cec6d989fed18f36ffd3a6ff93e06",
+      "mtime": "2026-09-04T16:18:22"
+    },
+    {
+      "path": "js/components/layout.js",
+      "sha256": "541741327b92125b6f4b6926a3da561d1a3951610a046041df0bd97865c76d99",
+      "mtime": "2026-09-04T16:15:36"
+    },
+    {
+      "path": "js/components/review-drawer.js",
+      "sha256": "c02521f048a587a697461ea0ba486052bcdaa8f0dc997c16b7eca4ca55d83c33",
+      "mtime": "2026-09-04T16:21:37"
+    },
+    {
+      "path": "js/components/table.js",
+      "sha256": "3a4365f3ef06da12e24b8e964f04a298dc91e79a5b1a54df2c4f9146c3d9285f",
+      "mtime": "2026-09-04T16:18:22"
+    },
+    {
+      "path": "js/components/ui.js",
+      "sha256": "3592e7982d83bfaf24153b2b85e0aedd8b564bb1e8dfcf1e40729bf60e426162",
+      "mtime": "2026-09-04T16:15:36"
+    },
+    {
+      "path": "js/delivery-nav.js",
+      "sha256": "e5e4cbbb6c287e3c167a90fa1688838144eacc5141f8789d2c9fdd6716303383",
+      "mtime": "2026-09-04T15:28:53"
+    },
+    {
+      "path": "js/nav.js",
+      "sha256": "0602480109d65ea06ad29438ceb8ecd674ec379189e27cfd9ef54f2644420079",
+      "mtime": "2026-09-04T16:15:36"
+    },
+    {
+      "path": "js/pages/audit.js",
+      "sha256": "623187c962f54856096135a1e17ed437298cad95c39542a1daddcfe3941151fd",
+      "mtime": "2026-09-04T16:47:38"
+    },
+    {
+      "path": "js/pages/clues.js",
+      "sha256": "95ec4d6ee5e8fb2440c25a389d45c2a1618df3d1fed6075e10ded0f144ce6c39",
+      "mtime": "2026-09-04T16:18:30"
+    },
+    {
+      "path": "js/pages/config.js",
+      "sha256": "0f3f32612c1b1fc53e4a4d6d57351ac0b09cdfbbfa251b099a25c04622527972",
+      "mtime": "2026-09-04T16:47:38"
+    },
+    {
+      "path": "js/pages/drafts.js",
+      "sha256": "b340ed1a2f7aa41f19c01dbf645aecfa1578b10657baa4814774a5e87560e683",
+      "mtime": "2026-09-04T16:21:37"
+    },
+    {
+      "path": "js/pages/event-detail.js",
+      "sha256": "3c646611c85cf100fb17b4f6541549b00bacd749a9bbe3126e34664c49e84db3",
+      "mtime": "2026-09-04T16:21:37"
+    },
+    {
+      "path": "js/pages/run-center.js",
+      "sha256": "15b222cfc8aca145367e13086fc94a5ea3a04b9fb4d785c1caf475e71a6baed1",
+      "mtime": "2026-09-04T16:35:43"
+    },
+    {
+      "path": "memory/acceptance-map.md",
+      "sha256": "2357c4be5df4c925f31956031bf3d337270584113c6cd8f107f8b4b0a664efe5",
+      "mtime": "2026-09-04T16:57:25"
+    },
+    {
+      "path": "memory/annotation-coverage.md",
+      "sha256": "e3d0e77ac1fc852c1f9644296f475df66c798a8e5e6d7b0d2b0d8021eb2f04be",
+      "mtime": "2026-09-04T17:02:01"
+    },
+    {
+      "path": "memory/annotation-prompt.md",
+      "sha256": "36b1d64e0c9c0836d807abcd56a308f8a3b019440a0172b15a6b2be814785009",
+      "mtime": "2026-09-04T17:02:01"
+    },
+    {
+      "path": "memory/execution-steps.md",
+      "sha256": "939552fd050db925fe70d41124eb6e600e6546ec88b571cc805b1aa23d428230",
+      "mtime": "2026-09-04T15:47:07"
+    },
+    {
+      "path": "memory/field-map.md",
+      "sha256": "09ef071cb45102ac95f2a02fc3ba61d362ff25d0b6485cf185dea441131aa1c2",
+      "mtime": "2026-09-04T15:43:00"
+    },
+    {
+      "path": "memory/source-materials.md",
+      "sha256": "6944342c8811a165590959981cd3bfeadf6fa92fd12954c0d542db9b5a286a6b",
+      "mtime": "2026-09-04T15:41:52"
+    },
+    {
+      "path": "memory/verification-log.md",
+      "sha256": "48a5565ff5be55cb9513c2a79bd407b7d886fcf572565397c44e472a1364ef41",
+      "mtime": "2026-09-04T16:58:34"
+    },
+    {
+      "path": "mock/data.js",
+      "sha256": "8cb07d38f4a6edc5b9c8bf1a5ff169e280928e2ea852db30bceb9f8ab8194981",
+      "mtime": "2026-09-04T14:49:50"
+    }
+  ]
+}

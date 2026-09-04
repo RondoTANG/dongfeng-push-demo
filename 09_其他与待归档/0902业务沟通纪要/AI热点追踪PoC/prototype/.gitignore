@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+
+# Local runtime data
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/runs/
+
+# Dependencies / generated verification outputs
+node_modules/
+package.json
+package-lock.json
+playwright-report/
+test-results/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/

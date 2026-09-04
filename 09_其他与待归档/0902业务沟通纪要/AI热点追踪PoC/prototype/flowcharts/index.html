@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,">
+  <title>AI热点线索PoC｜流程图集</title>
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --surface: #ffffff;
+      --border: #e5e6eb;
+      --text: #1f2329;
+      --muted: #646a73;
+      --primary: #3370ff;
+      --primary-soft: #eef3ff;
+      --danger: #d92d20;
+      --sidebar-width: 300px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body { height: 100%; }
+
+    body { margin: 0; }
+
+    button,
+    a { font: inherit; }
+
+    .flow-layout {
+      display: grid;
+      grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .flow-sidebar {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-title {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.4;
+      letter-spacing: 0;
+    }
+
+    .sidebar-meta {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .flow-menu {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 0 24px;
+    }
+
+    .flow-group-title {
+      margin: 14px 20px 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .flow-menu-item {
+      display: block;
+      width: 100%;
+      min-height: 42px;
+      padding: 9px 20px;
+      color: var(--text);
+      background: transparent;
+      border: 0;
+      border-left: 3px solid transparent;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .flow-menu-item:hover {
+      color: var(--primary);
+      background: #f7f8fa;
+    }
+
+    .flow-menu-item.is-active {
+      color: var(--primary);
+      background: var(--primary-soft);
+      border-left-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .menu-empty,
+    .config-errors {
+      margin: 12px 20px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .config-errors {
+      color: var(--danger);
+      white-space: pre-wrap;
+    }
+
+    .flow-main {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      min-width: 0;
+      min-height: 100vh;
+    }
+
+    .flow-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 72px;
+      padding: 14px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .flow-heading {
+      min-width: 0;
+    }
+
+    .flow-title {
+      margin: 0;
+      overflow-wrap: anywhere;
+      font-size: 18px;
+      line-height: 1.4;
+      letter-spacing: 0;
+    }
+
+    .flow-category {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .external-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      min-height: 34px;
+      padding: 6px 12px;
+      color: var(--primary);
+      background: var(--surface);
+      border: 1px solid var(--primary);
+      border-radius: 6px;
+      text-decoration: none;
+    }
+
+    .external-link[hidden] { display: none; }
+
+    .flow-stage {
+      position: relative;
+      min-height: 520px;
+      background: var(--surface);
+    }
+
+    .flow-frame {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 520px;
+      border: 0;
+      background: var(--surface);
+    }
+
+    .flow-frame[hidden] { display: none; }
+
+    .empty-state {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .empty-state[hidden] { display: none; }
+
+    .empty-state h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .empty-state p {
+      max-width: 620px;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .flow-status {
+      min-height: 40px;
+      padding: 10px 20px;
+      color: var(--muted);
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+    }
+
+    code {
+      padding: 1px 4px;
+      background: #f2f3f5;
+      border-radius: 4px;
+    }
+
+    @media (max-width: 760px) {
+      .flow-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+
+      .flow-sidebar {
+        max-height: 42vh;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .flow-main { min-height: 58vh; }
+
+      .flow-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .external-link { align-self: flex-start; }
+
+      .flow-stage,
+      .flow-frame { min-height: 460px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="flow-layout">
+    <aside class="flow-sidebar" aria-label="流程图目录">
+      <header class="sidebar-header">
+        <h1 class="sidebar-title">流程图集</h1>
+        <p id="flow-count" class="sidebar-meta">正在读取链接清单</p>
+      </header>
+      <nav id="flow-menu" class="flow-menu"></nav>
+      <p id="config-errors" class="config-errors" hidden></p>
+    </aside>
+
+    <main class="flow-main">
+      <header class="flow-toolbar">
+        <div class="flow-heading">
+          <h2 id="flow-title" class="flow-title">请选择流程图</h2>
+          <p id="flow-category" class="flow-category">本地与外部流程图</p>
+        </div>
+        <a id="external-link" class="external-link" href="#" target="_blank" rel="noopener noreferrer" hidden>独立打开</a>
+      </header>
+
+      <section class="flow-stage" aria-live="polite">
+        <iframe
+          id="flow-frame"
+          class="flow-frame"
+          title="ProcessOn 流程图"
+          loading="lazy"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen
+          hidden></iframe>
+        <div id="empty-state" class="empty-state">
+          <h2>尚未配置流程图</h2>
+          <p>可在 <code>flowcharts/processon-links.txt</code> 中配置本地 HTML 或 ProcessOn 链接。</p>
+        </div>
+      </section>
+
+      <footer id="flow-status" class="flow-status">支持本地流程图与 ProcessOn 嵌入链接。</footer>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var sourceFile = 'processon-links.txt';
+      var items = [];
+      var menu = document.getElementById('flow-menu');
+      var count = document.getElementById('flow-count');
+      var errors = document.getElementById('config-errors');
+      var title = document.getElementById('flow-title');
+      var category = document.getElementById('flow-category');
+      var frame = document.getElementById('flow-frame');
+      var empty = document.getElementById('empty-state');
+      var externalLink = document.getElementById('external-link');
+      var status = document.getElementById('flow-status');
+
+      function parseUrl(raw) {
+        try {
+          var url = new URL(raw, window.location.href);
+          var host = url.hostname.toLowerCase();
+          if (!/^https?:$/.test(url.protocol)) return null;
+          var isLocalHtml = url.origin === window.location.origin && /\.html(?:$|[?#])/.test(url.href);
+          var isProcessOn = host === 'processon.com' || host.endsWith('.processon.com');
+          if (!isLocalHtml && !isProcessOn) return null;
+          return url.href;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function parseSource(text) {
+        var parsed = [];
+        var invalid = [];
+        text.split(/\r?\n/).forEach(function (rawLine, index) {
+          var line = rawLine.trim();
+          if (!line || line.charAt(0) === '#') return;
+
+          var parts = line.split('|').map(function (part) { return part.trim(); });
+          var group = '未分类';
+          var name = '';
+          var rawUrl = '';
+
+          if (parts.length === 1) {
+            rawUrl = parts[0];
+            name = '流程图 ' + (parsed.length + 1);
+          } else if (parts.length === 2) {
+            name = parts[0] || '流程图 ' + (parsed.length + 1);
+            rawUrl = parts[1];
+          } else {
+            group = parts[0] || '未分类';
+            name = parts[1] || '流程图 ' + (parsed.length + 1);
+            rawUrl = parts.slice(2).join('|').trim();
+          }
+
+          var url = parseUrl(rawUrl);
+          if (!url) {
+            invalid.push('第 ' + (index + 1) + ' 行不是有效的本地 HTML 或 ProcessOn 链接');
+            return;
+          }
+
+          parsed.push({
+            id: 'flow-' + (index + 1),
+            group: group,
+            name: name,
+            url: url,
+            isEmbed: new URL(url).pathname.indexOf('/embed/') !== -1,
+            isLocal: new URL(url).origin === window.location.origin
+          });
+        });
+        return { items: parsed, invalid: invalid };
+      }
+
+      function renderMenu() {
+        menu.textContent = '';
+        if (!items.length) {
+          var message = document.createElement('p');
+          message.className = 'menu-empty';
+          message.textContent = '清单中还没有可展示的流程图。';
+          menu.appendChild(message);
+          return;
+        }
+
+        var groups = [];
+        items.forEach(function (item) {
+          var group = groups.find(function (entry) { return entry.name === item.group; });
+          if (!group) {
+            group = { name: item.group, items: [] };
+            groups.push(group);
+          }
+          group.items.push(item);
+        });
+
+        groups.forEach(function (group) {
+          var heading = document.createElement('h3');
+          heading.className = 'flow-group-title';
+          heading.textContent = group.name;
+          menu.appendChild(heading);
+
+          group.items.forEach(function (item) {
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'flow-menu-item';
+            button.dataset.flowId = item.id;
+            button.textContent = item.name;
+            button.addEventListener('click', function () { selectItem(item); });
+            menu.appendChild(button);
+          });
+        });
+      }
+
+      function selectItem(item) {
+        Array.prototype.forEach.call(menu.querySelectorAll('.flow-menu-item'), function (button) {
+          button.classList.toggle('is-active', button.dataset.flowId === item.id);
+        });
+        title.textContent = item.name;
+        category.textContent = item.group;
+        externalLink.href = item.url;
+        externalLink.hidden = false;
+        empty.hidden = true;
+        frame.hidden = false;
+        frame.title = item.name;
+        status.textContent = item.isLocal ? '正在加载本地可追溯流程图。' : item.isEmbed
+          ? '正在加载 ProcessOn 流程图。'
+          : '外部链接可能拒绝嵌入，可使用右上角按钮打开。';
+        frame.src = item.url;
+        window.location.hash = encodeURIComponent(item.id);
+      }
+
+      function showLoadFailure() {
+        count.textContent = '链接清单读取失败';
+        status.textContent = '无法读取 processon-links.txt。请通过本地 HTTP 服务打开原型项目。';
+        errors.hidden = false;
+        errors.textContent = '未能读取 flowcharts/processon-links.txt';
+      }
+
+      frame.addEventListener('load', function () {
+        if (!frame.hidden) status.textContent = '流程图已加载。';
+      });
+
+      fetch(sourceFile + '?t=' + Date.now(), { cache: 'no-store' })
+        .then(function (response) {
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          return response.text();
+        })
+        .then(function (text) {
+          var result = parseSource(text);
+          items = result.items;
+          if (!items.length) {
+            items = [{
+              id: 'flow-local',
+              group: '本地方案',
+              name: 'PoC处理、服务与审批流程',
+              url: new URL('poc-flow.html', window.location.href).href,
+              isEmbed: false,
+              isLocal: true
+            }];
+          }
+          count.textContent = items.length + ' 张流程图';
+          renderMenu();
+
+          if (result.invalid.length) {
+            errors.hidden = false;
+            errors.textContent = result.invalid.join('\n');
+          }
+
+          if (!items.length) return;
+          var requestedId = decodeURIComponent(window.location.hash.replace(/^#/, ''));
+          var initial = items.find(function (item) { return item.id === requestedId; }) || items[0];
+          selectItem(initial);
+        })
+        .catch(showLoadFailure);
+    })();
+  </script>
+  <script src="../js/delivery-nav.js"></script>
+</body>
+</html>

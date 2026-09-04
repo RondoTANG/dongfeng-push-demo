@@ -31,9 +31,8 @@ enums:
     - rejected
   task_status:
     - draft_pending_review
-    - approved_pending_publish
-    - published
-    - cancelled
+    - approved
+    - rejected
 
 datasets:
   collection_run:
@@ -254,6 +253,7 @@ datasets:
     required_fields:
       - task_draft_id
       - event_id
+      - draft_purpose
       - task_type
       - task_title
       - task_brief
@@ -264,6 +264,17 @@ datasets:
       - prohibited_claims
       - risk_notes
       - task_status
+    purpose_specific_fields:
+      original_growth:
+        - recommended_platforms
+        - target_member_tags
+      source_content_boost:
+        - target_source_id
+        - target_url
+        - target_content_title
+        - engagement_actions
+        - recommended_platforms
+        - target_member_tags
     downstream_optional_fields:
       - published_task_id
       - actual_platforms

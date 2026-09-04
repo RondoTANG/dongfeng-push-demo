@@ -1,0 +1,26 @@
+{
+  "product": "AI 热点线索",
+  "menu": [
+    {
+      "label": "运行与采集",
+      "children": [
+        { "key": "run-center", "label": "运行中心", "icon": "pulse" },
+        { "key": "clues", "label": "信息线索工作台", "icon": "search" }
+      ]
+    },
+    {
+      "label": "研判与作业",
+      "children": [
+        { "key": "event-detail", "label": "事件审核", "icon": "layers" },
+        { "key": "drafts", "label": "双路作业草案", "icon": "document" }
+      ]
+    },
+    {
+      "label": "规则与追溯",
+      "children": [
+        { "key": "config", "label": "配置管理", "icon": "sliders" },
+        { "key": "audit", "label": "无效与审计记录", "icon": "history" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "enabled": true,
+  "schedule": "每3小时",
+  "mode": "full",
+  "automation_id": "poc",
+  "actor_id": "codex-local-automation",
+  "scope": "采集、来源处理、事件聚合与Codex补证；草案生成与审批仍由运营决定",
+  "updated_at": "2026-09-04T16:35:00+08:00"
+}
