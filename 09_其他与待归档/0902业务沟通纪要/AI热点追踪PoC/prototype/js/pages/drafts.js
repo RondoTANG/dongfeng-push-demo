@@ -3,7 +3,7 @@
 
   var state = { drafts: [], selected: null, loading: true, error: null, status: '', purpose: '' };
   var platformNames = { weibo: '微博', douyin: '抖音', wechat_official_account: '公众号', wechat_channels: '视频号', toutiao: '今日头条', xiaohongshu: '小红书', bilibili: 'B站', autohome: '汽车之家', dongchedi: '懂车帝' };
-  var purposeNames = { original_growth: '原创增长', source_content_boost: '源内容加热' };
+  var purposeNames = { original_growth: '原创增长', source_content_boost: '热点源内容加热', original_post_boost: '原创后二次加热' };
   var actionNames = { like: '点赞', positive_comment: '正向评论', repost: '转发', favorite: '收藏' };
   var actionsByPlatform = {
     weibo: ['like', 'positive_comment', 'repost'], douyin: ['like', 'positive_comment'],
@@ -16,7 +16,7 @@
     var items = state.drafts.filter(function (item) {
       return (!state.status || item.task_status === state.status) && (!state.purpose || item.draft_purpose === state.purpose);
     });
-    return '<aside class="draft-list"><div class="event-queue__head draft-queue-head"><strong>双路作业草案</strong><select class="form-control" data-draft-purpose-filter><option value="">全部方向</option><option value="original_growth">原创增长</option><option value="source_content_boost">源内容加热</option></select><select class="form-control" data-draft-status-filter><option value="">全部状态</option><option value="draft_pending_review">待审批</option><option value="approved">已通过</option><option value="rejected">已驳回</option></select></div><div class="event-queue__list">' +
+    return '<aside class="draft-list"><div class="event-queue__head draft-queue-head"><strong>作业草案</strong><select class="form-control" data-draft-purpose-filter><option value="">全部方向</option><option value="original_growth">原创增长</option><option value="source_content_boost">热点源内容加热</option><option value="original_post_boost">原创后二次加热</option></select><select class="form-control" data-draft-status-filter><option value="">全部状态</option><option value="draft_pending_review">待审批</option><option value="approved">已通过</option><option value="rejected">已驳回</option></select></div><div class="event-queue__list">' +
       (items.length ? items.map(function (draft) { return '<button class="draft-list__item' + (state.selected && state.selected.task_draft_id === draft.task_draft_id ? ' is-active' : '') + '" data-select-draft="' + draft.task_draft_id + '"><span class="event-queue__title">' + AppCommon.escapeHtml(draft.task_title) + '</span><span class="event-queue__meta"><span class="draft-purpose">' + AppCommon.escapeHtml(purposeNames[draft.draft_purpose] || draft.draft_purpose) + '</span>' + AppCommon.statusTag(draft.task_status) + '</span><span class="event-queue__heat">' + AppCommon.escapeHtml((draft.recommended_platforms || []).map(function (item) { return platformNames[item] || item; }).join('、') || '平台待运营确认') + '</span></button>'; }).join('') : '<div class="empty-state compact"><span>当前筛选下暂无草案</span></div>') + '</div></aside>';
   }
 
@@ -29,10 +29,11 @@
     if (!draft) return '<section class="draft-detail"><div class="empty-state"><strong>暂无作业草案</strong><span>事件审核通过后，系统将在这里生成可编辑草案</span></div></section>';
     var canEdit = draft.task_status === 'draft_pending_review';
     var event = draft.event || {};
-    var isBoost = draft.draft_purpose === 'source_content_boost';
-    var targetContent = isBoost ? '<div class="target-content"><span>加热目标文章／视频</span><strong>' + AppCommon.escapeHtml(draft.target_content_title || '未命名内容') + '</strong><a href="' + AppCommon.escapeHtml(draft.target_url || '#') + '" target="_blank" rel="noopener">' + AppCommon.escapeHtml(draft.target_url || '缺少目标链接') + '</a></div>' : '';
+    var isBoost = draft.draft_purpose === 'source_content_boost' || draft.draft_purpose === 'original_post_boost';
+    var targetLabel = draft.draft_purpose === 'original_post_boost' ? '已发布原创内容' : '热点源文章／视频';
+    var targetContent = isBoost ? '<div class="target-content"><span>' + targetLabel + '</span><strong>' + AppCommon.escapeHtml(draft.target_content_title || '未命名内容') + '</strong><a href="' + AppCommon.escapeHtml(draft.target_url || '#') + '" target="_blank" rel="noopener">' + AppCommon.escapeHtml(draft.target_url || '缺少目标链接') + '</a></div>' : '';
     return '<section class="draft-detail" data-anno="draft-approval-workbench"><header class="event-detail-head"><div><div class="event-kicker"><span class="mono">' + draft.task_draft_id + '</span><span class="draft-purpose">' + AppCommon.escapeHtml(purposeNames[draft.draft_purpose] || draft.draft_purpose) + '</span>' + AppCommon.statusTag(draft.task_status) + '</div><h2>' + AppCommon.escapeHtml(draft.task_title) + '</h2><div class="tag-row">' + (draft.recommended_platforms || []).map(function (item) { return '<span class="mini-tag">' + AppCommon.escapeHtml(platformNames[item] || item) + '</span>'; }).join('') + '</div></div><div class="page-head__actions">' + (canEdit ? '<button class="btn" data-edit-draft>编辑草案</button><button class="btn btn-primary" data-review-draft>审批草案</button>' : '') + '</div></header>' +
-      '<div class="draft-scope"><strong>草案通过 ≠ 正式下发</strong><span>本期只记录审批结果，不推送护卫军业务系统，不执行互动，也不进入原创投稿与发布后效果追踪。</span></div>' +
+      '<div class="draft-scope"><strong>草案通过 ≠ 自动执行</strong><span>原创增长通过后可登记实际发布链接并进入后效追踪；任何加热草案仍需单独审批，系统不自动执行点赞或评论。</span></div>' +
       '<div class="draft-content"><section>' + targetContent + '<h3>任务简述</h3><div class="draft-brief">' + AppCommon.escapeHtml(draft.task_brief).replace(/\n/g, '<br>') + '</div><h3>事件依据</h3><div class="event-reference"><strong>' + AppCommon.escapeHtml(event.event_title || draft.event_id) + '</strong><span>热点状态：不可判定</span><button class="btn btn-text btn-sm" data-open-draft-event="' + draft.event_id + '">查看事件证据</button></div></section><aside>' +
       (isBoost ? listBlock('互动动作', (draft.engagement_actions || []).map(function (item) { return actionNames[item] || item; }), '待运营选择') : '') +
       listBlock('目标成员标签', draft.target_member_tags, '待运营选择') +
@@ -50,15 +51,16 @@
   }
 
   function render() {
-    return '<section class="page page-wide">' + Layout.pageHead('双路作业草案与审批', '分别审批原创增长草案与热点源文章／视频加热草案') + '<div id="drafts-content">' + renderContent() + '</div></section>';
+    return '<section class="page page-wide">' + Layout.pageHead('作业草案与审批', '分别审批原创增长、热点源内容加热与原创后二次加热草案') + '<div id="drafts-content">' + renderContent() + '</div></section>';
   }
 
   async function load(preferredId) {
     state.loading = true; state.error = null; update();
     try {
       var result = await AppCommon.api('/api/drafts?limit=500'); state.drafts = result.items;
-      var draftId = preferredId || (state.drafts[0] && state.drafts[0].task_draft_id);
+      var draftId = preferredId || (window.AppContext && window.AppContext.draftId) || (state.drafts[0] && state.drafts[0].task_draft_id);
       state.selected = draftId ? await AppCommon.api('/api/drafts/' + draftId) : null;
+      window.AppContext = null;
     } catch (error) { state.error = error.message; }
     state.loading = false; update();
   }
@@ -69,12 +71,12 @@
   function openEdit() {
     var draft = state.selected;
     var platforms = draft.recommended_platforms || [];
-    var isBoost = draft.draft_purpose === 'source_content_boost';
+    var isBoost = draft.draft_purpose === 'source_content_boost' || draft.draft_purpose === 'original_post_boost';
     var allowedActionKeys = isBoost ? Array.from(new Set(platforms.reduce(function (result, platform) { return result.concat(actionsByPlatform[platform] || []); }, []))) : [];
     var actionEditor = isBoost ? '<div class="form-field full"><label>互动动作</label><div class="check-grid">' + allowedActionKeys.map(function (key) { return '<label><input type="checkbox" name="engagement_action" value="' + key + '"' + ((draft.engagement_actions || []).indexOf(key) >= 0 ? ' checked' : '') + '>' + actionNames[key] + '</label>'; }).join('') + '</div><small class="field-help">仅展示目标平台支持的动作，至少保留一项。</small></div>' : '';
     var drawer = UI.openDrawer({
       title: '编辑作业草案',
-      body: '<div class="review-form"><div class="form-field full"><label>作业方向</label><div class="review-summary"><strong>' + AppCommon.escapeHtml(purposeNames[draft.draft_purpose] || draft.draft_purpose) + '</strong><p>' + (isBoost ? '目标链接来自事件证据，不在编辑时替换；如需更换目标，请回到事件重新选择。' : '围绕事件形成原创表达，不直接复制来源内容。') + '</p></div></div><div class="form-field full"><label>作业标题</label><input class="form-control" name="task_title" value="' + AppCommon.escapeHtml(draft.task_title) + '"></div><div class="form-field full"><label>任务简述</label><textarea class="form-control tall" name="task_brief">' + AppCommon.escapeHtml(draft.task_brief) + '</textarea></div>' + actionEditor + '<div class="form-field full"><label>建议平台</label><div class="check-grid">' + Object.keys(platformNames).map(function (key) { return '<label><input type="checkbox" name="platform" value="' + key + '"' + (platforms.indexOf(key) >= 0 ? ' checked' : '') + (isBoost ? ' disabled' : '') + '>' + platformNames[key] + '</label>'; }).join('') + '</div></div><div class="form-field full"><label>目标成员标签（顿号分隔）</label><input class="form-control" name="target_tags" value="' + AppCommon.escapeHtml((draft.target_member_tags || []).join('、')) + '"></div></div>',
+      body: '<div class="review-form"><div class="form-field full"><label>作业方向</label><div class="review-summary"><strong>' + AppCommon.escapeHtml(purposeNames[draft.draft_purpose] || draft.draft_purpose) + '</strong><p>' + (isBoost ? '加热目标已在事件审核或原创后效判断中确定，编辑时不可替换；如需更换目标，请回到对应业务环节重新生成。' : '围绕事件形成原创表达，不直接复制来源内容。') + '</p></div></div><div class="form-field full"><label>作业标题</label><input class="form-control" name="task_title" value="' + AppCommon.escapeHtml(draft.task_title) + '"></div><div class="form-field full"><label>任务简述</label><textarea class="form-control tall" name="task_brief">' + AppCommon.escapeHtml(draft.task_brief) + '</textarea></div>' + actionEditor + '<div class="form-field full"><label>建议平台</label><div class="check-grid">' + Object.keys(platformNames).map(function (key) { return '<label><input type="checkbox" name="platform" value="' + key + '"' + (platforms.indexOf(key) >= 0 ? ' checked' : '') + (isBoost ? ' disabled' : '') + '>' + platformNames[key] + '</label>'; }).join('') + '</div></div><div class="form-field full"><label>目标成员标签（顿号分隔）</label><input class="form-control" name="target_tags" value="' + AppCommon.escapeHtml((draft.target_member_tags || []).join('、')) + '"></div></div>',
       footer: '<button class="btn" data-drawer-close>取消</button><button class="btn btn-primary" data-save-draft>保存修改</button>'
     });
     drawer.element.querySelector('[data-save-draft]').onclick = async function (event) {

@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from .database import add_audit, init_database
 from .config_loader import business_config_summary, reload_configs
 from .drafts import get_draft, list_drafts, review_draft, review_event, update_draft
+from .effects import add_snapshot, create_publication, evaluate_publication, get_publication, list_publications
 from .events import aggregate_run, get_event, list_events, merge_events, split_event
 from .pipeline import execute_collection, import_real_sample
 from .repositories import get_run, list_audit, list_invalid, list_runs, list_sources
@@ -103,6 +104,31 @@ class DraftReviewRequest(BaseModel):
     review_note: str | None = Field(default=None, max_length=1000)
 
 
+class PublicationCreateRequest(BaseModel):
+    original_draft_id: str = Field(min_length=4, max_length=80)
+    platform: str = Field(min_length=2, max_length=50)
+    content_url: str = Field(min_length=10, max_length=2000)
+    content_title: str | None = Field(default=None, max_length=300)
+    platform_content_id: str | None = Field(default=None, max_length=200)
+    published_at: str = Field(min_length=10, max_length=40)
+    submitted_by: str = Field(default="local-operator", min_length=2, max_length=80)
+
+
+class PublicationSnapshotRequest(BaseModel):
+    captured_at: str = Field(min_length=10, max_length=40)
+    data_source: str = Field(default="manual_evidence", min_length=2, max_length=50)
+    metrics: dict[str, int] = Field(default_factory=dict)
+    unavailable_reason: str | None = Field(default=None, max_length=500)
+    note: str | None = Field(default=None, max_length=1000)
+    actor_id: str = Field(default="local-operator", min_length=2, max_length=80)
+
+
+class PublicationEvaluationRequest(BaseModel):
+    decision: str = Field(pattern="^(create_followup_boost|watch|no_boost|manual_review)$")
+    decision_reason: str = Field(min_length=5, max_length=2000)
+    evaluated_by: str = Field(default="local-operator", min_length=2, max_length=80)
+
+
 def execute_and_aggregate(**kwargs: object) -> None:
     run_id = execute_collection(**kwargs)
     run = get_run(run_id) or {}
@@ -116,7 +142,7 @@ def health() -> dict[str, object]:
         "ok": True,
         "service": "ai-hotspot-clue-poc",
         "database": DATABASE_PATH.name,
-        "scope": "collection-to-draft-approval",
+        "scope": "collection-to-draft-approval-and-original-effect-loop",
     }
 
 
@@ -365,6 +391,50 @@ def draft_update(task_draft_id: str, payload: DraftUpdateRequest) -> dict[str, o
 def draft_review(task_draft_id: str, payload: DraftReviewRequest) -> dict[str, object]:
     try:
         return review_draft(task_draft_id, **payload.model_dump())
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.get("/api/publications")
+def publications(status: str | None = None, limit: int = Query(default=200, ge=1, le=500)) -> dict[str, object]:
+    items = list_publications(status, limit)
+    return {"items": items, "count": len(items)}
+
+
+@app.get("/api/publications/{publication_id}")
+def publication_detail(publication_id: str) -> dict[str, object]:
+    publication = get_publication(publication_id)
+    if not publication:
+        raise HTTPException(status_code=404, detail="原创发布记录不存在")
+    return publication
+
+
+@app.post("/api/publications")
+def publication_create(payload: PublicationCreateRequest) -> dict[str, object]:
+    try:
+        return create_publication(**payload.model_dump())
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.post("/api/publications/{publication_id}/snapshots")
+def publication_snapshot(publication_id: str, payload: PublicationSnapshotRequest) -> dict[str, object]:
+    try:
+        return add_snapshot(publication_id, **payload.model_dump())
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.post("/api/publications/{publication_id}/evaluate")
+def publication_evaluate(publication_id: str, payload: PublicationEvaluationRequest) -> dict[str, object]:
+    try:
+        return evaluate_publication(publication_id, **payload.model_dump())
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:

@@ -163,6 +163,8 @@ SCHEMA_STATEMENTS = [
         event_id TEXT NOT NULL,
         draft_purpose TEXT NOT NULL DEFAULT 'original_growth',
         target_source_id TEXT NOT NULL DEFAULT '',
+        target_submission_id TEXT NOT NULL DEFAULT '',
+        trigger_evaluation_id TEXT,
         target_url TEXT,
         target_content_title TEXT,
         task_type TEXT NOT NULL,
@@ -181,8 +183,56 @@ SCHEMA_STATEMENTS = [
         reviewed_at TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
-        UNIQUE (event_id, draft_purpose, target_source_id),
+        UNIQUE (event_id, draft_purpose, target_source_id, target_submission_id),
         FOREIGN KEY (event_id) REFERENCES events(event_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS original_publications (
+        publication_id TEXT PRIMARY KEY,
+        event_id TEXT NOT NULL,
+        original_draft_id TEXT NOT NULL,
+        platform TEXT NOT NULL,
+        content_url TEXT NOT NULL UNIQUE,
+        content_title TEXT,
+        platform_content_id TEXT,
+        published_at TEXT NOT NULL,
+        submitted_by TEXT NOT NULL,
+        submitted_at TEXT NOT NULL,
+        tracking_status TEXT NOT NULL DEFAULT 'tracking',
+        latest_evaluation_id TEXT,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (event_id) REFERENCES events(event_id),
+        FOREIGN KEY (original_draft_id) REFERENCES task_drafts(task_draft_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS publication_metric_snapshots (
+        snapshot_id TEXT PRIMARY KEY,
+        publication_id TEXT NOT NULL,
+        captured_at TEXT NOT NULL,
+        data_source TEXT NOT NULL,
+        metrics_json TEXT NOT NULL DEFAULT '{}',
+        unavailable_reason TEXT,
+        note TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (publication_id) REFERENCES original_publications(publication_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS publication_evaluations (
+        evaluation_id TEXT PRIMARY KEY,
+        publication_id TEXT NOT NULL,
+        baseline_snapshot_id TEXT,
+        latest_snapshot_id TEXT,
+        delta_metrics_json TEXT NOT NULL DEFAULT '{}',
+        growth_status TEXT NOT NULL,
+        decision TEXT NOT NULL,
+        decision_reason TEXT NOT NULL,
+        evaluated_by TEXT NOT NULL,
+        evaluated_at TEXT NOT NULL,
+        created_draft_id TEXT,
+        FOREIGN KEY (publication_id) REFERENCES original_publications(publication_id)
     )
     """,
     """
@@ -203,6 +253,9 @@ SCHEMA_STATEMENTS = [
     "CREATE INDEX IF NOT EXISTS idx_sources_event ON source_items(event_id)",
     "CREATE INDEX IF NOT EXISTS idx_events_run ON events(run_id)",
     "CREATE INDEX IF NOT EXISTS idx_work_items_status ON codex_work_items(status)",
+    "CREATE INDEX IF NOT EXISTS idx_publications_status ON original_publications(tracking_status)",
+    "CREATE INDEX IF NOT EXISTS idx_snapshots_publication ON publication_metric_snapshots(publication_id, captured_at)",
+    "CREATE INDEX IF NOT EXISTS idx_evaluations_publication ON publication_evaluations(publication_id, evaluated_at)",
     "CREATE INDEX IF NOT EXISTS idx_audit_object ON audit_logs(object_type, object_id)",
 ]
 
@@ -228,6 +281,8 @@ JSON_FIELDS = {
     "evidence_source_ids_json",
     "prohibited_claims_json",
     "risk_notes_json",
+    "metrics_json",
+    "delta_metrics_json",
     "before_json",
     "after_json",
 }

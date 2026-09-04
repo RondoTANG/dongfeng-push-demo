@@ -23,7 +23,7 @@
 | 成长激励 | 积分/XP、段位、规则、大盘、智能体 | `04_成长与激励体系/` | 作业、审核、用户、组织数据 | 原型一致性检查；当前业务暂停 |
 | 内容运营 | 公众号编辑器、学院体验 | `05_内容与社区运营/` | 前端编辑器 | 静态页面/构建检查 |
 | 产品原型 | 历史重构分析、跨平台数据映射和演示 | `08_产品原型与UI交互/` | TikHub/MaxHub 等外部能力 | 原型人工检查 |
-| AI热点业务与线索PoC | 公开线索发现、来源清洗、事件聚合、品牌关联、热点判定数据准入、人工研判，以及“原创增长”“热点源内容加热”两类作业草案的独立生成与审批 | `09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/README.md`、`config/`、`prd/AI热点业务规划与现阶段线索PoC解决方案_PRD_v0.2.md`、`prd/AI热点发现与护卫军作业联动_PRD_v0.2.html`、`prototype/README.md`、`prototype/index.html` | 当前：豆包Global Search、Codex公开搜索、FastAPI、SQLite和Codex三小时心跳；真实热点阶段：专业平台数据源；后续依赖护卫军标签与正式作业接口 | `python3 09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/validate_config.py`；`curl http://127.0.0.1:8765/api/health`；原型终检`python3 tools/loop_run.py check . --preflight-stage final`；浏览器验证双路草案生成、筛选、编辑与审批 |
+| AI热点业务与线索PoC | 公开线索发现、来源清洗、事件聚合、品牌关联、热点数据准入、人工研判；“原创增长”“热点源内容加热”两类初始草案；原创发布后效快照与“原创后二次加热”草案 | `09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/README.md`、`config/`、`prd/AI热点业务规划与现阶段线索PoC解决方案_PRD_v0.2.md`、`prd/AI热点发现与护卫军作业联动_PRD_v0.2.html`、`prototype/README.md`、`prototype/index.html` | 当前：豆包Global Search、Codex公开搜索、FastAPI、SQLite、现有采集/业务推送/人工后效凭证和Codex三小时心跳；真实热点阶段：专业平台数据源；后续依赖护卫军标签与正式作业接口 | `python3 09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/validate_config.py`；`curl http://127.0.0.1:8765/api/health`；原型终检`python3 tools/loop_run.py check . --preflight-stage final`；浏览器验证三类草案、原创发布登记、快照增量与审批 |
 
 ## 跨模块关系
 

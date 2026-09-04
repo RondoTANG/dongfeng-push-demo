@@ -12,7 +12,8 @@
       "label": "研判与作业",
       "children": [
         { "key": "event-detail", "label": "事件审核", "icon": "layers" },
-        { "key": "drafts", "label": "双路作业草案", "icon": "document" }
+        { "key": "drafts", "label": "作业草案与审批", "icon": "document" },
+        { "key": "effects", "label": "原创后效追踪", "icon": "pulse" }
       ]
     },
     {

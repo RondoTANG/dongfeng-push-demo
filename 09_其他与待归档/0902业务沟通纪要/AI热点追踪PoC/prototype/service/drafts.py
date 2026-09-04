@@ -10,7 +10,8 @@ from .events import get_event
 ALLOWED_EVENT_OUTCOMES = {"relevant_event_clue", "brand_content_opportunity", "manual_review", "watch"}
 TASK_GENERATING_OUTCOMES = {"relevant_event_clue", "brand_content_opportunity"}
 ALLOWED_ACTION_PATHS = {"original_growth", "source_content_boost"}
-ALLOWED_TASK_TYPES = {"original_comment", "original_content", "source_content_boost"}
+ALLOWED_DRAFT_PURPOSES = {"original_growth", "source_content_boost", "original_post_boost"}
+ALLOWED_TASK_TYPES = {"original_comment", "original_content", "source_content_boost", "original_post_boost"}
 ALLOWED_DRAFT_STATUSES = {"draft_pending_review", "approved", "rejected"}
 PLATFORM_LABELS = {
     "weibo": "微博能力",
@@ -317,7 +318,7 @@ def list_drafts(status: str | None = None, purpose: str | None = None, limit: in
         conditions.append("task_status=?")
         params.append(status)
     if purpose:
-        if purpose not in ALLOWED_ACTION_PATHS:
+        if purpose not in ALLOWED_DRAFT_PURPOSES:
             raise ValueError("不支持的草案方向")
         conditions.append("draft_purpose=?")
         params.append(purpose)
@@ -353,10 +354,11 @@ def update_draft(task_draft_id: str, changes: dict[str, Any], actor_id: str) -> 
     }
     payload = {key: value for key, value in changes.items() if key in allowed and value is not None}
     if payload.get("task_type") and payload["task_type"] not in ALLOWED_TASK_TYPES:
-        raise ValueError("本期只支持原创评论、原创内容或源内容加热草案")
-    if before["draft_purpose"] == "source_content_boost":
-        if payload.get("task_type") and payload["task_type"] != "source_content_boost":
-            raise ValueError("源内容加热草案不能改为原创作业类型")
+        raise ValueError("只支持原创评论、原创内容、源内容加热或原创后二次加热草案")
+    if before["draft_purpose"] in {"source_content_boost", "original_post_boost"}:
+        expected_type = before["draft_purpose"]
+        if payload.get("task_type") and payload["task_type"] != expected_type:
+            raise ValueError("加热草案不能改为其他作业类型")
         if "engagement_actions" in payload:
             actions = payload["engagement_actions"]
             platforms = before.get("recommended_platforms") or []
@@ -370,7 +372,7 @@ def update_draft(task_draft_id: str, changes: dict[str, Any], actor_id: str) -> 
             invalid_actions = set(actions) - allowed_actions
             if invalid_actions:
                 raise ValueError(f"目标平台不支持互动动作：{', '.join(sorted(invalid_actions))}")
-    elif payload.get("task_type") == "source_content_boost":
+    elif payload.get("task_type") in {"source_content_boost", "original_post_boost"}:
         raise ValueError("原创增长草案不能改为源内容加热类型，请回到事件选择目标来源")
     if not payload:
         return before
@@ -406,11 +408,15 @@ def review_draft(task_draft_id: str, *, review_result: str, reviewer: str, revie
         raise ValueError("草案审批只支持通过或驳回")
     if review_result == "rejected" and not (review_note or "").strip():
         raise ValueError("驳回草案必须填写原因")
-    if review_result == "approved" and before["draft_purpose"] == "source_content_boost":
-        if not before.get("target_source_id") or not before.get("target_url"):
-            raise ValueError("源内容加热草案缺少目标来源或目标链接，不能通过")
+    if review_result == "approved" and before["draft_purpose"] in {"source_content_boost", "original_post_boost"}:
+        if before["draft_purpose"] == "source_content_boost" and not before.get("target_source_id"):
+            raise ValueError("源内容加热草案缺少目标来源，不能通过")
+        if before["draft_purpose"] == "original_post_boost" and not before.get("target_submission_id"):
+            raise ValueError("原创后二次加热草案缺少原创发布记录，不能通过")
+        if not before.get("target_url"):
+            raise ValueError("加热草案缺少目标链接，不能通过")
         if not (before.get("engagement_actions") or []):
-            raise ValueError("源内容加热草案至少需要一项互动动作才能通过")
+            raise ValueError("加热草案至少需要一项互动动作才能通过")
     timestamp = now_iso()
     with connection() as db:
         db.execute(

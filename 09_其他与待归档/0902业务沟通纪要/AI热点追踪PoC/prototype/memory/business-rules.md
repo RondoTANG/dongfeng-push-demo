@@ -8,6 +8,8 @@
 - **真实热点**：需要平台原生指标、连续快照、UGC／作者标识和覆盖审计才能判定。本期搜索数据不具备时必须为 `unknown`。
 - **原创增长草案**：基于已审核事件生成原创评论或原创内容的任务建议，目标是借势热点形成东风相关原创声量。
 - **源内容加热草案**：直接绑定已审核事件中的一篇平台文章或一个视频，建议组织点赞、正向评论等互动；不要求先完成原创投稿。
+- **原创发布记录**：已审批原创增长草案对应的实际发布链接、平台、内容ID、发布时间和登记来源。
+- **原创后二次加热草案**：根据同一原创内容的后效快照与运营判断生成，绑定实际发布记录，不等同于热点源内容直接加热。
 
 ## 运行与采集规则
 
@@ -38,7 +40,7 @@
 3. `hotspot_unavailable_reason` 必须列出具体缺失原因，例如“缺少平台原生互动量”“没有连续快照”“无法识别独立 UGC 作者”“来源覆盖不可审计”。
 4. 未来接入满足准入规则的专业或原生数据后，才启用 normal／rising／breaking／sustained／declining 等状态。
 
-## 事件审核与双路草案规则
+## 事件审核、草案与原创后效规则
 
 1. 只有事件结论为 `relevant_event_clue` 或 `brand_content_opportunity`，且风险门槛允许时，运营才可选择行动方向。
 2. 行动方向为 `original_growth`、`source_content_boost` 或两者同时；两类草案分别生成、分别编辑、分别审批，不能用一个审批状态互相替代。
@@ -47,7 +49,11 @@
 5. 官网列表页、普通网页、平台不明、无有效URL或无法确认可互动状态的来源，不可生成源内容加热草案；页面应说明具体原因。
 6. 建议平台依据事件来源与内容适配度；建议成员标签使用护卫军现有平台能力标签并允许运营调整。
 7. 运营可选择通过、修改后通过或驳回；通过只代表“草案确认”，不代表已正式下发或已执行互动。
-8. 本期状态终点为 `approved` 或 `rejected`；不得出现已发布、任务执行、原创投稿、发布后效果追踪或二次加热等对外状态。
+8. 只有 `original_growth` 且状态为 `approved` 的草案可以登记实际发布；发布URL必须有效且不可重复。
+9. 后效快照来自 `existing_collector`、`business_push` 或 `manual_evidence`；只比较同一发布记录、同一平台、同一指标口径，至少两个快照后才允许评价。
+10. 指标缺失、口径不同或数值回退时为 `data_anomaly`，不得自动生成二次加热草案。
+11. 运营选择 `create_followup_boost` 时创建 `original_post_boost` 草案，绑定 `target_submission_id` 和触发评价；其他结论只留痕。
+12. 三类草案均以 `approved` 或 `rejected` 为本期终点；不得展示正式作业已下发或互动已执行。
 
 ## 主要状态和枚举
 
@@ -57,8 +63,10 @@
 - 关系：`direct_mention`、`verified_relation`、`no_relation`、`unresolved`。
 - 事件：`needs_evidence`、`pending_review`、`relevant_event_clue`、`brand_content_opportunity`、`manual_review`、`watch`、`rejected`。
 - 热点：本期固定 `unknown`；其他枚举仅为未来标准数据源预留。
-- 草案目的：`original_growth`、`source_content_boost`。
+- 草案目的：`original_growth`、`source_content_boost`、`original_post_boost`。
 - 草案：`draft_pending_review`、`approved`、`rejected`。
+- 原创后效数据状态：`tracking`、`ready_for_evaluation`、`growth_observed`、`no_growth_observed`、`data_anomaly`。
+- 原创后效结论：`create_followup_boost`、`watch`、`no_boost`、`manual_review`。
 
 ## 权限或角色边界
 

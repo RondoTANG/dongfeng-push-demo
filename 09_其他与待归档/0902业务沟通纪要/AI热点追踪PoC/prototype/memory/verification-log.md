@@ -200,3 +200,16 @@ Evidence: `/api/drafts?purpose=source_content_boost` 返回1条、`/api/drafts?p
 Result: pass
 Consecutive Failures: 0
 Next Action: 更新PRD线上页面、项目记忆并提交Git
+
+Date: 2026-09-04T23:55:00+08:00
+Step: scope-revision-original-effect-loop
+Scope: global
+Local URL / File: http://127.0.0.1:8765/#page=effects 、 `prd/AI热点发现与护卫军作业联动_PRD_v0.2.html`
+Tool: FastAPI TestClient＋Playwright＋Python/Node/YAML/HTML检查
+Command / Check: 在临时复制数据库中用已审批原创登记实际发布；写入2个同口径快照；提交create_followup_boost判断；检查草案目标隔离；浏览器从原创后效页跳转到草案；校验PRD功能/验收数量、溢出与控制台
+Passed: 发布登记、快照、增量、运营判断和二次加热草案链路完整；播放+800、点赞+28、评论+6；草案purpose=original_post_boost、target_submission_id正确、target_source_id为空；PRD为18项功能＋18项验收，无横向溢出，控制台0错误；配置校验9品牌、17查询、4提供方且0错误
+Failed: None
+Evidence: TestClient输出PUB/DRF标识和delta；Playwright截图`/tmp/df-hotspot-effect-ui.png`、`/tmp/df-hotspot-prd-effect.png`；前端可见后效导航、目标原创、触发判断和独立审批提醒
+Result: pass
+Consecutive Failures: 0
+Next Action: 使用真实发布链接连续观察，业务确认快照窗口、分平台增长口径及两类加热的动作/人数/频控

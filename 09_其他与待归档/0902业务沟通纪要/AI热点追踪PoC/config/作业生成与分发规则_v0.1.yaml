@@ -102,6 +102,22 @@ task_draft_templates:
       - repost
       - favorite
     risk_rule: "运营确认目标内容、平台、动作、人数和时间窗；禁止集中刷量、复制统一评论和超出证据的表述"
+  original_post_boost:
+    task_type: original_post_boost
+    extra_required_fields:
+      - target_submission_id
+      - trigger_evaluation_id
+      - target_url
+      - target_content_title
+      - engagement_actions
+    target_rule: "必须绑定已审批原创的实际发布记录和后效判断，不得使用热点源内容的target_source_id"
+    generation_rule: "至少两个同一内容、同一平台、同口径快照后，由运营选择create_followup_boost才生成二次加热草案"
+    supported_actions:
+      - like
+      - positive_comment
+      - repost
+      - favorite
+    risk_rule: "指标缺失、口径不同或数值回退时进入人工核验；二次加热仍需独立审批，不自动执行互动"
   hotspot_disclaimer_rule: "事件仅来自搜索来源时，草案必须显示‘公开信息线索，非真实热点结论’，不得使用爆发、热搜、全网热议等未经原生数据证明的表述"
   default_status: draft_pending_review
 
@@ -135,7 +151,28 @@ source_content_boost:
     - operator_business_judgement
   note: "当前公开搜索不能证明真实热点，PoC仅在运营确认值得行动后生成源文章/视频加热草案；不自动发布"
 
+boost_followup:
+  trigger_metric_source: existing_engagement_collector
+  auto_publish_enabled: false
+  note: "兼容配置校验入口；后效数据可由现有采集器、业务推送或人工凭证补充，所有加热草案均需人工审批"
+
 original_post_performance_followup:
-  enabled: false
-  status: future_collaboration
-  note: "原创内容发布后的链接回填、效果快照和二次加热不属于本次两类业务问题，作为后续运营效果反馈能力另行设计"
+  enabled: true
+  status: poc_draft_only
+  publication_preconditions:
+    - "仅approved的original_growth草案可登记"
+    - "发布URL必须有效且唯一"
+  snapshot_sources:
+    - existing_collector
+    - business_push
+    - manual_evidence
+  evaluation_preconditions:
+    minimum_comparable_snapshots: 2
+    compare_scope: same_publication_same_platform_same_metric_schema
+    anomaly_rule: "缺失、口径变化或指标回退时进入人工核验，不生成二次加热草案"
+  decisions:
+    - create_followup_boost
+    - watch
+    - no_boost
+    - manual_review
+  note: "保留热点源内容直接加热；本能力是原创增长发布后的独立后效分支，只到二次加热草案审批，不执行互动"

@@ -275,6 +275,14 @@ datasets:
         - engagement_actions
         - recommended_platforms
         - target_member_tags
+      original_post_boost:
+        - target_submission_id
+        - trigger_evaluation_id
+        - target_url
+        - target_content_title
+        - engagement_actions
+        - recommended_platforms
+        - target_member_tags
     downstream_optional_fields:
       - published_task_id
       - actual_platforms

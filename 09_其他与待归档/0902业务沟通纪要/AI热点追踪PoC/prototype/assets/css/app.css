@@ -188,6 +188,45 @@ body { overflow: hidden; }
 .approval-record p { margin: 5px 0 0; color: var(--ink-600); font-size: 12px; }
 .check-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; }
 .check-grid label { padding: 8px 10px; display: flex; align-items: center; gap: 8px; background: #f7f8fa; border: 1px solid var(--line-200); border-radius: var(--radius-sm); color: var(--ink-700); }
+.effect-metrics { margin-bottom: 16px; }
+.effect-workspace { min-height: calc(100vh - 282px); display: grid; grid-template-columns: 330px minmax(0,1fr); background: #fff; border: 1px solid var(--line-200); border-radius: var(--radius-md); box-shadow: var(--shadow-card); overflow: hidden; }
+.effect-list { min-width: 0; background: #fafbfc; border-right: 1px solid var(--line-200); }
+.effect-list__item { width: 100%; padding: 12px; display: grid; gap: 7px; text-align: left; color: var(--ink-800); background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm); }
+.effect-list__item:hover { background: #f2f5f8; }
+.effect-list__item.is-active { background: #fff; border-color: #ccd8e9; box-shadow: 0 2px 8px rgba(31,45,65,.06); }
+.effect-detail { min-width: 0; padding: 20px 22px; overflow: auto; background: #fff; }
+.effect-origin { margin: 16px 0 12px; display: grid; grid-template-columns: 1fr 1fr 1.4fr; border: 1px solid var(--line-200); border-radius: var(--radius-sm); overflow: hidden; }
+.effect-origin > div { min-width: 0; padding: 12px 14px; border-right: 1px solid var(--line-200); }
+.effect-origin > div:last-child { border-right: 0; }
+.effect-origin span, .effect-origin strong, .effect-origin a { display: block; }
+.effect-origin span { margin-bottom: 5px; color: var(--ink-500); font-size: 10px; }
+.effect-origin strong { color: var(--ink-800); font-size: 12px; line-height: 1.5; }
+.effect-origin a { color: var(--blue-600); font-size: 11px; line-height: 1.45; word-break: break-all; }
+.effect-boundary { margin-bottom: 18px; padding: 12px 14px; display: flex; gap: 12px; color: #34577f; background: #f2f7fd; border: 1px solid #d7e4f3; border-left: 3px solid #6b8fc5; border-radius: var(--radius-sm); }
+.effect-boundary strong { padding-right: 12px; border-right: 1px solid #bed0e4; white-space: nowrap; font-size: 11px; }
+.effect-boundary span { font-size: 11px; line-height: 1.6; }
+.snapshot-timeline { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.snapshot-card { padding: 13px 14px; background: #fafbfc; border: 1px solid var(--line-200); border-radius: var(--radius-sm); }
+.snapshot-card header { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--line-100); }
+.snapshot-card header span { color: var(--blue-600); font-size: 10px; font-weight: 700; }
+.snapshot-card header strong { font-size: 11px; }
+.snapshot-card header small { color: var(--ink-500); font-size: 9px; }
+.snapshot-card > p { margin: 9px 0 0; color: var(--ink-600); font-size: 11px; line-height: 1.55; }
+.snapshot-card .snapshot-warning { color: #8a5a12; }
+.snapshot-metrics { margin-top: 10px; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 7px; }
+.snapshot-metrics > div { min-width: 0; padding: 8px; background: #fff; border: 1px solid var(--line-100); border-radius: 5px; }
+.snapshot-metrics span, .snapshot-metrics strong { display: block; }
+.snapshot-metrics span { overflow: hidden; color: var(--ink-500); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.snapshot-metrics strong { margin-top: 3px; color: var(--ink-900); font-size: 13px; }
+.effect-decision { padding: 14px; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; background: #f4f8ff; border: 1px solid #dce7f5; border-radius: var(--radius-sm); }
+.effect-decision.is-empty { display: flex; align-items: center; gap: 14px; color: var(--ink-600); background: #fafbfc; border-color: var(--line-200); }
+.effect-decision.is-empty strong { color: var(--ink-800); white-space: nowrap; }
+.effect-decision.is-empty span { font-size: 11px; line-height: 1.6; }
+.effect-decision > div > span, .effect-decision > div > strong { display: block; }
+.effect-decision > div > span { color: var(--ink-500); font-size: 10px; }
+.effect-decision > div > strong { margin-top: 5px; color: var(--ink-900); font-size: 13px; }
+.effect-decision .full { grid-column: 1 / -1; }
+.effect-decision .full p { margin: 5px 0 0; color: var(--ink-700); font-size: 12px; line-height: 1.65; }
 .config-tabs, .audit-tabs { min-height: 48px; display: flex; align-items: flex-end; gap: 4px; padding: 0 8px; background: #fff; border: 1px solid var(--line-200); border-bottom: 0; border-radius: var(--radius-md) var(--radius-md) 0 0; }
 .config-tab { min-height: 46px; padding: 0 16px; color: var(--ink-600); background: transparent; border: 0; border-bottom: 2px solid transparent; font-size: 12px; font-weight: 650; }
 .config-tab:hover { color: var(--ink-900); }
@@ -266,11 +305,14 @@ body { overflow: hidden; }
   .app-main { padding: 20px; }
   .placeholder-grid { grid-template-columns: 1fr; }
   .metrics-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
-  .event-workspace, .draft-workspace { grid-template-columns: 290px minmax(0,1fr); }
+  .event-workspace, .draft-workspace, .effect-workspace { grid-template-columns: 290px minmax(0,1fr); }
   .fact-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .fact-grid > div:nth-child(2) { border-right: 0; }
   .fact-grid > div:nth-child(-n+2) { border-bottom: 1px solid var(--line-200); }
-  .detail-columns, .draft-content { grid-template-columns: 1fr; }
+  .detail-columns, .draft-content, .effect-origin { grid-template-columns: 1fr; }
+  .effect-origin > div { border-right: 0; border-bottom: 1px solid var(--line-200); }
+  .effect-origin > div:last-child { border-bottom: 0; }
+  .snapshot-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .config-policy-strip, .stage-card { grid-template-columns: 1fr; }
   .automation-strip { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .automation-strip > div:nth-child(2) { border-right: 0; }

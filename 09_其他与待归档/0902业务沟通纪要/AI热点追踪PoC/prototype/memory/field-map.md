@@ -4,7 +4,7 @@
 
 - 页面、接口、数据库、执行步骤和验收使用稳定的 `FLD-*` 编号引用。
 - `Source ID` 引用 `memory/source-materials.md`。
-- 当前范围之外的正式任务执行、原创投稿回流、发布后效果和热点时序字段不进入本期页面与数据库主流程。
+- 正式任务执行仍在范围外；已审批原创的实际发布登记、后效快照与二次加热草案进入本期页面和数据库主流程。
 
 ## Fields
 
@@ -50,7 +50,7 @@
 | FLD-038 | SRC-003 | 事件审核 | `review_result` | 审核结果 | 单选 | pending/approved/approved_after_edit/rejected | 提交时必选 | 人工门槛 | 审核表单 |
 | FLD-039 | SRC-003 | 事件审核 | `reviewer`、`reviewed_at`、`review_note` | 审核人／时间／备注 | 身份＋时间＋文本 | operator | 驳回时备注必填 | 审计留痕 | 事件详情 |
 | FLD-040 | SRC-003 | 草案审批 | `task_draft_id` | 草案编号 | 文本 | 唯一值 | 不可为空 | 草案追溯 | 草案列表 |
-| FLD-041 | SRC-008 | 草案审批 | `task_type` | 作业类型 | 中文标签 | original_comment/original_content/source_content_boost | 必须与草案目的匹配 | 范围门槛 | 列表、表单 |
+| FLD-041 | SRC-008 | 草案审批 | `task_type` | 作业类型 | 中文标签 | original_comment/original_content/source_content_boost/original_post_boost | 必须与草案目的匹配 | 范围门槛 | 列表、表单 |
 | FLD-042 | SRC-008 | 草案审批 | `task_title`、`task_brief` | 标题／任务简述 | 标题＋富文本 | 运营可编辑 | 通过前必填 | AI 初稿非最终稿 | 草案详情 |
 | FLD-043 | SRC-008 | 草案审批 | `recommended_platforms` | 建议平台 | 多选标签 | 来自事件来源和内容适配 | 运营可调整 | 不等于正式分发 | 草案表单 |
 | FLD-044 | SRC-008 | 草案审批 | `target_member_tags` | 目标成员标签 | 多选标签 | 复用现有平台能力标签 | 未接接口时显示“待运营确认” | 选人建议 | 草案表单 |
@@ -66,11 +66,19 @@
 | FLD-054 | SRC-006 | 配置管理 | `domain_rules` | 来源识别规则 | 域名→平台／站点 | 优先级匹配 | 未命中 unresolved | 来源可解释 | 来源配置 |
 | FLD-055 | SRC-007 | 配置管理 | `processing_rules` | 处理规则 | 规则卡＋启停 | 无效／去重／聚合／关系／风险／热点准入 | 变更前校验并留痕 | 人类可读配置 | 规则配置 |
 | FLD-056 | SRC-013 | 配置管理 | `config_version`、`effective_at`、`changed_by` | 配置版本／生效 | 版本＋时间＋人 | 草稿／生效／停用 | 运行使用已冻结版本 | 防止改动污染历史 | 配置历史 |
-| FLD-057 | SRC-015 | 草案审批 | `draft_purpose` | 草案目的 | 类型标签 | original_growth/source_content_boost | 不可为空；两类草案分别审批 | 双路业务判断 | 列表、详情、筛选 |
+| FLD-057 | SRC-015 | 草案审批 | `draft_purpose` | 草案目的 | 类型标签 | original_growth/source_content_boost/original_post_boost | 不可为空；三类草案分别审批 | 作业路径判断 | 列表、详情、筛选 |
 | FLD-058 | SRC-015 | 事件审核／草案审批 | `target_source_id` | 加热目标来源 | 来源编号 | 必须属于当前事件证据 | 原创增长为空；源内容加热必填 | 目标归属校验 | 审核抽屉、草案详情 |
 | FLD-059 | SRC-015 | 草案审批 | `target_url` | 目标内容链接 | 可点击URL | 来自已选来源的规范链接 | 无效URL或非可互动目标时拒绝生成 | 作业执行对象 | 草案详情 |
 | FLD-060 | SRC-015 | 草案审批 | `target_content_title` | 目标内容标题 | 最多两行 | 继承已选来源标题 | 无标题时使用可追溯摘要并标记 | 确认加热对象 | 草案详情 |
 | FLD-061 | SRC-015 | 草案审批 | `engagement_actions` | 互动动作 | 多选标签 | like/positive_comment/share/favorite | 源内容加热至少一项；运营可调整，具体平台动作规则见SRC-008 | 动作建议 | 草案编辑 |
+| FLD-062 | 用户修订 | 原创后效追踪 | `publication_id`、`source_draft_id` | 发布记录／原草案 | 关联编号 | 仅关联 approved original_growth | 前置不满足拒绝登记 | 原创路径追溯 | 列表、详情 |
+| FLD-063 | 用户修订 | 原创后效追踪 | `publication_url`、`platform`、`platform_content_id` | 实际发布内容 | 可点击URL＋平台 | 支持平台枚举 | URL无效或重复拒绝；内容ID可空 | 实际观察对象 | 登记抽屉、详情 |
+| FLD-064 | 用户修订 | 原创后效追踪 | `published_at`、`registration_source` | 发布时间／登记来源 | 日期时间＋来源标签 | operator/business_push/import | 发布时间必填 | 登记证据 | 详情 |
+| FLD-065 | 用户修订 | 原创后效追踪 | `snapshot_at`、`data_source` | 快照时间／数据来源 | 日期时间＋来源标签 | existing_collector/business_push/manual_evidence | 时间必填 | 快照可追溯 | 快照列表 |
+| FLD-066 | 用户修订 | 原创后效追踪 | `metrics_json` | 指标快照 | 指标卡 | view_count/like_count/comment_count/share_count/favorite_count | 非负；无指标需不可用原因 | 同口径数据 | 快照列表 |
+| FLD-067 | 用户修订 | 原创后效追踪 | `delta_metrics_json`、`data_status` | 指标增量／数据状态 | 首末差值＋状态 | tracking/ready_for_evaluation/growth_observed/no_growth_observed/data_anomaly | 少于2快照不评价；回退为异常 | 确定性计算 | 详情、评价 |
+| FLD-068 | 用户修订 | 原创后效追踪 | `decision`、`decision_reason` | 后效结论／原因 | 单选＋文本 | create_followup_boost/watch/no_boost/manual_review | 提交时必填 | 人工门槛 | 评价抽屉 |
+| FLD-069 | 用户修订 | 草案审批 | `target_submission_id`、`trigger_evaluation_id` | 原创后二次加热目标／触发判断 | 关联编号 | 仅 original_post_boost 必填 | 不得与target_source_id混用 | 两类加热隔离 | 草案详情 |
 
 ## Open Field Questions
 

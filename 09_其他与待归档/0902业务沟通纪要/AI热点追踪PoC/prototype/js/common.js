@@ -9,7 +9,11 @@
     relevant_event_clue: ['相关事件线索', 'blue'], brand_content_opportunity: ['品牌内容机会', 'green'],
     watch: ['观察', 'neutral'], rejected: ['已驳回', 'red'], unknown: ['不可判定', 'neutral'],
     draft_pending_review: ['草案待审批', 'amber'], approved: ['已通过', 'green'],
-    completed: ['已完成', 'green'], in_progress: ['处理中', 'blue'], cancelled: ['已取消', 'neutral']
+    completed: ['已完成', 'green'], in_progress: ['处理中', 'blue'], cancelled: ['已取消', 'neutral'],
+    tracking: ['后效追踪中', 'blue'], ready_for_evaluation: ['可后效判断', 'amber'],
+    boost_draft_created: ['已生成二次加热草案', 'green'], closed: ['本次追踪已结束', 'neutral'],
+    growth_observed: ['观察到增长', 'green'], no_growth_observed: ['未观察到增长', 'neutral'],
+    data_anomaly: ['指标异常', 'red']
   };
 
   async function api(path, options) {

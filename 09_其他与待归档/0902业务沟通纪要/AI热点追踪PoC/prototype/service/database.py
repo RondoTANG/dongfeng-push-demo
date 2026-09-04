@@ -38,9 +38,28 @@ def connection() -> Iterable[sqlite3.Connection]:
 
 def init_database() -> None:
     with connection() as db:
-        for statement in SCHEMA_STATEMENTS:
+        followup_markers = (
+            "original_publications",
+            "publication_metric_snapshots",
+            "publication_evaluations",
+            "idx_publications_status",
+            "idx_snapshots_publication",
+            "idx_evaluations_publication",
+        )
+        base_statements = [
+            statement for statement in SCHEMA_STATEMENTS
+            if not any(marker in statement for marker in followup_markers)
+        ]
+        followup_statements = [
+            statement for statement in SCHEMA_STATEMENTS
+            if any(marker in statement for marker in followup_markers)
+        ]
+        for statement in base_statements:
             db.execute(statement)
         _migrate_task_drafts(db)
+        _migrate_task_drafts_followup(db)
+        for statement in followup_statements:
+            db.execute(statement)
 
 
 def _migrate_task_drafts(db: sqlite3.Connection) -> None:
@@ -97,6 +116,67 @@ def _migrate_task_drafts(db: sqlite3.Connection) -> None:
         """
     )
     db.execute("DROP TABLE task_drafts_legacy")
+
+
+def _migrate_task_drafts_followup(db: sqlite3.Connection) -> None:
+    """增加原创发布后效分支所需的投稿目标字段，并修正多目标唯一键。"""
+    columns = {row[1] for row in db.execute("PRAGMA table_info(task_drafts)").fetchall()}
+    if not columns or "target_submission_id" in columns:
+        return
+    db.execute("ALTER TABLE task_drafts RENAME TO task_drafts_before_followup")
+    db.execute(
+        """
+        CREATE TABLE task_drafts (
+            task_draft_id TEXT PRIMARY KEY,
+            event_id TEXT NOT NULL,
+            draft_purpose TEXT NOT NULL DEFAULT 'original_growth',
+            target_source_id TEXT NOT NULL DEFAULT '',
+            target_submission_id TEXT NOT NULL DEFAULT '',
+            trigger_evaluation_id TEXT,
+            target_url TEXT,
+            target_content_title TEXT,
+            task_type TEXT NOT NULL,
+            task_title TEXT NOT NULL,
+            task_brief TEXT NOT NULL,
+            recommended_platforms_json TEXT NOT NULL DEFAULT '[]',
+            target_member_tags_json TEXT NOT NULL DEFAULT '[]',
+            engagement_actions_json TEXT NOT NULL DEFAULT '[]',
+            response_deadline TEXT,
+            evidence_source_ids_json TEXT NOT NULL DEFAULT '[]',
+            prohibited_claims_json TEXT NOT NULL DEFAULT '[]',
+            risk_notes_json TEXT NOT NULL DEFAULT '[]',
+            task_status TEXT NOT NULL DEFAULT 'draft_pending_review',
+            reviewer TEXT,
+            review_note TEXT,
+            reviewed_at TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE (event_id, draft_purpose, target_source_id, target_submission_id),
+            FOREIGN KEY (event_id) REFERENCES events(event_id)
+        )
+        """
+    )
+    db.execute(
+        """
+        INSERT INTO task_drafts (
+            task_draft_id, event_id, draft_purpose, target_source_id,
+            target_submission_id, trigger_evaluation_id, target_url,
+            target_content_title, task_type, task_title, task_brief,
+            recommended_platforms_json, target_member_tags_json,
+            engagement_actions_json, response_deadline, evidence_source_ids_json,
+            prohibited_claims_json, risk_notes_json, task_status, reviewer,
+            review_note, reviewed_at, created_at, updated_at
+        )
+        SELECT task_draft_id, event_id, draft_purpose, target_source_id,
+            '', NULL, target_url, target_content_title, task_type, task_title,
+            task_brief, recommended_platforms_json, target_member_tags_json,
+            engagement_actions_json, response_deadline, evidence_source_ids_json,
+            prohibited_claims_json, risk_notes_json, task_status, reviewer,
+            review_note, reviewed_at, created_at, updated_at
+        FROM task_drafts_before_followup
+        """
+    )
+    db.execute("DROP TABLE task_drafts_before_followup")
 
 
 def decode_row(row: sqlite3.Row | None) -> dict[str, Any] | None:
