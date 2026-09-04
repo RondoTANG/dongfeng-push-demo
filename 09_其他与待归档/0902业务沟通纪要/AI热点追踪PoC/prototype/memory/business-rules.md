@@ -15,8 +15,10 @@
 
 1. 一个运行批次冻结触发方式、开始／结束时间、配置版本、查询覆盖和提供方结果。
 2. 基础查询必须覆盖配置中的 9 个品牌和 8 个行业主题；行业主题命中后再执行与 9 个品牌的关联验证，不轮换、不抽样。
-3. 豆包提供真实公开搜索返回；Codex 领取补证或分析工作项后通过指定接口回传，不直接修改数据库。
+3. 豆包 Global Search 与 Codex 公开搜索使用同一查询目录执行基础搜索；Codex 使用本机已登录 CLI，不另要求 API Key。两路结果统一入库且保留各自发现路径。
 4. 提供方失败、超时、无结果和结构异常必须记录真实状态，允许按规则重试，不生成假数据。
+5. 自动每3小时采集默认暂停；启动本地服务不得触发付费搜索。完整运行只能由人工确认发起。
+6. 完整运行的服务端冷却时间为3小时，快速验证为10分钟；冷却期内拒绝重复运行，不仅依赖页面按钮置灰。
 
 ## 来源处理规则
 
@@ -48,7 +50,7 @@
 4. 源内容加热草案必须额外包含 `target_source_id`、目标平台、目标URL、目标内容标题和互动动作。目标来源必须属于当前事件证据，且平台与链接可执行。
 5. 官网列表页、普通网页、平台不明、无有效URL或无法确认可互动状态的来源，不可生成源内容加热草案；页面应说明具体原因。
 6. 建议平台依据事件来源与内容适配度；建议成员标签使用护卫军现有平台能力标签并允许运营调整。
-7. 运营可选择通过、修改后通过或驳回；通过只代表“草案确认”，不代表已正式下发或已执行互动。
+7. 运营对草案只可选择通过或驳回；如需修改，先编辑草案再提交通过。通过只代表“草案确认”，不代表已正式下发或已执行互动。
 8. 只有 `original_growth` 且状态为 `approved` 的草案可以登记实际发布；发布URL必须有效且不可重复。
 9. 后效快照来自 `existing_collector`、`business_push` 或 `manual_evidence`；只比较同一发布记录、同一平台、同一指标口径，至少两个快照后才允许评价。
 10. 指标缺失、口径不同或数值回退时为 `data_anomaly`，不得自动生成二次加热草案。
@@ -61,7 +63,7 @@
 - 查询：`pending`、`running`、`success`、`no_result`、`failed`。
 - 来源：`valid`、`invalid`、`fetch_failed`、`pending_review`。
 - 关系：`direct_mention`、`verified_relation`、`no_relation`、`unresolved`。
-- 事件：`needs_evidence`、`pending_review`、`relevant_event_clue`、`brand_content_opportunity`、`manual_review`、`watch`、`rejected`。
+- 事件：`pending_review`、`relevant_event_clue`、`brand_content_opportunity`、`rejected`。
 - 热点：本期固定 `unknown`；其他枚举仅为未来标准数据源预留。
 - 草案目的：`original_growth`、`source_content_boost`、`original_post_boost`。
 - 草案：`draft_pending_review`、`approved`、`rejected`。
@@ -79,7 +81,7 @@
 - 未配置凭证：运行失败并提示配置方式，不回显 Key。
 - 无搜索结果：查询标记 `no_result`，批次可为部分成功或成功但零结果。
 - 全部自动无效：运行完成但明确显示“无有效线索”，不生成事件。
-- AI 补证未完成：事件保持 `needs_evidence`，运营可以人工补证或暂缓。
+- 补证请求未完成：事件保持 `pending_review`；补证计划须先展示问题、查询词、提供方和预计调用次数，人工确认后才执行。
 - 无法判定热点：不作为系统错误，必须展示不可判定原因。
 - 来源页面不可访问：保留原始索引和失败原因，不能作为唯一确定性证据。
 

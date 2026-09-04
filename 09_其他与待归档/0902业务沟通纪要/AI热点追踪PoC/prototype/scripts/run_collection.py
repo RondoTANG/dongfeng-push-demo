@@ -29,6 +29,12 @@ def main() -> int:
     parser.add_argument("--trigger-type", choices=["manual", "schedule"], default="manual")
     parser.add_argument("--idempotency-key")
     parser.add_argument("--timeout", type=int, default=30)
+    parser.add_argument(
+        "--provider",
+        action="append",
+        choices=["doubao_global_search", "codex_web_search"],
+        help="诊断时可重复指定；默认同时执行豆包和 Codex",
+    )
     parser.add_argument("--skip-aggregate", action="store_true", help="仅采集来源，不生成统一事件")
     args = parser.parse_args()
     try:
@@ -38,6 +44,7 @@ def main() -> int:
             trigger_type=args.trigger_type,
             idempotency_key=idempotency_key,
             timeout=args.timeout,
+            providers=tuple(args.provider or ["doubao_global_search", "codex_web_search"]),
         )
         run = get_run(run_id) or {}
         aggregation = {"events_created": 0, "evidence_links": 0}
@@ -51,6 +58,7 @@ def main() -> int:
             "mode": args.mode,
             "run_status": run.get("status"),
             "query_coverage": run.get("query_coverage"),
+            "provider_summary": run.get("provider_summary"),
             "source_processing": (run.get("step_summary") or {}).get("source_processing"),
             "aggregation": aggregation,
             "exit_category": "success" if run.get("status") == "success" else "partial_success" if run.get("status") == "partial_success" else "failed",

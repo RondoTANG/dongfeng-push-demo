@@ -52,6 +52,7 @@ url_normalization:
   preserve_original_url: true
   deduplicate_by_canonical_url: true
   merge_retrieved_by_when_same_url: true
+  discovery_trace_rule: "同一URL的每次工具发现、查询词和搜索时间写入source_discoveries，不覆盖历史发现路径"
 
 source_resolution:
   config_ref: "来源平台字典_v0.1.yaml"
@@ -72,12 +73,12 @@ time_normalization:
     - medium
     - low
     - unknown
-  missing_time_action: "进入watch，不得默认当前时间"
+  missing_time_action: "进入pending_review并写明时间不可确认，不得默认当前时间"
   window_rules:
     - window: "0-24h"
       action: eligible
     - window: "24-72h"
-      action: "仅有新增事实、新回应或传播增长时进入watch，否则auto_discard"
+      action: "仅有新增事实或新回应时进入pending_review，否则auto_discard"
     - window: ">72h"
       action: "无新增事实时auto_discard"
 
@@ -109,7 +110,7 @@ entity_resolution:
 content_deduplication:
   levels:
     - level: exact_url
-      action: "合并为一个source_item，累加retrieved_by和query_ids"
+      action: "合并为一个source_item；工具、查询词、搜索时间逐条写入source_discoveries"
     - level: exact_content_fingerprint
       action: "保留一个正文记录，其他记录标记duplicate_of_source_id"
     - level: repost
@@ -169,7 +170,7 @@ risk_gate:
     - intelligent_driving_l3
     - negative_sentiment
     - fact_conflict
-  high_risk_action: manual_review
+  high_risk_action: pending_review
   ai_may_clear_high_risk: false
 
 event_decision:
@@ -188,18 +189,17 @@ event_decision:
       - "存在明确新增事实"
       - "属于品牌主动内容机会，不声称已形成外部热点"
       - "不存在未解除的高风险门禁"
-  - status: manual_review
+  - status: pending_review
     any_conditions:
       - "命中高风险标签"
       - "只有单一二手来源但事件可能有作业价值"
       - "事实、主体或时间存在冲突"
       - "品牌关系为unresolved"
       - "entity_uncertainties非空，包含无法确认的车型、人物、活动或机构关系"
-  - status: watch
-    any_conditions:
       - "时间缺失但来源可访问"
-      - "24至72小时内出现新增回应或传播增长"
-      - "事件有效但尚不满足任务生成条件"
+  - status: rejected
+    conditions:
+      - "运营审核认定不值得生成作业，或事实证据不足且无明确可补证路径"
 
 task_generation:
   allowed_event_status:

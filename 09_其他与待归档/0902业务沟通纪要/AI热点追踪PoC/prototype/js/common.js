@@ -9,7 +9,8 @@
     relevant_event_clue: ['相关事件线索', 'blue'], brand_content_opportunity: ['品牌内容机会', 'green'],
     watch: ['观察', 'neutral'], rejected: ['已驳回', 'red'], unknown: ['不可判定', 'neutral'],
     draft_pending_review: ['草案待审批', 'amber'], approved: ['已通过', 'green'],
-    completed: ['已完成', 'green'], in_progress: ['处理中', 'blue'], cancelled: ['已取消', 'neutral'],
+    completed: ['已完成', 'green'], in_progress: ['处理中', 'blue'], running: ['执行中', 'blue'], cancelled: ['已取消', 'neutral'],
+    pending_confirmation: ['补证方案待确认', 'violet'], plan_pending_confirmation: ['历史补证方案待确认', 'violet'], confirmed: ['已确认待执行', 'blue'],
     tracking: ['后效追踪中', 'blue'], ready_for_evaluation: ['可后效判断', 'amber'],
     boost_draft_created: ['已生成二次加热草案', 'green'], closed: ['本次追踪已结束', 'neutral'],
     growth_observed: ['观察到增长', 'green'], no_growth_observed: ['未观察到增长', 'neutral'],
@@ -35,6 +36,7 @@
     if (!response.ok) {
       var detail = payload && payload.detail ? payload.detail : ('请求失败（HTTP ' + response.status + '）');
       if (Array.isArray(detail)) detail = detail.map(function (item) { return item.msg; }).join('；');
+      if (detail && typeof detail === 'object') detail = detail.message || JSON.stringify(detail);
       var error = new Error(detail);
       error.status = response.status;
       error.payload = payload;
@@ -64,6 +66,10 @@
     return '<span class="status-tag status-' + meta[1] + '">' + escapeHtml(meta[0]) + '</span>';
   }
 
+  function providerName(provider) {
+    return ({ doubao_global_search: '豆包搜索', codex_web_search: 'Codex搜索', existing_url_parse: '已有网页解析', manual_link: '人工补充链接' })[provider] || provider || '未知来源';
+  }
+
   function showToast(message, type) {
     var root = document.getElementById('toast-root');
     if (!root) return;
@@ -79,6 +85,7 @@
     escapeHtml: escapeHtml,
     formatTime: formatTime,
     statusTag: statusTag,
+    providerName: providerName,
     statusMeta: STATUS_META,
     showToast: showToast
   };

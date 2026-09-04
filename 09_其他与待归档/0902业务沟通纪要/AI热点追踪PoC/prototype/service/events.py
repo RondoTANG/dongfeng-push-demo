@@ -140,12 +140,12 @@ def aggregate_run(run_id: str) -> dict[str, int]:
             official = source.get("source_platform") == "brand_official_website"
             mentions, uncertainties = _entity_resolution(text, source["source_id"], official)
             risks = _risk_tags(text)
-            if risks or uncertainties or not brands:
-                event_status = "manual_review"
-            elif official:
-                event_status = "brand_content_opportunity"
-            else:
-                event_status = "needs_evidence"
+            event_status = "pending_review"
+            suggested_conclusion = (
+                "品牌内容机会" if official and not risks and not uncertainties and brands
+                else "相关事件线索" if not risks and not uncertainties and brands
+                else "存在风险、实体或品牌关系存疑"
+            )
             brand_relations = brands or [
                 {
                     "brand_id": None,
@@ -184,7 +184,7 @@ def aggregate_run(run_id: str) -> dict[str, int]:
                             json_text(HOTSPOT_MISSING),
                             json_text(HOTSPOT_MISSING),
                             event_status,
-                            "公开搜索已形成事件线索；是否值得生成作业需运营结合证据审核。",
+                            f"公开搜索已形成事件线索；系统建议按“{suggested_conclusion}”方向研判，最终是否通过及生成何种作业由运营审核。",
                             timestamp,
                             timestamp,
                         ),
@@ -249,7 +249,7 @@ def aggregate_run(run_id: str) -> dict[str, int]:
     return {"events_created": created, "evidence_links": linked}
 
 
-def list_events(status: str | None = None, run_id: str | None = None, limit: int = 200) -> list[dict[str, Any]]:
+def list_events(status: str | None = None, run_id: str | None = None, limit: int = 200, offset: int = 0) -> list[dict[str, Any]]:
     conditions: list[str] = []
     params: list[Any] = []
     if status:
@@ -259,8 +259,17 @@ def list_events(status: str | None = None, run_id: str | None = None, limit: int
         conditions.append("run_id=?")
         params.append(run_id)
     where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
-    params.append(limit)
-    return fetch_all(f"SELECT * FROM events {where} ORDER BY event_date DESC, created_at DESC LIMIT ?", tuple(params))
+    params.extend([limit, offset])
+    return fetch_all(f"SELECT * FROM events {where} ORDER BY event_date DESC, created_at DESC LIMIT ? OFFSET ?", tuple(params))
+
+
+def count_events(status: str | None = None, run_id: str | None = None) -> int:
+    conditions: list[str] = []; params: list[Any] = []
+    if status: conditions.append("event_status=?"); params.append(status)
+    if run_id: conditions.append("run_id=?"); params.append(run_id)
+    where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+    row = fetch_one(f"SELECT COUNT(*) total FROM events {where}", tuple(params)) or {}
+    return int(row.get("total") or 0)
 
 
 def get_event(event_id: str) -> dict[str, Any] | None:
@@ -278,6 +287,7 @@ def get_event(event_id: str) -> dict[str, Any] | None:
     )
     event["work_items"] = fetch_all("SELECT * FROM codex_work_items WHERE event_id=? ORDER BY created_at", (event_id,))
     event["reviews"] = fetch_all("SELECT * FROM candidate_reviews WHERE event_id=? ORDER BY reviewed_at DESC", (event_id,))
+    event["evidence_requests"] = fetch_all("SELECT * FROM evidence_requests WHERE event_id=? ORDER BY created_at DESC", (event_id,))
     return event
 
 
@@ -326,7 +336,7 @@ def split_event(event_id: str, source_ids: list[str], new_title: str, actor_id: 
             ) SELECT ?, run_id, ?, primary_entity_id_or_name, ?, event_date, ?, ?,
                 source_platforms_json, brand_relations_json, entity_mentions_json,
                 entity_uncertainties_json, risk_tags_json, missing_evidence_json, 0,
-                'unknown', hotspot_unavailable_reason_json, 'manual_review',
+                'unknown', hotspot_unavailable_reason_json, 'pending_review',
                 '由运营从原事件人工拆分，需重新审核。', ?, ? FROM events WHERE event_id=?
             """,
             (new_event_id, new_title, new_title, len(source_ids), len(source_ids), timestamp, timestamp, event_id),

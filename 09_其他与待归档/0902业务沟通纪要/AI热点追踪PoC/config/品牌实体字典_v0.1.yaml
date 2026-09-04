@@ -35,7 +35,7 @@ event_entity_resolution:
     - "车型与品牌、人物与职务、活动与品牌之间的关系存在冲突"
     - "只有单一弱来源或搜索摘要，无法打开正文核验"
     - "名称存在同名、简称、错别字或时间版本歧义"
-  uncertain_action: "写入event.entity_uncertainties，并将该事件置为manual_review"
+  uncertain_action: "写入event.entity_uncertainties，并将该事件置为pending_review，和事件证据一起由运营判断"
   required_uncertainty_fields:
     - entity_name_raw
     - entity_type

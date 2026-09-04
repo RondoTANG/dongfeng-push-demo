@@ -98,8 +98,9 @@
       btn = document.createElement('button');
       btn.id = 'anno-toggle-btn';
       btn.type = 'button';
-      btn.title = '显示/隐藏标注';
-      btn.textContent = '●';
+      btn.title = '显示或隐藏产品说明标注';
+      btn.setAttribute('aria-label', '显示或隐藏产品说明标注');
+      btn.textContent = '产品标注';
       btn.addEventListener('click', function () {
         visible = !visible;
         btn.classList.toggle('anno-hidden', !visible);

@@ -24,10 +24,10 @@ task_type_mapping:
       - original_content
       - source_content_boost
     default_task_type: original_content
-  manual_review:
+  pending_review:
     allowed_task_types: []
     default_task_type: null
-  watch:
+  rejected:
     allowed_task_types: []
     default_task_type: null
 
@@ -36,6 +36,8 @@ platform_recommendation:
   supported_target_platforms:
     - weibo
     - douyin
+    - xiaohongshu
+    - toutiao
     - wechat_official_account
     - wechat_channels
   rules:

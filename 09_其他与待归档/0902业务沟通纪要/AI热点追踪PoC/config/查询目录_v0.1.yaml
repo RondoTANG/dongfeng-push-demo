@@ -19,6 +19,29 @@ execution:
   page_open_provider:
     - codex_web_search
   provider_failure_policy: "记录失败并继续其他采集器；不得把未执行视为无结果"
+  provider_job_counts:
+    full:
+      query_count: 17
+      provider_count: 2
+      planned_job_count: 34
+    quick:
+      query_count: 1
+      provider_count: 2
+      planned_job_count: 2
+  manual_cooldown:
+    full_seconds: 10800
+    quick_seconds: 600
+    enforcement: server_side
+    duplicate_action: "拒绝重复启动并返回剩余等待时间；不得只依赖前端按钮置灰"
+  manual_confirmation:
+    required: true
+    display_fields:
+      - query_count
+      - provider_count
+      - planned_job_count
+      - providers
+  schedule_state: paused
+  schedule_note: "自动采集暂停；仅保留手工完整运行、快速验证和确认后的定向补证"
 
 brand_queries:
   - query_id: B01
@@ -112,6 +135,16 @@ industry_brand_relation:
 
 evidence_expansion:
   enabled: true
+  execution_mode: preview_then_confirm
+  preview_required: true
+  preview_fields:
+    - unresolved_question
+    - proposed_queries
+    - proposed_providers
+    - planned_call_count
+    - requester
+  confirm_required: true
+  no_clear_question_action: reject_or_return_to_review
   trigger_conditions:
     - "只有品牌官方来源，没有独立外部来源"
     - "只有二手来源，没有官方事实"

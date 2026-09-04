@@ -188,6 +188,19 @@ Result: pass
 Consecutive Failures: 0
 Next Action: 进入S9手动标注提示词准备
 
+Date: 2026-09-05T02:34:10+08:00
+Step: service-and-prototype-revision
+Scope: global
+Local URL / File: http://127.0.0.1:8765/ 、 `prd/AI热点发现与护卫军作业联动_PRD_v0.2.html`
+Tool: prototype-verifier＋verification-before-completion＋Playwright＋服务单元测试
+Command / Check: 执行8项Python单测、Python compileall、全部业务JS语法检查、6份YAML解析与validate_config、PRD/交互/流程HTML解析、11个核心API请求、7页Playwright烟测；抽查双路发现、部分成功、旧闻过滤、补证确认、事件审核、完整作业要求和服务端分页
+Passed: 豆包＋Codex双路快速任务为2项；同URL保留2条发现记录；单路失败为partial_success；120天旧闻不进事件；补证未确认时不生成job；原创草案含四段完整要求；25条线索按10条分页无重复；7个页面均显示本地服务正常，无4xx和控制台错误；自动采集显示已暂停
+Failed: None
+Evidence: `tests/ui_smoke_result.json`、`tests/prd_html_final.png`；`unittest` 8/8通过；11个API均200；`validate_config.py` errors=[]
+Result: pass
+Consecutive Failures: 0
+Next Action: 保持自动采集暂停；由运营决定何时手工发起一次快速双路真实验证
+
 Date: 2026-09-04T18:10:00+08:00
 Step: scope-revision-dual-draft
 Scope: global
@@ -213,3 +226,16 @@ Evidence: TestClient输出PUB/DRF标识和delta；Playwright截图`/tmp/df-hotsp
 Result: pass
 Consecutive Failures: 0
 Next Action: 使用真实发布链接连续观察，业务确认快照窗口、分平台增长口径及两类加热的动作/人数/频控
+
+Date: 2026-09-05T02:05:00+08:00
+Step: scope-revision-main-loop-and-source-branch
+Scope: global
+Local URL / File: http://127.0.0.1:8765/ 、 `prd/AI热点发现与护卫军作业联动_PRD_v0.2.html` 、 `prd/供应商热点数据采集与交付标准.md`
+Tool: Playwright＋Python／Node／YAML／HTML检查＋文档静态检索
+Command / Check: 统一核查PRD、HTML、事件审核、草案、原创后效、配置和供应商数据要求；验证原创增长主链、原创发布后追加加热和关联源内容直加支路的页面表达与数据目的
+Passed: 事件审核明确“原创增长｜主链”和“关联内容直接加热｜补充支路”；草案页保留原创发布后追加加热；后效页只追踪已发布原创；供应商要求同时覆盖原创发布链接与热点关联源内容链接的连续快照；PRD HTML为18项功能＋18项验收、无横向溢出且控制台0错误；JS、Python、9品牌／17查询配置校验全部通过
+Failed: None
+Evidence: Playwright断言事件审核2条行动路径、草案页主链说明、后效页主闭环说明均可见；`verify_prd_html.py`通过；`validate_config.py`为0错误；`git diff --check`通过
+Result: pass
+Consecutive Failures: 0
+Next Action: 使用真实原创发布链接与热点关联文章／视频链接分别验证连续快照，并由业务确认两类加热的动作、人数与频控口径

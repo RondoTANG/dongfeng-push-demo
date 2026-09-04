@@ -36,14 +36,21 @@ def _publication_detail(publication: dict[str, Any]) -> dict[str, Any]:
     return publication
 
 
-def list_publications(status: str | None = None, limit: int = 200) -> list[dict[str, Any]]:
+def list_publications(status: str | None = None, limit: int = 200, offset: int = 0) -> list[dict[str, Any]]:
     where = "WHERE tracking_status=?" if status else ""
-    params: tuple[Any, ...] = (status, limit) if status else (limit,)
+    params: tuple[Any, ...] = (status, limit, offset) if status else (limit, offset)
     rows = fetch_all(
-        f"SELECT * FROM original_publications {where} ORDER BY submitted_at DESC LIMIT ?",
+        f"SELECT * FROM original_publications {where} ORDER BY submitted_at DESC LIMIT ? OFFSET ?",
         params,
     )
     return [_publication_detail(item) for item in rows]
+
+
+def count_publications(status: str | None = None) -> int:
+    where = "WHERE tracking_status=?" if status else ""
+    params = (status,) if status else ()
+    row = fetch_one(f"SELECT COUNT(*) total FROM original_publications {where}", params) or {}
+    return int(row.get("total") or 0)
 
 
 def get_publication(publication_id: str) -> dict[str, Any] | None:

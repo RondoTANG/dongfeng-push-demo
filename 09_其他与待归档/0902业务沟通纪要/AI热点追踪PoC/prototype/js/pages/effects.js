@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var state = { publications: [], approvedDrafts: [], selected: null, loading: true, error: null, status: '' };
+  var state = { publications: [], approvedDrafts: [], selected: null, loading: true, error: null, status: '', page: 1, pageSize: 20, total: 0 };
   var platformNames = { weibo: '微博', douyin: '抖音', wechat_official_account: '公众号', wechat_channels: '视频号', toutiao: '今日头条', xiaohongshu: '小红书', bilibili: 'B站', autohome: '汽车之家', dongchedi: '懂车帝' };
   var metricNames = { view_count: '播放／阅读', like_count: '点赞', comment_count: '评论', share_count: '转发', favorite_count: '收藏' };
   var decisionNames = { create_followup_boost: '生成二次加热草案', watch: '继续观察', no_boost: '无需加热', manual_review: '数据人工核验' };
@@ -27,7 +27,7 @@
           '<span class="event-queue__title">' + AppCommon.escapeHtml(item.content_title || (item.original_draft || {}).task_title || '未命名原创内容') + '</span>' +
           '<span class="event-queue__meta"><span>' + AppCommon.escapeHtml(platformNames[item.platform] || item.platform) + '</span>' + AppCommon.statusTag(item.tracking_status) + '</span>' +
           '<span class="event-queue__heat">' + (item.snapshots || []).length + ' 个指标快照 · ' + AppCommon.escapeHtml(item.latest_evaluation ? decisionNames[item.latest_evaluation.decision] : '尚未判断') + '</span></button>';
-      }).join('') : '<div class="empty-state compact"><span>当前筛选下暂无原创发布记录</span></div>') + '</div></aside>';
+      }).join('') : '<div class="empty-state compact"><span>当前筛选下暂无原创发布记录</span></div>') + '</div>' + DataTable.pagination(state.page, state.pageSize, state.total, 'data-effect-page') + '</aside>';
   }
 
   function metricCells(metrics) {
@@ -63,7 +63,7 @@
     var event = publication.event || {};
     return '<section class="effect-detail" data-anno="original-effect-loop"><header class="event-detail-head"><div><div class="event-kicker"><span class="mono">' + publication.publication_id + '</span>' + AppCommon.statusTag(publication.tracking_status) + '</div><h2>' + AppCommon.escapeHtml(publication.content_title || draft.task_title || '未命名原创内容') + '</h2><div class="tag-row"><span class="mini-tag">' + AppCommon.escapeHtml(platformNames[publication.platform] || publication.platform) + '</span><span class="mini-tag">发布：' + AppCommon.formatTime(publication.published_at) + '</span></div></div><div class="page-head__actions"><button class="btn" data-create-publication>登记另一条</button><button class="btn" data-add-snapshot>录入指标快照</button><button class="btn btn-primary" data-evaluate-publication>后效判断</button></div></header>' +
       '<div class="effect-origin"><div><span>关联事件</span><strong>' + AppCommon.escapeHtml(event.event_title || publication.event_id) + '</strong></div><div><span>来源原创草案</span><strong>' + AppCommon.escapeHtml(draft.task_title || publication.original_draft_id) + '</strong></div><div><span>原创链接</span><a href="' + AppCommon.escapeHtml(publication.content_url) + '" target="_blank" rel="noopener">' + AppCommon.escapeHtml(publication.content_url) + '</a></div></div>' +
-      '<div class="effect-boundary"><strong>该分支只追踪已发布原创内容</strong><span>热点源内容加热仍直接绑定事件中的外部文章或视频，两者目标内容、触发条件和草案类型互不替代。</span></div>' +
+      '<div class="effect-boundary"><strong>这是原创增长的主闭环：只追踪已发布原创内容</strong><span>热点关联内容直接加热是额外支路，绑定事件中的外部文章或视频；两者目标内容、触发条件和草案类型互不替代。</span></div>' +
       '<section class="detail-section"><h3>后效指标快照</h3>' + renderSnapshots(publication) + '</section>' +
       '<section class="detail-section"><h3>增长与二次加热判断</h3>' + renderEvaluation(publication) + '</section></section>';
   }
@@ -75,7 +75,7 @@
   }
 
   function render() {
-    return '<section class="page page-wide">' + Layout.pageHead('原创后效追踪', '原创发布后回收链接与指标快照，判断是否需要生成独立的二次加热草案', '<button class="btn btn-primary" data-create-publication>登记原创发布结果</button>') + '<div id="effects-content">' + renderContent() + '</div></section>';
+    return '<section class="page page-wide">' + Layout.pageHead('原创后效追踪', '原创增长主闭环：发布后回收链接与指标快照，判断是否需要追加加热', '<button class="btn btn-primary" data-create-publication>登记原创发布结果</button>') + '<div id="effects-content">' + renderContent() + '</div></section>';
   }
 
   function update() { var root = document.getElementById('effects-content'); if (root) root.innerHTML = renderContent(); }
@@ -83,8 +83,9 @@
   async function load(preferredId) {
     state.loading = true; state.error = null; update();
     try {
-      var results = await Promise.all([AppCommon.api('/api/publications?limit=500'), AppCommon.api('/api/drafts?purpose=original_growth&status=approved&limit=500')]);
-      state.publications = results[0].items; state.approvedDrafts = results[1].items;
+      var publicationUrl = '/api/publications?page=' + state.page + '&page_size=' + state.pageSize + (state.status ? '&status=' + encodeURIComponent(state.status) : '');
+      var results = await Promise.all([AppCommon.api(publicationUrl), AppCommon.api('/api/drafts?purpose=original_growth&status=approved&page=1&page_size=100')]);
+      state.publications = results[0].items; state.total = results[0].total || 0; state.approvedDrafts = results[1].items;
       var id = preferredId || (state.publications[0] && state.publications[0].publication_id);
       state.selected = id ? await AppCommon.api('/api/publications/' + id) : null;
     } catch (error) { state.error = error.message; }
@@ -129,7 +130,7 @@
       Object.keys(metricNames).forEach(function (key) { var raw = root.querySelector('[name="' + key + '"]').value; if (raw !== '') metrics[key] = Number(raw); });
       try {
         state.selected = await AppCommon.api('/api/publications/' + state.selected.publication_id + '/snapshots', { method: 'POST', body: JSON.stringify({ captured_at: root.querySelector('[name="captured_at"]').value, data_source: root.querySelector('[name="data_source"]').value, metrics: metrics, unavailable_reason: root.querySelector('[name="unavailable_reason"]').value.trim() || null, note: root.querySelector('[name="note"]').value.trim() || null, actor_id: '本地运营' }) });
-        drawer.close(); state.publications = (await AppCommon.api('/api/publications?limit=500')).items; update(); AppCommon.showToast('指标快照已保存', 'success');
+        drawer.close(); await load(state.selected.publication_id); AppCommon.showToast('指标快照已保存', 'success');
       } catch (error) { button.disabled = false; AppCommon.showToast(error.message, 'error'); }
     };
   }
@@ -145,7 +146,7 @@
       var root = drawer.element; var button = event.currentTarget; button.disabled = true;
       try {
         var result = await AppCommon.api('/api/publications/' + state.selected.publication_id + '/evaluate', { method: 'POST', body: JSON.stringify({ decision: root.querySelector('[name="decision"]').value, decision_reason: root.querySelector('[name="decision_reason"]').value.trim(), evaluated_by: '本地运营' }) });
-        drawer.close(); state.selected = result.publication; state.publications = (await AppCommon.api('/api/publications?limit=500')).items; update(); AppCommon.showToast(result.draft ? '后效判断已保存，并生成二次加热草案' : '后效判断已保存', 'success');
+        drawer.close(); await load(result.publication.publication_id); AppCommon.showToast(result.draft ? '后效判断已保存，并生成二次加热草案' : '后效判断已保存', 'success');
       } catch (error) { button.disabled = false; AppCommon.showToast(error.message, 'error'); }
     };
   }
@@ -159,8 +160,9 @@
       if (event.target.closest('[data-evaluate-publication]')) return openEvaluation();
       if (event.target.closest('[data-retry-action]')) return load();
       var draftButton = event.target.closest('[data-open-followup-draft]'); if (draftButton) { window.AppContext = { draftId: draftButton.dataset.openFollowupDraft }; return App.navigate('drafts'); }
+      var pageButton = event.target.closest('[data-effect-page]'); if (pageButton) { state.page += pageButton.dataset.effectPage === 'next' ? 1 : -1; return load(); }
     };
-    page.onchange = function (event) { if (event.target.matches('[data-effect-status-filter]')) { state.status = event.target.value; update(); } };
+    page.onchange = function (event) { if (event.target.matches('[data-effect-status-filter]')) { state.status = event.target.value; state.page = 1; load(); } };
   }
 
   window.Pages.effects = { render: render, init: function () { bind(); load(); } };

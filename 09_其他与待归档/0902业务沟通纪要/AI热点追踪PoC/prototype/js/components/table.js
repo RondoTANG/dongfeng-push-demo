@@ -14,5 +14,10 @@
       }).join('') + '</tbody></table></div>';
   }
 
-  window.DataTable = { render: render };
+  function pagination(page, pageSize, total, attr) {
+    var pages = Math.max(1, Math.ceil((total || 0) / pageSize));
+    return '<div class="table-pagination"><span>共 ' + Number(total || 0) + ' 条 · 第 ' + page + ' / ' + pages + ' 页</span><div><button class="btn btn-sm" ' + attr + '="prev"' + (page <= 1 ? ' disabled' : '') + '>上一页</button><button class="btn btn-sm" ' + attr + '="next"' + (page >= pages ? ' disabled' : '') + '>下一页</button></div></div>';
+  }
+
+  window.DataTable = { render: render, pagination: pagination };
 })();

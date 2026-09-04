@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var state = { tab: 'invalid', invalid: [], audit: [], loading: true, error: null, keyword: '', kind: '' };
+  var state = { tab: 'invalid', invalid: [], audit: [], loading: true, error: null, keyword: '', kind: '', page: 1, pageSize: 20, invalidTotal: 0, auditTotal: 0 };
   var ruleNames = {
     INV001: '无有效链接', INV002: '同名误匹配', INV003: '招投标／行政信息', INV004: '纯促销引流',
     INV005: '旧闻重新索引', INV006: '无实际事件', INV007: '行业事件无品牌关系'
@@ -27,7 +27,7 @@
       { label: '运行批次', width: '170px', render: function (row) { return '<span class="mono">' + row.run_id + '</span>'; } },
       { label: '处理时间', width: '160px', render: function (row) { return AppCommon.formatTime(row.discarded_at); } }
     ];
-    return '<div class="audit-explain"><strong>自动无效不等于业务驳回</strong><span>这些记录已命中确定性噪声规则，不进入运营主工作台；保留日志用于抽检误杀。</span></div>' + DataTable.render(columns, items, { emptyTitle: '没有匹配的无效记录' });
+    return '<div class="audit-explain"><strong>自动无效不等于业务驳回</strong><span>这些记录已命中确定性噪声规则，不进入运营主工作台；保留日志用于抽检误杀。</span></div>' + DataTable.render(columns, items, { emptyTitle: '没有匹配的无效记录' }) + DataTable.pagination(state.page, state.pageSize, state.invalidTotal, 'data-audit-page');
   }
 
   function renderAudit() {
@@ -39,7 +39,7 @@
       { label: '时间', width: '170px', render: function (row) { return AppCommon.formatTime(row.created_at); } },
       { label: '变更', render: function (row) { var before = row.before == null ? '无前置值' : '有前置快照'; var after = row.after == null ? '无后置值' : '有后置快照'; return '<button class="btn btn-text btn-sm" data-audit-detail="' + row.audit_id + '">' + before + ' → ' + after + '</button>'; } }
     ];
-    return '<div class="audit-explain is-blue"><strong>业务操作可追溯</strong><span>事件审核、草案生成／修改，以及 Codex 工作项都保留对象、操作人、时间和前后快照。</span></div>' + DataTable.render(columns, items, { emptyTitle: '没有匹配的审计记录' });
+    return '<div class="audit-explain is-blue"><strong>业务操作可追溯</strong><span>搜索运行、定向补证、事件审核和草案生成／修改都保留对象、操作人、时间和前后快照。</span></div>' + DataTable.render(columns, items, { emptyTitle: '没有匹配的审计记录' }) + DataTable.pagination(state.page, state.pageSize, state.auditTotal, 'data-audit-page');
   }
 
   function kindOptions() {
@@ -50,14 +50,21 @@
   function renderContent() {
     if (state.loading) return '<div class="page-loading"><span class="spinner"></span>正在读取无效与审计记录</div>';
     if (state.error) return UI.errorState(state.error, true);
-    return '<div class="audit-tabs"><button class="config-tab' + (state.tab === 'invalid' ? ' is-active' : '') + '" data-audit-tab="invalid">自动无效 <span>' + state.invalid.length + '</span></button><button class="config-tab' + (state.tab === 'audit' ? ' is-active' : '') + '" data-audit-tab="audit">操作审计 <span>' + state.audit.length + '</span></button></div><div class="card audit-card"><div class="filter-bar"><div class="filter-field"><label>关键字</label><input class="form-control" data-audit-keyword value="' + AppCommon.escapeHtml(state.keyword) + '" placeholder="搜索对象编号、原因或操作人"></div><div class="filter-field"><label>记录类型</label><select class="form-control" data-audit-kind>' + kindOptions() + '</select></div><div class="filter-actions"><button class="btn" data-audit-reset>重置</button><button class="btn btn-primary" data-audit-query>查询</button></div></div><div class="audit-result">' + (state.tab === 'invalid' ? renderInvalid() : renderAudit()) + '</div></div>';
+    return '<div class="audit-tabs"><button class="config-tab' + (state.tab === 'invalid' ? ' is-active' : '') + '" data-audit-tab="invalid">自动无效 <span>' + state.invalidTotal + '</span></button><button class="config-tab' + (state.tab === 'audit' ? ' is-active' : '') + '" data-audit-tab="audit">操作审计 <span>' + state.auditTotal + '</span></button></div><div class="card audit-card"><div class="filter-bar"><div class="filter-field"><label>关键字</label><input class="form-control" data-audit-keyword value="' + AppCommon.escapeHtml(state.keyword) + '" placeholder="搜索对象编号、原因或操作人"></div><div class="filter-field"><label>记录类型</label><select class="form-control" data-audit-kind>' + kindOptions() + '</select></div><div class="filter-actions"><button class="btn" data-audit-reset>重置</button><button class="btn btn-primary" data-audit-query>查询</button></div></div><div class="audit-result">' + (state.tab === 'invalid' ? renderInvalid() : renderAudit()) + '</div></div>';
   }
 
   function render() { return '<section class="page" data-anno="invalid-and-audit-records">' + Layout.pageHead('无效与审计记录', '把技术噪声与业务决策分开，并保留完整操作痕迹', '<button class="btn" data-audit-refresh>刷新</button>') + '<div id="audit-content">' + renderContent() + '</div></section>'; }
   function update() { var root = document.getElementById('audit-content'); if (root) root.innerHTML = renderContent(); }
   async function load() {
     state.loading = true; state.error = null; update();
-    try { var result = await Promise.all([AppCommon.api('/api/invalid-records?limit=500'), AppCommon.api('/api/audit?limit=500')]); state.invalid = result[0].items; state.audit = result[1].items; }
+    try {
+      var invalidParams = new URLSearchParams({ page: state.page, page_size: state.pageSize });
+      var auditParams = new URLSearchParams({ page: state.page, page_size: state.pageSize });
+      if (state.keyword) { invalidParams.set('keyword', state.keyword); auditParams.set('keyword', state.keyword); }
+      if (state.kind) { if (state.tab === 'invalid') invalidParams.set('rule_id', state.kind); else auditParams.set('object_type', state.kind); }
+      var result = await Promise.all([AppCommon.api('/api/invalid-records?' + invalidParams.toString()), AppCommon.api('/api/audit?' + auditParams.toString())]);
+      state.invalid = result[0].items; state.invalidTotal = result[0].total || 0; state.audit = result[1].items; state.auditTotal = result[1].total || 0;
+    }
     catch (error) { state.error = error.message; }
     state.loading = false; update();
   }
@@ -69,11 +76,12 @@
   function bind() {
     var page = document.getElementById('app');
     page.onclick = function (event) {
-      var tab = event.target.closest('[data-audit-tab]'); if (tab) { state.tab = tab.dataset.auditTab; state.kind = ''; return update(); }
+      var tab = event.target.closest('[data-audit-tab]'); if (tab) { state.tab = tab.dataset.auditTab; state.kind = ''; state.page = 1; return load(); }
       if (event.target.closest('[data-audit-refresh]') || event.target.closest('[data-retry-action]')) return load();
-      if (event.target.closest('[data-audit-query]')) { state.keyword = page.querySelector('[data-audit-keyword]').value.trim(); state.kind = page.querySelector('[data-audit-kind]').value; return update(); }
-      if (event.target.closest('[data-audit-reset]')) { state.keyword = ''; state.kind = ''; return update(); }
+      if (event.target.closest('[data-audit-query]')) { state.keyword = page.querySelector('[data-audit-keyword]').value.trim(); state.kind = page.querySelector('[data-audit-kind]').value; state.page = 1; return load(); }
+      if (event.target.closest('[data-audit-reset]')) { state.keyword = ''; state.kind = ''; state.page = 1; return load(); }
       var detail = event.target.closest('[data-audit-detail]'); if (detail) return openAudit(detail.dataset.auditDetail);
+      var pageButton = event.target.closest('[data-audit-page]'); if (pageButton) { state.page += pageButton.dataset.auditPage === 'next' ? 1 : -1; return load(); }
     };
   }
   window.Pages.audit = { render: render, init: function () { bind(); load(); } };

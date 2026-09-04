@@ -308,7 +308,7 @@
     }
     .two-question {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
+      grid-template-columns: repeat(3, minmax(0,1fr));
       gap: 1px;
       background: var(--line);
       border: 1px solid var(--line);
@@ -1639,7 +1639,7 @@
       <div class="hero-grid">
         <div>
           <h1>AI热点发现与护卫军作业联动</h1>
-          <p class="hero-lead">从公开信息线索发现、证据研判，到原创增长、热点源内容加热与原创发布后效追踪，形成可验证的作业闭环。</p>
+          <p class="hero-lead">从公开信息线索发现、证据研判，到原创增长、原创发布后效与追加加热，形成主业务闭环；当热点有可执行关联文章或视频时，补充支持直接加热。</p>
         </div>
       </div>
     </div>
@@ -1669,18 +1669,19 @@
         <p class="lede">业务不是要“搜到新闻”，而是要在有效响应窗口内判断：<strong>哪些热点值得发原创作业，以及哪条热点源文章或视频值得直接加热。</strong></p>
         <div class="two-question">
           <article class="question"><span>业务问题一</span><strong>哪些热点值得发起原创作业，借势形成内容增长？</strong></article>
-          <article class="question"><span>业务问题二</span><strong>热点事件中的哪篇文章或哪个视频值得直接加热，应组织点赞、正向评论等什么作业？</strong></article>
+          <article class="question"><span>业务问题二｜主闭环</span><strong>原创内容发布后是否出现传播增长，是否需要追加点赞、正向评论等加热作业？</strong></article>
+          <article class="question"><span>业务问题三｜补充支路</span><strong>热点事件中若有可执行的关联文章或视频，是否值得直接加热？</strong></article>
         </div>
-        <div class="callout info"><strong>原创增长的后续闭环</strong><p>原创作业发布后不能结束：登记实际发布链接，接收同一内容的后效指标快照，观察传播是否增长，再由运营决定继续观察、无需加热、人工核验，或生成一份独立审批的“原创后二次加热”草案。</p></div>
+        <div class="callout info"><strong>业务问题二是原创增长的后续主闭环</strong><p>原创作业发布后不能结束：登记实际发布链接，接收同一内容的后效指标快照，观察传播是否增长，再由运营决定继续观察、无需加热、人工核验，或生成一份独立审批的“原创后二次加热”草案。关联源内容直接加热只是额外支路，不替代该闭环。</p></div>
 
         <div class="section-label">问题拆解与业务闭环</div>
-        <p>把两个业务问题拆成“发现、判断、决策、执行、反馈”五个连续环节，后续产品能力围绕这条闭环建设。</p>
+        <p>把业务规划拆成“发现、判断、原创决策、发布、后效反馈”主链，并在事件有可执行关联内容时增加直接加热支路。</p>
         <table class="data-table">
           <thead><tr><th>问题拆解</th><th>需要回答的问题</th><th>对应产品设计</th></tr></thead>
           <tbody>
             <tr><td><strong>发现</strong></td><td>哪些平台出现了新的东风相关内容和讨论</td><td>持续采集或检索、来源标准化、平台与账号识别</td></tr>
             <tr><td><strong>判断</strong></td><td>多条内容是否属于同一事件，事件是否正在发酵</td><td>无效过滤、转载去重、事件聚合、热点数据准入与分平台趋势计算</td></tr>
-            <tr><td><strong>决策</strong></td><td>事件是否与东风相关、是否值得响应；适合原创增长还是直接加热源内容</td><td>品牌关系、事实证据、风险提示、行动方向与运营复核</td></tr>
+            <tr><td><strong>决策</strong></td><td>事件是否与东风相关、是否值得通过原创响应；是否存在可直接加热的关联内容</td><td>品牌关系、事实证据、风险提示、原创价值与源内容可执行性复核</td></tr>
             <tr><td><strong>执行A</strong></td><td>哪些事件值得形成原创表达，在哪个平台发布</td><td>原创评论／内容草案、平台标签匹配与运营审批</td></tr>
             <tr><td><strong>执行B</strong></td><td>哪条热点源文章或视频值得放大，采取什么动作</td><td>目标来源、目标URL、点赞／正向评论等动作与运营审批</td></tr>
             <tr><td><strong>反馈A</strong></td><td>原创发布后是否出现传播增长，是否需要进一步加热该原创内容</td><td>登记发布链接、接收同口径快照、计算增量、运营判断，按需生成原创后二次加热草案</td></tr>
@@ -1688,30 +1689,30 @@
           </tbody>
         </table>
         <div class="diagram-shell">
-          <div class="diagram-caption"><strong>两个前置入口＋一个原创后效分支</strong><span>热点源内容可直接加热；原创发布后另行追踪并决定是否二次加热</span></div>
+          <div class="diagram-caption"><strong>一条原创增长主链＋一条关联内容直加支路</strong><span>主链延伸到原创发布后的增长观察和追加加热；支路只在有合适目标文章／视频时启用</span></div>
           <div class="flow-map" role="img" aria-label="AI热点发现到加热作业业务流程图">
             <div class="flow-row">
               <div class="flow-node"><b>01 持续发现</b><p>9品牌、8主题；公开搜索或未来平台原生数据</p></div>
               <div class="flow-node"><b>02 来源处理</b><p>标准化平台、网站、账号、URL、正文与时间</p></div>
               <div class="flow-node"><b>03 事件聚合</b><p>过滤无效、去重转载、聚合同一业务事件</p></div>
               <div class="flow-node gate"><b>04 数据准入</b><p>决定能否输出真实热点状态；未通过为 unknown</p></div>
-              <div class="flow-node"><b>05 行动判断</b><p>品牌关联、风险、证据；判断原创增长或源内容加热</p></div>
+              <div class="flow-node"><b>05 主链判断</b><p>品牌关联、风险、证据；先判断是否值得发原创</p></div>
             </div>
             <div class="flow-bridge"></div>
             <div class="flow-row reverse">
               <div class="flow-node action"><b>10 分别审批</b><p>两类草案独立通过或驳回，均不自动下发</p></div>
-              <div class="flow-node"><b>09 源内容加热</b><p>绑定目标文章／视频，配置点赞、正向评论等动作</p></div>
+              <div class="flow-node"><b>09 补充支路</b><p>如有合适关联文章／视频，可绑定目标配置直接加热动作</p></div>
               <div class="flow-node"><b>08 选择目标内容</b><p>来源必须属于事件证据，平台与URL可执行</p></div>
               <div class="flow-node"><b>07 原创增长</b><p>生成原创评论／内容草案，匹配擅长平台</p></div>
-              <div class="flow-node action"><b>06 选择方向</b><p>可选择原创增长、源内容加热或两者同时</p></div>
+              <div class="flow-node action"><b>06 原创决策</b><p>值得响应时生成原创增长草案；源内容直加不替代主链</p></div>
             </div>
           </div>
         </div>
-        <div class="callout info"><strong>原创后效分支</strong><p>原创增长草案审批通过并实际发布 → 登记发布链接 → 接收至少两个同一内容、同口径指标快照 → 计算增量 → 运营判断 → 按需生成原创后二次加热草案并独立审批。它不替代热点源内容直接加热，两者目标对象和触发条件不同。</p></div>
+        <div class="callout info"><strong>原创发布后效是主链，不是附加分支</strong><p>原创增长草案审批通过并实际发布 → 登记发布链接 → 接收至少两个同一内容、同口径指标快照 → 计算增量 → 运营判断 → 按需生成原创后二次加热草案并独立审批。热点关联源内容直接加热作为补充支路，两者的目标对象和触发条件不同。</p></div>
 
         <div class="section-label">分阶段落地方案</div>
         <div class="stage-split">
-          <article class="stage"><span class="stage-tag">阶段一｜当前验证</span><h3>公开信息线索与作业联动PoC</h3><p>以豆包、Codex公开搜索及可访问网页为数据基础，验证公开线索清洗、事件研判、两类初始草案，以及原创发布链接、后效快照、增量观察和二次加热草案；不验收真实热点发现能力。</p><div class="stage-output"><strong>输出：</strong>事件线索、原创增长草案、源内容加热草案、原创发布记录、后效判断、原创后二次加热草案</div></article>
+          <article class="stage"><span class="stage-tag">阶段一｜当前验证</span><h3>公开信息线索与作业联动PoC</h3><p>以豆包、Codex公开搜索及可访问网页为数据基础，先验证公开线索清洗、事件研判和原创增长草案，再验证原创发布链接、后效快照、增量观察与追加加热；事件有可执行关联内容时，补充验证直接加热支路。本阶段不验收真实热点发现能力。</p><div class="stage-output"><strong>输出：</strong>事件线索、原创增长草案、原创发布记录、后效判断、原创后二次加热草案，以及可选的关联源内容直接加热草案</div></article>
           <article class="stage"><span class="stage-tag">阶段二｜目标能力</span><h3>真实热点能力</h3><p>接入稳定的平台原生数据或专业舆情数据源，回答哪个平台、哪个事件正在快速发酵以及是否达到响应时机。</p><div class="stage-output"><strong>输出：</strong>分平台热点状态、增速、风险等级、响应建议</div></article>
         </div>
 
@@ -1732,15 +1733,15 @@
             <tr><td><strong>原创发布后继续观察与加热</strong></td><td>回收原创链接和传播指标，判断是否增长、是否继续加热该原创内容</td><td>登记已审批原创的实际发布链接；接收现有采集、业务推送或人工凭证的指标快照；计算同口径增量；由运营决定是否生成二次加热草案</td><td><strong>可以验证后效闭环</strong>；不自动执行互动，至少两个同口径快照，微信系无自动数据时人工兜底</td></tr>
           </tbody>
         </table>
-        <div class="callout info"><strong>阶段一验收口径</strong><p>对外称为“公开信息线索与作业联动PoC”。达标表示线索研判、两类初始草案、原创发布后效追踪和可选二次加热草案链路可行；不表示已经具备全平台持续发现或真实热点判定能力。</p></div>
+        <div class="callout info"><strong>阶段一验收口径</strong><p>对外称为“公开信息线索与作业联动PoC”。达标表示线索研判、原创增长草案、原创发布后效与追加加热主闭环，以及可选的关联源内容直接加热支路可行；不表示已经具备全平台持续发现或真实热点判定能力。</p></div>
 
         <div class="section-label">阶段目标（SMART）</div>
         <div class="smart-grid">
-          <article class="smart-item"><b>S</b><strong>具体</strong><p>完成公开线索研判、两类初始草案，并对已发布原创登记链接、接收快照、计算增量和按需生成二次加热草案。</p></article>
+          <article class="smart-item"><b>S</b><strong>具体</strong><p>完成公开线索研判和原创增长草案；对已发布原创登记链接、接收快照、计算增量并按需生成追加加热草案；事件有可执行关联内容时，另行生成直接加热草案。</p></article>
           <article class="smart-item"><b>M</b><strong>可衡量</strong><p>每次17条基础查询、34个双路任务；记录覆盖率、草案质量、原创链接回填率、快照完整率、增量可计算率和人工时长。</p></article>
           <article class="smart-item"><b>A</b><strong>可实现</strong><p>使用现有豆包、Codex、规则处理和人工审核；后效数据来自现有采集、业务推送或人工凭证。</p></article>
-          <article class="smart-item"><b>R</b><strong>相关</strong><p>验证“哪些热点值得原创”“如何加热热点源内容”，并补齐原创发布后的观察与二次加热闭环。</p></article>
-          <article class="smart-item"><b>T</b><strong>有时限</strong><p>10个工作日：配置冻结1天、本地每3小时运行并连续观察7天、汇总2天；不承诺生产级7×24保障。</p></article>
+          <article class="smart-item"><b>R</b><strong>相关</strong><p>验证“哪些热点值得发原创”“原创发布后是否追加加热”的主闭环，并补充验证“热点关联内容是否值得直接加热”。</p></article>
+          <article class="smart-item"><b>T</b><strong>有时限</strong><p>10个工作日：配置冻结1天、按测试计划手工触发双路运行并连续观察7天、汇总2天；自动每3小时采集暂不启用。</p></article>
         </div>
 
         <div class="section-label">成功标准</div>
@@ -1767,7 +1768,7 @@
         <table class="role-table">
           <thead><tr><th>角色</th><th>核心任务</th><th>关键权限</th></tr></thead>
           <tbody>
-            <tr><td><strong>运营审核人</strong></td><td>查看线索、证据、品牌关系、风险与AI建议</td><td>通过、修改后通过、驳回、观察；审批原创/加热草案</td></tr>
+            <tr><td><strong>运营审核人</strong></td><td>查看线索、证据、品牌关系、风险与AI建议</td><td>事件只提交通过／驳回；通过后选择事实结论和行动方向；分别审批草案</td></tr>
             <tr><td><strong>内容运营</strong></td><td>补充官方事实、素材与允许表达</td><td>选择作业方向、目标平台与禁用表述</td></tr>
             <tr><td><strong>产品管理员</strong></td><td>维护品牌、来源、查询和业务规则</td><td>发布、停用、回溯配置版本</td></tr>
             <tr><td><strong>研发运维</strong></td><td>维护适配器、规则、存储和业务接口</td><td>失败重试、监控、审计和告警</td></tr>
@@ -1781,31 +1782,31 @@
           <section class="requirement-group" aria-labelledby="req-group-input">
             <header class="requirement-group-head"><span>01</span><div><h3 id="req-group-input">采集与标准化</h3><p>配置业务范围，生成采集任务，并把不同来源整理为统一数据。</p></div></header>
             <div class="requirement-grid">
-          <details class="requirement searchable"><summary><span class="req-id">F01</span><span class="req-title">配置管理</span><span class="chev"></span></summary><div class="req-body"><p>统一管理品牌与别名、来源平台/域名/官方账号、查询目录、过滤去重与聚合、事件实体/品牌关系/风险分类、热点数据准入与分平台模型、初始双路草案、原创后效指标映射、快照窗口和互动动作枚举。</p><p><strong>版本要求：</strong>所有配置必须具备版本号、生效时间、修改人、修改原因及草稿/已发布/已停用状态。新运行使用最新已发布版本，历史运行保留原版本，禁止修改已被引用的版本。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F01</span><span class="req-title">配置管理</span><span class="chev"></span></summary><div class="req-body"><p>统一管理品牌与别名、来源平台/域名/官方账号、查询目录、过滤去重与聚合、事件实体/品牌关系/风险分类、热点数据准入与分平台模型、原创增长主链、关联内容加热支路、原创后效指标映射、快照窗口和互动动作枚举。</p><p><strong>版本要求：</strong>所有配置必须具备版本号、生效时间、修改人、修改原因及草稿/已发布/已停用状态。新运行使用最新已发布版本，历史运行保留原版本，禁止修改已被引用的版本。</p></div></details>
           <details class="requirement searchable"><summary><span class="req-id">F02</span><span class="req-title">查询任务生成</span><span class="chev"></span></summary><div class="req-body"><ul><li>完整运行生成9条品牌查询＋8条行业主题查询；每条由豆包、Codex分别执行，共34个基础任务。</li><li>运行前生成覆盖清单；运行后区分成功、失败、无结果、未执行，未执行不得解释为无结果。</li><li>行业主题结果不得直接归属品牌；每个有效行业事件分别验证与9个启用品牌的关系，不轮换、不抽样。</li></ul></div></details>
-          <details class="requirement searchable"><summary><span class="req-id">F03</span><span class="req-title">公开搜索接入</span><span class="chev"></span></summary><div class="req-body"><p>豆包负责公开网页广召回；Codex负责补充召回、打开可访问页面和核验正文。两路共用查询目录但分别记录请求状态、返回时间、结果顺序和原始响应引用。</p><p>搜索排序、结果数和供应商权威等级只保留为原始字段，不进入热度计算；一路失败继续另一路，两路失败标记部分失败并支持重试。</p></div></details>
-          <details class="requirement searchable"><summary><span class="req-id">F04</span><span class="req-title">来源标准化</span><span class="chev"></span></summary><div class="req-body"><p>每条来源统一输出运行/查询/采集来源，来源平台、网站、账号与账号链接，原始/规范化URL、标题、摘要、正文，发布时间、事件时间、首次发现/采集时间，发布者类型、官方身份、转载状态和重复来源。</p><p>平台或账号无法识别时保持未知并说明原因；只有已确认域名或账号可标记官方。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F03</span><span class="req-title">公开搜索接入</span><span class="chev"></span></summary><div class="req-body"><p>豆包与Codex都执行同一份查询目录：完整运行17条×2个工具＝34项，快速验证1条×2＝2项。Codex使用本机登录态，豆包按已配置凭证调用。</p><p>两路分别记录请求状态、搜索时间、查询词、结果顺序和原始响应引用；一路失败时批次为部分成功。完整运行3小时、快速验证10分钟内服务端拒绝重复启动。自动每3小时采集当前暂停，启动服务不会自动产生豆包调用。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F04</span><span class="req-title">来源标准化</span><span class="chev"></span></summary><div class="req-body"><p>每条来源统一输出运行/查询/采集来源，来源平台、网站、账号与账号链接，原始/规范化URL、标题、摘要、正文，发布时间、事件时间、首次发现/搜索获取时间，发布者类型、官方身份、转载状态和重复来源。</p><p>同一URL只保留一个来源对象，但每个工具、查询词和搜索时间作为独立发现记录保留；工作台支持按发布时间和搜索获取时间分别筛选。平台或账号无法识别时保持未知。</p></div></details>
             </div>
           </section>
           <section class="requirement-group" aria-labelledby="req-group-analysis">
             <header class="requirement-group-head"><span>02</span><div><h3 id="req-group-analysis">清洗与研判</h3><p>去除无效信息，聚合统一事件，完成品牌关系、数据准入和风险复核。</p></div></header>
             <div class="requirement-grid">
           <details class="requirement searchable"><summary><span class="req-id">F05</span><span class="req-title">自动无效过滤</span><span class="chev"></span></summary><div class="req-body"><p>确定性规则直接过滤：无可核验URL、同名误匹配、招标采购招聘任免、纯报价优惠、超过72小时且无新增事实的旧闻、无新增事件的导航/百科/常驻产品页、完成9品牌验证后仍无关的行业事件。</p><p><strong>处理：</strong>进入无效日志，不进入人工候选；记录命中规则、原因、时间和原始来源，支持抽检与恢复。</p></div></details>
-          <details class="requirement searchable"><summary><span class="req-id">F06</span><span class="req-title">去重与事件聚合</span><span class="chev"></span></summary><div class="req-body"><ul><li>同一规范化URL只生成一个来源记录，合并采集器与查询ID。</li><li>正文指纹相同保留主记录；同一原始发布主体的转载只计一个独立事实来源。</li><li>按主体、动作、对象、事件日期聚合；列表页多业务动作必须拆事件；事件更新挂原事件并标记新增事实。</li></ul><p class="decision-line">来源数与独立来源数表示证据广度，不表示平台热度或用户讨论规模。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F06</span><span class="req-title">去重与事件聚合</span><span class="chev"></span></summary><div class="req-body"><ul><li>同一规范化URL只生成一个来源记录；豆包／Codex、查询ID、查询词与搜索时间分别写入发现记录。</li><li>正文指纹相同保留主记录；同一原始发布主体的转载只计一个独立事实来源。</li><li>按主体、动作、对象、事件日期聚合；列表页多业务动作必须拆事件；事件更新挂原事件并标记新增事实。</li></ul><p class="decision-line">来源数与独立来源数表示证据广度，不表示平台热度或用户讨论规模。</p></div></details>
           <details class="requirement searchable"><summary><span class="req-id">F07</span><span class="req-title">品牌与事件内实体判断</span><span class="chev"></span></summary><div class="req-body"><p>品牌及别名是长期主数据；仅 <code>active</code> 品牌及精确别名可确定匹配，弱别名必须有汽车上下文。车型、人物、活动和机构由AI在事件中动态识别，不维护完整清单。</p><ul><li>证据充分且无冲突：写入当前事件 <code>entity_mentions</code>。</li><li>疑似新车型/活动、身份冲突、同名歧义、无法核验或单一弱来源：写入 <code>entity_uncertainties</code>，记录原因、建议关系和证据并随事件人工审核。</li><li>人工确认只更新当前事件，不自动写回全局主数据。</li></ul></div></details>
           <details class="requirement searchable"><summary><span class="req-id">F08</span><span class="req-title">品牌关系验证</span><span class="chev"></span></summary><div class="req-body"><div class="chip-row"><span class="chip active">direct_mention</span><span class="chip active">verified_relation</span><span class="chip warn">unresolved</span><span class="chip">no_relation</span></div><ul><li><code>direct_mention</code>：原始内容直接命中启用品牌。</li><li><code>verified_relation</code>：关联补采找到可访问品牌关系证据。</li><li><code>unresolved</code>：事实、实体或时间证据不足，进入人工复核。</li><li><code>no_relation</code>：完整验证后仍无关系，自动进入无效日志。</li></ul><p>AI只能提出关系建议，最终状态由品牌配置、来源证据和确定性规则共同生成。</p></div></details>
           <details class="requirement searchable"><summary><span class="req-id">F09</span><span class="req-title">热点判定数据准入规则</span><span class="chev"></span></summary><div class="req-body"><p>该规则是输出真实热点结论前的数据条件检查，不是事件价值判断，也不代表未通过就必须丢弃。</p><ol><li>可识别来源平台和平台内容ID。</li><li>可获得平台原生播放/阅读/点赞/评论/分享/收藏等指标。</li><li>同一内容或事件存在连续快照，可计算明确窗口增量与速度。</li><li>可区分独立作者或新增UGC，避免同源转载被当成讨论量。</li><li>数据源提供覆盖范围、采集时间、延迟、失败与漏采说明，可审计。</li></ol><p><strong>未通过：</strong><code>hotspot_judgement_available=false</code>、<code>hotspot_status=unknown</code>，并逐项输出不可判定原因；仍可成为线索或内容机会并生成待审核草案，但不得表述为“正在爆发”或自动下发。</p></div></details>
-          <details class="requirement searchable"><summary><span class="req-id">F10</span><span class="req-title">风险判断与人工复核</span><span class="chev"></span></summary><div class="req-body"><p>事故、安全、召回、销量、价格、监管、竞品比较、高阶智驾，或风险词与弱信源/绝对化断言/事实冲突同时出现，或单一二手来源但可能有响应价值，或品牌/实体/时间/事实存疑，均强制人工复核。</p><p class="decision-line">风险词只用于召回和提高优先级，不能单独构成负面、抹黑或事实结论；AI不得解除高风险状态。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F10</span><span class="req-title">风险判断、补证与人工复核</span><span class="chev"></span></summary><div class="req-body"><p>高风险主题、单一弱来源，或品牌/实体/时间/事实存疑时进入人工复核。补证不是审核结论：先生成方案，展示待解决问题、搜索词、回看时间、Codex／豆包工具和预计调用次数；运营确认后才执行。</p><p class="decision-line">补证完成后事件回到待审核，不自动通过或生成草案；单个工具失败保留另一工具结果。没有明确问题或可行来源时直接驳回。</p></div></details>
             </div>
           </section>
           <section class="requirement-group" aria-labelledby="req-group-action">
-            <header class="requirement-group-head"><span>03</span><div><h3 id="req-group-action">初始作业联动</h3><p>把可行动线索分别转为原创增长草案或绑定热点源文章／视频的加热草案。</p></div></header>
+            <header class="requirement-group-head"><span>03</span><div><h3 id="req-group-action">原创增长与关联内容支路</h3><p>先把值得响应的线索转为原创增长草案；当事件有可执行关联文章／视频时，再补充直接加热支路。</p></div></header>
             <div class="requirement-grid">
-          <details class="requirement searchable"><summary><span class="req-id">F11</span><span class="req-title">候选分类</span><span class="chev"></span></summary><div class="req-body"><ul><li><strong>相关事件线索：</strong>72小时内、有品牌关系和可访问证据、有原创响应价值、无未解除高风险，可生成草案。</li><li><strong>品牌内容机会：</strong>24小时内、已确认官方来源、有新增事实、适合主动传播，可生成草案。</li><li><strong>人工复核：</strong>高风险、事实冲突、关系或实体存疑；复核通过后可生成。</li><li><strong>持续观察：</strong>时间缺失、证据不足或暂不满足任务条件；不可生成。</li></ul><p>分类是运营处理优先级，不是热点等级。</p></div></details>
-          <details class="requirement searchable"><summary><span class="req-id">F12</span><span class="req-title">初始双路作业草案生成</span><span class="chev"></span></summary><div class="req-body"><p>事件通过审核后，运营可选择“原创增长”“源内容加热”或两者同时。两类初始草案共用事件、证据、风险、建议平台和目标标签；源内容加热额外必填目标来源ID、目标URL、目标内容标题和互动动作。</p><p>同一事件的两类初始草案分别生成、分别审批；PoC只保存 <code>draft_pending_review</code>，不自动创建正式作业、不发布、不触达用户。</p></div></details>
-          <details class="requirement searchable"><summary><span class="req-id">F13</span><span class="req-title">运营审核</span><span class="chev"></span></summary><div class="req-body"><p>运营可查看事件、来源、平台账号、时间、品牌关系、不确定项、AI摘要、风险与补采结果；可修改任务类型、平台、标签、截止时间和表达边界；选择通过、修改后通过、驳回或观察。</p><p>所有操作记录审核人、时间、结论、原因和修改前后内容。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F11</span><span class="req-title">事件状态与事实结论</span><span class="chev"></span></summary><div class="req-body"><ul><li><strong>待审核：</strong>清洗并聚合后的事件统一进入该状态，不生成草案。</li><li><strong>相关事件线索：</strong>运营通过后确认事件事实成立，可选择行动方向。</li><li><strong>品牌内容机会：</strong>运营通过后确认适合主动传播，可选择行动方向。</li><li><strong>已驳回：</strong>不值得行动，或证据不足且无明确补证路径；不生成草案。</li></ul><p>事实结论不是热点等级，也不会单独触发草案。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F12</span><span class="req-title">原创增长主链与关联内容加热支路</span><span class="chev"></span></summary><div class="req-body"><p>事件通过审核后，运营先判断是否生成原创增长草案。当事件存在可执行的关联文章或视频时，可另行生成源内容直接加热草案，并必填目标来源ID、目标URL、目标内容标题和互动动作。</p><p>各草案分别生成、分别审批；关联内容直加支路不替代F16—F18的原创发布后效与追加加热主闭环。PoC只保存 <code>draft_pending_review</code>，不自动创建正式作业、不发布、不触达用户。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F13</span><span class="req-title">运营审核</span><span class="chev"></span></summary><div class="req-body"><p>最终审核只选择通过或驳回。通过时再选择“相关事件线索／品牌内容机会”事实结论，并勾选原创增长和／或热点源内容加热；后者还必须指定当前事件中的可执行文章或视频。</p><p>只有“审核通过＋行动方向”才生成对应草案；驳回必须填写原因。继续观察仅用于原创发布后效，不是事件审核结论。</p></div></details>
           <details class="requirement searchable"><summary><span class="req-id">F14</span><span class="req-title">按擅长平台匹配建议</span><span class="chev"></span></summary><div class="req-body"><p>系统联动阶段，任务草案根据用户现有平台能力标签匹配目标人群。原创增长的平台由内容形态与表达目标决定；源内容加热的平台必须与目标文章／视频所在平台一致。</p><p>生成目标人群快照并保留频控、配额和排除原因；自动发布保持关闭。</p></div></details>
-          <details class="requirement searchable"><summary><span class="req-id">F15</span><span class="req-title">热点源内容加热草案</span><span class="chev"></span></summary><div class="req-body"><ul><li>目标来源必须属于当前事件证据，并保留 <code>target_source_id</code>。</li><li>目标URL必须直接定位到可互动的平台文章或视频；官网列表页、普通网页、平台不明或无有效链接的来源不可选择。</li><li>运营确认目标内容值得放大，并选择点赞、正向评论、转发或收藏等动作。</li><li>任务人数、时间窗和频控为待运营确认项，不默认集中执行。</li><li>草案通过后仍不自动下发，并与原创后二次加热分开统计和审计。</li></ul></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F15</span><span class="req-title">作业要求草案</span><span class="chev"></span></summary><div class="req-body"><p>原创增长草案至少包含作业详情、必带话题、核心命题、证据与编号、按推荐平台分别生成的内容形态和发帖技巧、创作方向、违规／申诉／风险边界；无法确认的话题标注待运营补充，不得臆造。</p><ul><li>源内容加热必须绑定当前事件中的可互动平台文章或视频及 <code>target_source_id</code>。</li><li>运营确认点赞、正向评论、转发或收藏等动作，人数、时间窗和频控待确认。</li><li>三类草案均独立审批，审批通过也不自动下发或执行互动。</li></ul></div></details>
             </div>
           </section>
           <section class="requirement-group" aria-labelledby="req-group-effect">
@@ -1834,10 +1835,10 @@
 
         <div class="section-label">产品页面</div>
         <div class="config-list">
-          <div class="config-item"><h3>运行中心</h3><p>查询覆盖、采集器状态、成功/失败/未执行、耗时和重试。</p></div>
-          <div class="config-item"><h3>信息线索工作台</h3><p>相关事件线索、品牌内容机会、人工复核、持续观察。</p></div>
+          <div class="config-item"><h3>运行中心</h3><p>34项双路任务、每个工具状态、成功/失败/未执行、手工确认、冷却时间和暂停的自动采集状态。</p></div>
+          <div class="config-item"><h3>信息线索工作台</h3><p>清洗后的有效线索、内容发布时间、搜索获取时间、来源平台与站点、豆包／Codex发现记录、关联事件和服务端分页。</p></div>
           <div class="config-item"><h3>事件详情</h3><p>来源证据、平台账号、时间、品牌关系、实体不确定项、风险和审核记录。</p></div>
-          <div class="config-item"><h3>配置管理</h3><p>品牌、来源、查询、过滤、聚合、风险、热点准入、初始双路草案、后效快照和互动动作规则。</p></div>
+          <div class="config-item"><h3>配置管理</h3><p>品牌、来源、查询、过滤、聚合、风险、热点准入、原创增长主链、关联内容加热支路、后效快照和互动动作规则。</p></div>
           <div class="config-item"><h3>无效日志</h3><p>自动过滤规则、来源、恢复操作和抽检结果。</p></div>
           <div class="config-item"><h3>作业草案与审批</h3><p>原创增长、热点源内容加热和原创后二次加热三类草案的目标、平台、证据、风险与审批。</p></div>
           <div class="config-item"><h3>原创后效追踪</h3><p>登记已发布原创，查看指标快照、同口径增量、运营判断和二次加热草案入口。</p></div>
@@ -1873,14 +1874,14 @@
   "risk_tags": [],
   "factual_evidence": []
 }</div>
-        <p>品牌ID由规则层根据品牌配置确认；<code>entity_uncertainties</code> 非空时事件自动进入人工复核。</p>
+        <p>品牌ID由规则层根据品牌配置确认；<code>entity_uncertainties</code> 非空时事件保持待审核，并明确展示不确定原因。</p>
 
         <div class="section-label">工具与数据源</div>
         <table class="data-table">
           <thead><tr><th>能力</th><th>本阶段</th><th>生产要求</th></tr></thead>
           <tbody>
-            <tr><td>公开网页召回</td><td>豆包公开搜索</td><td>辅助线索，不承担热点SLA</td></tr>
-            <tr><td>页面核验/补充召回</td><td>Codex公开搜索与页面读取</td><td>证据核验，不承担全平台采集SLA</td></tr>
+            <tr><td>公开网页召回</td><td>豆包与Codex执行同一基础查询目录</td><td>辅助线索，不承担热点SLA；分别保留查询与搜索时间</td></tr>
+            <tr><td>页面核验/定向补证</td><td>先预览问题、搜索词、工具和调用数，确认后使用Codex／豆包</td><td>证据核验，不承担全平台采集SLA，不自动改变审核结论</td></tr>
             <tr><td>未知内容持续发现</td><td>不具备</td><td>专业平台数据或合规采集服务</td></tr>
             <tr><td>目标文章／视频定位</td><td>复用事件来源ID、平台识别和可访问URL</td><td>生产补充平台内容ID、链接有效性和可互动状态校验</td></tr>
             <tr><td>原创发布与后效数据</td><td>登记实际发布链接；接收现有采集、业务推送或人工凭证的同一内容指标快照</td><td>非微信平台逐步自动采集；微信系无稳定接口时人工凭证兜底</td></tr>
@@ -1891,7 +1892,7 @@
 
         <div class="section-label">评估方法</div>
         <p>连续运行7天形成标注集，除线索和事件质量外，增加原创后效闭环的专项验证：</p>
-        <ol><li>来源有效/无效分类准确性与误杀率。</li><li>来源平台、网站和账号识别准确性。</li><li>品牌匹配、弱别名误匹配和实体不确定原因完整性。</li><li>事件误合并率和漏合并率。</li><li>品牌直接/验证/无关/存疑关系准确性。</li><li>高风险事件漏拦截率。</li><li>运营通过、修改后通过、驳回和观察比例。</li><li>三类草案的事实一致性、证据完整性、目标绑定正确性和平台可执行性。</li><li>搜索来源100%保持热点不可判定，页面与导出无误导表述。</li><li>原创发布关联正确率、链接有效率、快照完整率、增量计算正确率和数据异常识别率。</li></ol>
+        <ol><li>来源有效/无效分类准确性与误杀率。</li><li>来源平台、网站和账号识别准确性。</li><li>品牌匹配、弱别名误匹配和实体不确定原因完整性。</li><li>事件误合并率和漏合并率。</li><li>品牌直接/验证/无关/存疑关系准确性。</li><li>高风险事件漏拦截率。</li><li>运营通过／驳回比例，以及通过后的事实结论与行动方向分布。</li><li>三类草案的事实一致性、证据完整性、目标绑定正确性和平台可执行性。</li><li>搜索来源100%保持热点不可判定，页面与导出无误导表述。</li><li>原创发布关联正确率、链接有效率、快照完整率、增量计算正确率和数据异常识别率。</li></ol>
       </section>
 
       <section class="module searchable" id="module-4" data-title="技术规格">
@@ -1901,7 +1902,7 @@
         <div class="diagram-shell">
           <div class="diagram-caption"><strong>三层架构：数据输入｜线索与热点处理引擎｜业务闭环</strong><span>自动化联动待选型：标准数据推送或受控MCP工具调用</span></div>
           <div class="architecture" role="img" aria-label="AI热点系统架构图">
-            <div class="arch-col"><h4>数据输入层</h4><div class="arch-unit">豆包公开搜索<br />广召回</div><div class="arch-unit">Codex公开搜索<br />补召回与页面核验</div><div class="arch-unit">未来平台原生/专业数据源<br />未知内容持续发现</div><div class="arch-unit">事件来源内容<br />目标文章／视频与可访问URL</div><div class="arch-unit">原创发布结果与指标快照<br />现有采集／业务推送／人工凭证</div></div>
+            <div class="arch-col"><h4>数据输入层</h4><div class="arch-unit">豆包公开搜索<br />执行17条基础查询</div><div class="arch-unit">Codex公开搜索<br />执行同目录并补充网页核验</div><div class="arch-unit">未来平台原生/专业数据源<br />未知内容持续发现</div><div class="arch-unit">事件来源内容<br />目标文章／视频与可访问URL</div><div class="arch-unit">原创发布结果与指标快照<br />现有采集／业务推送／人工凭证</div></div>
             <div class="arch-arrow">→</div>
             <div class="arch-col core"><h4>线索与热点处理引擎</h4><div class="arch-unit">配置服务＋运行编排</div><div class="arch-unit">原始结果＋来源标准化</div><div class="arch-unit">过滤、去重、事件聚合</div><div class="arch-unit">AI实体识别＋品牌关系＋风险</div><div class="arch-unit">热点数据准入＋行动方向</div><div class="arch-unit">三类作业草案＋审计证据链</div><div class="arch-unit">后效快照＋同口径增量规则</div></div>
             <div class="arch-arrow">→</div>
@@ -1941,10 +1942,12 @@
           <tbody>
             <tr><td><code>collection_run</code></td><td>一次运行、查询覆盖、配置版本、采集器汇总</td></tr>
             <tr><td><code>raw_provider_result</code></td><td>采集器原始响应引用、状态和耗时</td></tr>
-            <tr><td><code>source_item</code></td><td>标准化来源、平台账号、URL、正文、时间和证据属性</td></tr>
+            <tr><td><code>source_item</code></td><td>去重后的标准化来源、平台账号、URL、正文与内容发布时间</td></tr>
+            <tr><td><code>source_discovery</code></td><td>同一来源被哪个搜索工具、查询词、何时发现及返回顺序</td></tr>
             <tr><td><code>invalid_log</code></td><td>自动过滤规则、原因和原始来源</td></tr>
             <tr><td><code>event</code></td><td>统一事件、品牌关系、实体、风险、热点可判定性和候选状态</td></tr>
             <tr><td><code>candidate_review</code></td><td>运营审核结论、原因和修改记录</td></tr>
+            <tr><td><code>evidence_request / evidence_job</code></td><td>补证问题、搜索词、工具、预计调用数、人工确认及各任务结果</td></tr>
             <tr><td><code>task_draft</code></td><td>以 <code>draft_purpose</code> 区分原创增长、热点源内容加热和原创后二次加热草案</td></tr>
             <tr><td><code>target_source_id</code></td><td>热点源内容加热草案绑定的事件来源；其他类型为空</td></tr>
             <tr><td><code>target_submission_id</code></td><td>原创后二次加热草案绑定的实际发布记录；其他类型为空</td></tr>
@@ -1958,7 +1961,8 @@
 
         <div class="section-label">状态流转</div>
         <h3>来源状态</h3><div class="state-flow"><span class="state">collected</span><span class="state-arrow">→</span><span class="state">valid / invalid / fetch_failed</span><span class="state-arrow">→</span><span class="state">normalized / invalid_log / retrying</span><span class="state-arrow">→</span><span class="state">clustered / fetch_failed_final</span></div>
-        <h3>事件状态</h3><div class="state-flow"><span class="state">created</span><span class="state-arrow">→</span><span class="state">relation_check</span><span class="state-arrow">→</span><span class="state">evidence_check</span><span class="state-arrow">→</span><span class="state">hotspot_data_readiness_check</span><span class="state-arrow">→</span><span class="state">clue / opportunity / manual_review / watch</span></div>
+        <h3>事件状态</h3><div class="state-flow"><span class="state">created</span><span class="state-arrow">→</span><span class="state">pending_review</span><span class="state-arrow">→</span><span class="state">relevant_event_clue / brand_content_opportunity / rejected</span></div>
+        <h3>补证状态</h3><div class="state-flow"><span class="state">pending_confirmation</span><span class="state-arrow">→</span><span class="state">confirmed / running</span><span class="state-arrow">→</span><span class="state">completed / partial_success / failed</span><span class="state-arrow">→</span><span class="state">事件回到 pending_review</span></div>
         <h3>热点与草案状态</h3><div class="state-flow"><span class="state unknown">未通过：unknown</span><span class="state">通过：normal / rising / breaking / sustained / declining</span><span class="state-arrow">｜</span><span class="state">draft_pending_review</span><span class="state-arrow">→</span><span class="state">approved_pending_publish / cancelled</span><span class="state-arrow">→</span><span class="state">published</span></div>
         <h3>原创发布后效状态</h3><div class="state-flow"><span class="state">publication_registered</span><span class="state-arrow">→</span><span class="state">tracking / ready_for_evaluation</span><span class="state-arrow">→</span><span class="state">growth_observed / no_growth_observed / data_anomaly</span><span class="state-arrow">→</span><span class="state">create_followup_boost / watch / no_boost / manual_review</span></div>
 
@@ -1966,11 +1970,13 @@
         <table class="data-table">
           <thead><tr><th>接口/能力</th><th>用途</th><th>阶段</th></tr></thead>
           <tbody>
-            <tr><td><code>POST /api/hotspot-runs</code></td><td>触发完整运行</td><td>PoC</td></tr>
-            <tr><td><code>GET /api/hotspot-runs/{run_id}</code></td><td>查询覆盖、采集器状态与进度</td><td>PoC</td></tr>
-            <tr><td><code>GET /api/hotspot-candidates</code></td><td>查询事件候选</td><td>PoC</td></tr>
-            <tr><td><code>GET /api/hotspot-events/{event_id}</code></td><td>查看事件证据和判断依据</td><td>PoC</td></tr>
-            <tr><td><code>POST .../review</code></td><td>提交候选或事件实体不确定项审核</td><td>PoC</td></tr>
+            <tr><td><code>POST /api/runs</code></td><td>经人工确认后触发完整或快速双路运行，并执行服务端冷却校验</td><td>PoC</td></tr>
+            <tr><td><code>GET /api/runs</code> / <code>GET /api/runs/{id}</code></td><td>分页查询任务覆盖、两个工具状态与进度</td><td>PoC</td></tr>
+            <tr><td><code>GET /api/sources</code></td><td>按搜索获取／内容发布时间、平台等条件分页查询线索和发现记录</td><td>PoC</td></tr>
+            <tr><td><code>GET /api/events</code> / <code>GET /api/events/{id}</code></td><td>查询待审核事件、证据、不确定项和补证记录</td><td>PoC</td></tr>
+            <tr><td><code>POST /api/events/{id}/evidence-plan</code></td><td>预览补证问题、搜索词、工具和预计调用数，不执行搜索</td><td>PoC</td></tr>
+            <tr><td><code>POST /api/evidence-requests/{id}/confirm</code></td><td>确认后执行Codex／豆包定向补证</td><td>PoC</td></tr>
+            <tr><td><code>POST /api/events/{id}/review</code></td><td>提交通过／驳回；通过后保存事实结论和行动方向</td><td>PoC</td></tr>
             <tr><td><code>GET/POST /api/publications</code></td><td>查询或登记已审批原创的实际发布结果</td><td>PoC</td></tr>
             <tr><td><code>GET /api/publications/{publication_id}</code></td><td>查看发布信息、指标快照、增量和运营结论</td><td>PoC</td></tr>
             <tr><td><code>POST /api/publications/{id}/snapshots</code></td><td>接收现有采集、业务推送或人工凭证的指标快照</td><td>PoC</td></tr>
@@ -1994,7 +2000,7 @@
 
         <div class="section-label">路线图</div>
         <div class="timeline">
-          <article class="timeline-item"><span>阶段一｜10个工作日</span><h3>公开信息线索与作业联动PoC</h3><p>本地每3小时触发17条查询及双路搜索；运营形成两类初始草案；已审批原创实际发布后登记链接、接收至少两个同口径快照并按需生成二次加热草案。</p><p><strong>完成标准：</strong>形成线索、初始草案、原创后效与二次加热链路基线；不输出热点识别准确率，不自动执行互动。</p></article>
+          <article class="timeline-item"><span>阶段一｜10个工作日</span><h3>公开信息线索与作业联动PoC</h3><p>自动采集保持暂停，按测试计划手工触发17条查询及双路搜索；运营形成原创增长草案；已审批原创实际发布后登记链接、接收至少两个同口径快照并按需生成追加加热草案；如有可执行关联内容，另行生成直接加热草案。</p><p><strong>完成标准：</strong>形成线索、原创增长、原创后效与追加加热主链，以及可选的关联内容直加支路基线；不输出热点识别准确率，不自动执行互动。</p></article>
           <article class="timeline-item"><span>阶段二｜数据源验证</span><h3>生产数据源与真实热点PoC</h3><p>选择一个业务优先平台和候选数据源，验证平台内容ID、原生互动、独立作者/UGC、连续快照和覆盖说明；计算1/3/24小时增量与速度，并与运营判断对照。</p><p><strong>完成标准：</strong>数据源通过热点数据准入，形成该平台热度模型、覆盖边界和SLA；未通过不进入自动热点阶段。</p></article>
           <article class="timeline-item"><span>阶段三｜人机协同</span><h3>护卫军半自动联动</h3><p>在标准数据/事件推送与受控MCP工具调用之间完成选型；读取平台能力标签并生成目标人群快照；由护卫军按业务规则创建三类正式作业。</p></article>
           <article class="timeline-item"><span>阶段四｜运营反馈</span><h3>作业执行与效果反馈</h3><p>回收原创增长、热点源内容加热和原创后二次加热三类作业执行结果，反向优化行动选择、人数、时间窗、频控和奖励规则。</p></article>
@@ -2071,13 +2077,19 @@
           <details class="acceptance searchable"><summary><span class="req-id">AT09</span><strong>风险词不能单独定性</strong><span class="chev"></span></summary><div class="req-body">仅出现风险词但语境可能中性、正面或正常投诉时，不得直接判定负面攻击。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT10</span><strong>高风险人工复核</strong><span class="chev"></span></summary><div class="req-body">事故、安全、召回、销量、价格、监管、竞品或高阶智驾事件不得由AI自动解除风险。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT11</span><strong>草案证据要求</strong><span class="chev"></span></summary><div class="req-body">缺少品牌关系、事实证据、风险说明、建议平台或禁止表述，不得生成可审批草案。</div></details>
-          <details class="acceptance searchable"><summary><span class="req-id">AT12</span><strong>双路草案独立生成</strong><span class="chev"></span></summary><div class="req-body">同一事件可分别生成原创增长与源内容加热草案，具有不同 <code>draft_purpose</code>，审批状态互不影响。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT12</span><strong>原创主链与关联内容支路独立生成</strong><span class="chev"></span></summary><div class="req-body">同一事件可生成原创增长草案；存在可执行关联内容时，可另行生成源内容直接加热草案。两者具有不同 <code>draft_purpose</code>，审批状态互不影响，且支路不替代原创发布后效与追加加热主闭环。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT13</span><strong>源内容目标校验</strong><span class="chev"></span></summary><div class="req-body">加热目标必须属于事件证据并具有有效平台URL；官网、普通网页、平台不明或无链接来源不得生成草案，并显示原因。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT14</span><strong>加热草案审批</strong><span class="chev"></span></summary><div class="req-body">草案必须展示目标标题、平台、URL、互动动作和风控说明；未经运营审批不得创建正式加热作业。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT15</span><strong>配置版本可追溯</strong><span class="chev"></span></summary><div class="req-body">运行、候选和三类草案均可追溯当时的品牌、查询、过滤、风险与任务规则版本。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT16</span><strong>原创发布登记前置校验</strong><span class="chev"></span></summary><div class="req-body">只有已审批原创增长草案可登记实际发布结果；URL有效且不重复，并保留平台、内容ID、发布时间和登记来源。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT17</span><strong>原创后效增量可追溯</strong><span class="chev"></span></summary><div class="req-body">至少两个同一内容、同口径快照后才允许判断；展示首个、最新快照和逐指标增量，异常数据不得自动生成加热草案。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT18</span><strong>原创后二次加热独立审批</strong><span class="chev"></span></summary><div class="req-body">草案使用 <code>draft_purpose=original_post_boost</code>，绑定实际发布记录与触发判断；不得与热点源内容加热共用目标字段，未经审批不得创建正式作业。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT19</span><strong>双工具实际执行</strong><span class="chev"></span></summary><div class="req-body">完整运行生成34个任务，快速验证生成2个任务；豆包或Codex任一路失败时批次显示部分成功并保留另一工具结果。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT20</span><strong>搜索来源与时间可追溯</strong><span class="chev"></span></summary><div class="req-body">同一URL只建一个来源对象，但豆包／Codex、查询词、搜索获取时间和返回顺序均保留；工作台支持按搜索时间和发布时间筛选。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT21</span><strong>定向补证先确认</strong><span class="chev"></span></summary><div class="req-body">方案预览展示待解决问题、搜索词、工具与预计调用数；未确认不执行搜索，执行完成后事件回到待审核。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT22</span><strong>审核结果与行动解耦</strong><span class="chev"></span></summary><div class="req-body">事件最终审核只有通过／驳回；通过后选择事实结论和至少一个行动方向，事实结论本身不得自动生成草案。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT23</span><strong>完整作业要求草案</strong><span class="chev"></span></summary><div class="req-body">原创草案包含作业详情、话题、核心命题、证据、分平台指引、创作方向和规则边界；无法核验的话题不得臆造。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT24</span><strong>冷却、暂停与分页</strong><span class="chev"></span></summary><div class="req-body">自动采集保持暂停；完整运行3小时、快速验证10分钟内重复触发由服务端拒绝；所有业务列表按服务端分页。</div></details>
         </div>
       </section>
 

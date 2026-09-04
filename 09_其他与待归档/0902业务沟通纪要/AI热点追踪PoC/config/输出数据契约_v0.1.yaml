@@ -10,8 +10,8 @@ enums:
   event_status:
     - relevant_event_clue
     - brand_content_opportunity
-    - manual_review
-    - watch
+    - pending_review
+    - rejected
   hotspot_status:
     - unknown
     - normal
@@ -27,8 +27,15 @@ enums:
   review_result:
     - pending
     - approved
-    - approved_after_edit
     - rejected
+  evidence_request_status:
+    - pending_confirmation
+    - confirmed
+    - running
+    - completed
+    - partial_success
+    - failed
+    - cancelled
   task_status:
     - draft_pending_review
     - approved
@@ -46,10 +53,12 @@ datasets:
       - query_coverage
       - provider_summary
     query_coverage_fields:
-      - expected_query_count
-      - executed_query_count
-      - success_query_count
-      - failed_query_count
+      - planned_query_count
+      - provider_count
+      - planned_job_count
+      - executed_job_count
+      - success_job_count
+      - failed_job_count
       - missing_query_ids
 
   raw_provider_result:
@@ -97,6 +106,19 @@ datasets:
       - time_confidence
       - entity_matches
 
+  source_discovery:
+    primary_key: discovery_id
+    required_fields:
+      - discovery_id
+      - source_id
+      - run_id
+      - provider_id
+      - query_id
+      - query_text
+      - retrieved_at
+      - provider_rank
+    rule: "同一URL可由多个搜索工具、多个查询词发现；source_item只保留一次，发现路径必须逐条保留并可追溯"
+
   invalid_log:
     primary_key: invalid_id
     required_fields:
@@ -137,7 +159,34 @@ datasets:
       source_count: "表示证据条数，不表示平台热度"
       independent_source_count: "表示独立证据广度，不表示用户讨论量"
       entity_mentions: "事件内已由证据支持的车型、人物、活动或机构识别结果；不要求维护完整全局实体表"
-      entity_uncertainties: "证据不足或关系冲突时记录原始名称、类型、不确定原因、建议关系和证据来源；非空时事件进入manual_review"
+      entity_uncertainties: "证据不足或关系冲突时记录原始名称、类型、不确定原因、建议关系和证据来源；非空时事件进入pending_review"
+
+  evidence_request:
+    primary_key: evidence_request_id
+    required_fields:
+      - evidence_request_id
+      - event_id
+      - unresolved_question
+      - proposed_queries
+      - proposed_providers
+      - planned_call_count
+      - requested_by
+      - requested_at
+      - status
+    execution_rule: "创建仅生成补证计划，不发起搜索；运营确认检索词、工具和调用次数后才能执行"
+
+  evidence_job:
+    primary_key: evidence_job_id
+    required_fields:
+      - evidence_job_id
+      - evidence_request_id
+      - provider_id
+      - query_text
+      - status
+      - started_at
+      - finished_at
+      - result_count
+    failure_rule: "单个工具失败时记录原因并保留其他工具结果；不得把失败解释为无结果"
 
   platform_metric_snapshot:
     phase: "用户回填链接后，非微信平台PoC可用；前置热点发现仍需生产数据源"
@@ -247,6 +296,7 @@ datasets:
       - review_reason
       - before_version
       - after_version
+    decision_rule: "最终审核仅允许通过或驳回；继续观察和补证不是最终审核结论，补证通过独立流程处理"
 
   task_draft:
     primary_key: task_draft_id
@@ -264,6 +314,14 @@ datasets:
       - prohibited_claims
       - risk_notes
       - task_status
+    task_brief_sections:
+      - 作业详情
+      - 必带话题
+      - 核心命题
+      - 事实依据与证据
+      - 平台适配指引
+      - 创作方向参考
+      - 作业规则与风险边界
     purpose_specific_fields:
       original_growth:
         - recommended_platforms

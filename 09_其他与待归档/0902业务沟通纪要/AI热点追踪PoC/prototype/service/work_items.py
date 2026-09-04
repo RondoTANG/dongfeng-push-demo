@@ -93,7 +93,7 @@ def complete_work_item(work_item_id: str, actor_id: str, output: dict[str, Any])
         decision_reason = str(output.get("decision_reason") or output.get("summary") or "").strip()
         if not decision_reason:
             raise ValueError("必须提供 summary 或 decision_reason")
-        next_status = "manual_review" if risk_tags or entity_uncertainties else "pending_review"
+        next_status = "pending_review"
         db.execute(
             """
             UPDATE events

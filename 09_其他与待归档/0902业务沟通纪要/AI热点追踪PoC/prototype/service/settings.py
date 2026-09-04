@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import os
+import shutil
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -11,6 +13,9 @@ SOURCE_CONFIG_DIR = POC_ROOT / "config"
 HOTSPOT_RULE_PATH = POC_ROOT / "热点采集规则_v0.2.yaml"
 REAL_SAMPLE_PATH = POC_ROOT / "运行结果" / "2026-09-03_豆包原始结果.json"
 DOUBAO_SCRIPT_PATH = POC_ROOT / "run_doubao_search.py"
+CODEX_CLI_PATH = os.getenv("CODEX_CLI_PATH") or shutil.which("codex") or "/Applications/ChatGPT.app/Contents/Resources/codex"
+FULL_RUN_COOLDOWN_SECONDS = 3 * 60 * 60
+QUICK_RUN_COOLDOWN_SECONDS = 10 * 60
 
 
 def ensure_runtime_dirs() -> None:

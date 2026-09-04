@@ -1,9 +1,9 @@
 (function () {
   'use strict';
 
-  var state = { drafts: [], selected: null, loading: true, error: null, status: '', purpose: '' };
+  var state = { drafts: [], selected: null, loading: true, error: null, status: '', purpose: '', page: 1, pageSize: 20, total: 0 };
   var platformNames = { weibo: '微博', douyin: '抖音', wechat_official_account: '公众号', wechat_channels: '视频号', toutiao: '今日头条', xiaohongshu: '小红书', bilibili: 'B站', autohome: '汽车之家', dongchedi: '懂车帝' };
-  var purposeNames = { original_growth: '原创增长', source_content_boost: '热点源内容加热', original_post_boost: '原创后二次加热' };
+  var purposeNames = { original_growth: '原创增长', original_post_boost: '原创发布后追加加热', source_content_boost: '热点关联内容直接加热' };
   var actionNames = { like: '点赞', positive_comment: '正向评论', repost: '转发', favorite: '收藏' };
   var actionsByPlatform = {
     weibo: ['like', 'positive_comment', 'repost'], douyin: ['like', 'positive_comment'],
@@ -16,8 +16,8 @@
     var items = state.drafts.filter(function (item) {
       return (!state.status || item.task_status === state.status) && (!state.purpose || item.draft_purpose === state.purpose);
     });
-    return '<aside class="draft-list"><div class="event-queue__head draft-queue-head"><strong>作业草案</strong><select class="form-control" data-draft-purpose-filter><option value="">全部方向</option><option value="original_growth">原创增长</option><option value="source_content_boost">热点源内容加热</option><option value="original_post_boost">原创后二次加热</option></select><select class="form-control" data-draft-status-filter><option value="">全部状态</option><option value="draft_pending_review">待审批</option><option value="approved">已通过</option><option value="rejected">已驳回</option></select></div><div class="event-queue__list">' +
-      (items.length ? items.map(function (draft) { return '<button class="draft-list__item' + (state.selected && state.selected.task_draft_id === draft.task_draft_id ? ' is-active' : '') + '" data-select-draft="' + draft.task_draft_id + '"><span class="event-queue__title">' + AppCommon.escapeHtml(draft.task_title) + '</span><span class="event-queue__meta"><span class="draft-purpose">' + AppCommon.escapeHtml(purposeNames[draft.draft_purpose] || draft.draft_purpose) + '</span>' + AppCommon.statusTag(draft.task_status) + '</span><span class="event-queue__heat">' + AppCommon.escapeHtml((draft.recommended_platforms || []).map(function (item) { return platformNames[item] || item; }).join('、') || '平台待运营确认') + '</span></button>'; }).join('') : '<div class="empty-state compact"><span>当前筛选下暂无草案</span></div>') + '</div></aside>';
+    return '<aside class="draft-list"><div class="event-queue__head draft-queue-head"><strong>作业草案</strong><select class="form-control" data-draft-purpose-filter><option value="">全部方向</option><option value="original_growth">原创增长</option><option value="original_post_boost">原创发布后追加加热</option><option value="source_content_boost">热点关联内容直接加热</option></select><select class="form-control" data-draft-status-filter><option value="">全部状态</option><option value="draft_pending_review">待审批</option><option value="approved">已通过</option><option value="rejected">已驳回</option></select></div><div class="event-queue__list">' +
+      (items.length ? items.map(function (draft) { return '<button class="draft-list__item' + (state.selected && state.selected.task_draft_id === draft.task_draft_id ? ' is-active' : '') + '" data-select-draft="' + draft.task_draft_id + '"><span class="event-queue__title">' + AppCommon.escapeHtml(draft.task_title) + '</span><span class="event-queue__meta"><span class="draft-purpose">' + AppCommon.escapeHtml(purposeNames[draft.draft_purpose] || draft.draft_purpose) + '</span>' + AppCommon.statusTag(draft.task_status) + '</span><span class="event-queue__heat">' + AppCommon.escapeHtml((draft.recommended_platforms || []).map(function (item) { return platformNames[item] || item; }).join('、') || '平台待运营确认') + '</span></button>'; }).join('') : '<div class="empty-state compact"><span>当前筛选下暂无草案</span></div>') + '</div>' + DataTable.pagination(state.page, state.pageSize, state.total, 'data-draft-page') + '</aside>';
   }
 
   function listBlock(title, items, emptyText) {
@@ -51,13 +51,15 @@
   }
 
   function render() {
-    return '<section class="page page-wide">' + Layout.pageHead('作业草案与审批', '分别审批原创增长、热点源内容加热与原创后二次加热草案') + '<div id="drafts-content">' + renderContent() + '</div></section>';
+    return '<section class="page page-wide">' + Layout.pageHead('作业草案与审批', '先管理原创增长及其发布后追加加热主链；热点关联内容直接加热作为补充支路') + '<div id="drafts-content">' + renderContent() + '</div></section>';
   }
 
   async function load(preferredId) {
     state.loading = true; state.error = null; update();
     try {
-      var result = await AppCommon.api('/api/drafts?limit=500'); state.drafts = result.items;
+      var params = new URLSearchParams({ page: state.page, page_size: state.pageSize });
+      if (state.status) params.set('status', state.status); if (state.purpose) params.set('purpose', state.purpose);
+      var result = await AppCommon.api('/api/drafts?' + params.toString()); state.drafts = result.items; state.total = result.total || 0;
       var draftId = preferredId || (window.AppContext && window.AppContext.draftId) || (state.drafts[0] && state.drafts[0].task_draft_id);
       state.selected = draftId ? await AppCommon.api('/api/drafts/' + draftId) : null;
       window.AppContext = null;
@@ -88,7 +90,7 @@
         target_member_tags: drawer.element.querySelector('[name="target_tags"]').value.split(/[、,，]/).map(function (item) { return item.trim(); }).filter(Boolean)
       };
       if (isBoost) payload.engagement_actions = Array.from(drawer.element.querySelectorAll('[name="engagement_action"]:checked')).map(function (item) { return item.value; });
-      try { state.selected = await AppCommon.api('/api/drafts/' + draft.task_draft_id, { method: 'PATCH', body: JSON.stringify(payload) }); drawer.close(); state.drafts = (await AppCommon.api('/api/drafts?limit=500')).items; update(); AppCommon.showToast('草案修改已保存', 'success'); }
+      try { state.selected = await AppCommon.api('/api/drafts/' + draft.task_draft_id, { method: 'PATCH', body: JSON.stringify(payload) }); drawer.close(); await load(draft.task_draft_id); AppCommon.showToast('草案修改已保存', 'success'); }
       catch (error) { button.disabled = false; AppCommon.showToast(error.message, 'error'); }
     };
   }
@@ -98,7 +100,7 @@
     var drawer = ReviewDrawer.draftReview(draft);
     async function submit(result) {
       var note = drawer.element.querySelector('[name="draft_review_note"]').value.trim();
-      try { state.selected = await AppCommon.api('/api/drafts/' + draft.task_draft_id + '/review', { method: 'POST', body: JSON.stringify({ review_result: result, reviewer: '本地运营', review_note: note || null }) }); drawer.close(); state.drafts = (await AppCommon.api('/api/drafts?limit=500')).items; update(); AppCommon.showToast(result === 'approved' ? '草案已通过，未执行正式下发' : '草案已驳回', 'success'); }
+      try { state.selected = await AppCommon.api('/api/drafts/' + draft.task_draft_id + '/review', { method: 'POST', body: JSON.stringify({ review_result: result, reviewer: '本地运营', review_note: note || null }) }); drawer.close(); await load(draft.task_draft_id); AppCommon.showToast(result === 'approved' ? '草案已通过，未执行正式下发' : '草案已驳回', 'success'); }
       catch (error) { AppCommon.showToast(error.message, 'error'); }
     }
     drawer.element.querySelector('[data-approve-draft]').onclick = function () { submit('approved'); };
@@ -113,10 +115,11 @@
       if (event.target.closest('[data-review-draft]')) return openReview();
       if (event.target.closest('[data-retry-action]')) return load();
       var eventButton = event.target.closest('[data-open-draft-event]'); if (eventButton) { window.AppContext = { eventId: eventButton.dataset.openDraftEvent }; App.navigate('event-detail'); }
+      var pageButton = event.target.closest('[data-draft-page]'); if (pageButton) { state.page += pageButton.dataset.draftPage === 'next' ? 1 : -1; return load(); }
     };
     page.onchange = function (event) {
-      if (event.target.matches('[data-draft-status-filter]')) { state.status = event.target.value; update(); }
-      if (event.target.matches('[data-draft-purpose-filter]')) { state.purpose = event.target.value; update(); }
+      if (event.target.matches('[data-draft-status-filter]')) { state.status = event.target.value; state.page = 1; load(); }
+      if (event.target.matches('[data-draft-purpose-filter]')) { state.purpose = event.target.value; state.page = 1; load(); }
     };
   }
 

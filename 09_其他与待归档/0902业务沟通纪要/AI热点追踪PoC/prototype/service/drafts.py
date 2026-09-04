@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+import re
 from typing import Any
 
 from .database import add_audit, connection, fetch_all, fetch_one, json_text, new_id, now_iso
 from .events import get_event
 
 
-ALLOWED_EVENT_OUTCOMES = {"relevant_event_clue", "brand_content_opportunity", "manual_review", "watch"}
+ALLOWED_EVENT_OUTCOMES = {"relevant_event_clue", "brand_content_opportunity"}
 TASK_GENERATING_OUTCOMES = {"relevant_event_clue", "brand_content_opportunity"}
 ALLOWED_ACTION_PATHS = {"original_growth", "source_content_boost"}
 ALLOWED_DRAFT_PURPOSES = {"original_growth", "source_content_boost", "original_post_boost"}
@@ -45,17 +46,57 @@ def _recommend_platforms(event: dict[str, Any]) -> list[str]:
     if "weibo" in source_platforms:
         recommendations.append("weibo")
     if any(term in title for term in ("视频", "车展", "直播", "亮相", "实车")):
-        recommendations.extend(["douyin", "wechat_channels"])
+        recommendations.extend(["douyin", "xiaohongshu"])
+    if any(term in title for term in ("上市", "配置", "价格", "选车", "体验")):
+        recommendations.extend(["xiaohongshu", "toutiao"])
     if not recommendations or any(term in title for term in ("发布", "交付", "技术", "质量", "市场", "规划")):
-        recommendations.append("wechat_official_account")
+        recommendations.extend(["toutiao", "wechat_official_account"])
     return list(dict.fromkeys(recommendations))[:2]
 
 
-def _original_draft_brief(event: dict[str, Any]) -> str:
-    disclaimer = "本任务基于公开信息线索形成，不代表真实热点结论。"
-    direction = "请围绕已核验事件事实形成原创观点，说明与东风品牌或行业价值的关系，并保留个人表达。"
-    boundary = "不得直接复制搜索摘要，不得补写证据中不存在的数据、结论或用户反馈。"
-    return f"{disclaimer}\n\n事件：{event.get('event_title')}。\n{direction}\n{boundary}"
+PLATFORM_GUIDANCE = {
+    "douyin": "内容形态：30—90秒口播、实拍混剪或图文轮播；开头3秒呈现经证据核验的核心看点，字幕突出事实，不虚构体验。",
+    "xiaohongshu": "内容形态：图文笔记或短视频；标题明确主体与信息点，正文分段表达，可从真实使用场景或同价位选择角度展开。",
+    "weibo": "内容形态：短评、多图或短视频博文；文案简洁，使用运营确认的话题，配图或视频并保留个人观点。",
+    "toutiao": "内容形态：短图文、中短评或视频；标题点明核心事实，正文先结论后依据，适合较完整的行业解读。",
+    "wechat_official_account": "内容形态：公众号图文；按事件背景、已核验事实、产品或行业价值、个人观点组织，不使用未核验数据。",
+    "wechat_channels": "内容形态：短视频或直播切片；使用可授权素材，口播仅引用事件证据，避免实时数据和效果承诺。",
+}
+
+
+def _original_draft_brief(event: dict[str, Any], platforms: list[str], source_ids: list[str]) -> str:
+    evidence_rows = fetch_all(
+        "SELECT evidence_text FROM event_evidence WHERE event_id=? ORDER BY created_at LIMIT 3", (event["event_id"],)
+    )
+    evidence_text = "\n".join(str(item.get("evidence_text") or "") for item in evidence_rows)
+    hashtags = list(dict.fromkeys(re.findall(r"#[^#\s，。；、]{2,30}#?", evidence_text)))[:4]
+    topic_text = "、".join(hashtags) if hashtags else "待运营依据官方口径补充；系统不从搜索摘要臆造话题"
+    platform_text = "\n".join(
+        f"- {PLATFORM_LABELS.get(platform, platform).replace('能力', '')}：{PLATFORM_GUIDANCE.get(platform, '按平台内容规范形成原创表达，具体形式由运营确认。')}"
+        for platform in platforms
+    ) or "- 目标平台待运营确认。"
+    evidence_summary = "；".join(
+        str(item.get("evidence_text") or "").strip().replace("\n", " ")[:180] for item in evidence_rows if item.get("evidence_text")
+    ) or event.get("event_title") or "当前未取得可展示的正文证据"
+    return (
+        "本任务基于公开信息线索形成，不代表真实热点结论。\n\n"
+        "一、作业详情\n"
+        f"1. 必带话题：{topic_text}\n"
+        f"2. 核心命题：围绕“{event.get('event_title')}”开展原创创作，只使用已核验证据说明事件事实及其品牌或行业价值。\n"
+        f"3. 已核验证据摘要：{evidence_summary}\n"
+        f"4. 证据编号：{'、'.join(source_ids)}\n\n"
+        "二、平台适配指引\n"
+        f"{platform_text}\n\n"
+        "三、创作方向参考\n"
+        "1. 普通用户解读：用通俗语言解释事件对购车、用车或行业认知的影响。\n"
+        "2. 真实场景视角：仅在有可靠素材时结合通勤、长途、家庭或户外等场景，不得模拟未发生的车主体验。\n"
+        "3. 行业观察视角：结合已核验事实分析产品或行业价值，不扩大为销量、排名或全网口碑结论。\n\n"
+        "四、作业规则\n"
+        "1. 内容必须原创，不得照搬官方或他人账号内容，不得组织同质化复制评论。\n"
+        "2. 不得添加证据未支持的价格、销量、配置、排名、互动量和用户评价。\n"
+        "3. 不得使用“全网热议”“正在爆发”“冲上热搜”等未经平台原生数据证明的表述。\n"
+        "4. 违规、申诉周期和积分处理沿用护卫军正式作业规则，发布前由运营补齐并确认。"
+    )
 
 
 def _create_or_get_original_draft(event: dict[str, Any]) -> dict[str, Any]:
@@ -91,7 +132,7 @@ def _create_or_get_original_draft(event: dict[str, Any]) -> dict[str, Any]:
                 task_draft_id,
                 event["event_id"],
                 f"原创作业｜{event.get('event_title')}",
-                _original_draft_brief(event),
+                _original_draft_brief(event, platforms, source_ids),
                 json_text(platforms),
                 json_text(tags),
                 deadline,
@@ -236,7 +277,7 @@ def review_event(
     event = get_event(event_id)
     if not event:
         raise LookupError("事件不存在")
-    if review_result not in {"approved", "approved_after_edit", "rejected"}:
+    if review_result not in {"approved", "rejected"}:
         raise ValueError("不支持的事件审核结果")
     if review_result == "rejected":
         final_status = "rejected"
@@ -311,7 +352,7 @@ def review_event(
     return {"event": get_event(event_id), "drafts": drafts, "draft": drafts[0] if drafts else None}
 
 
-def list_drafts(status: str | None = None, purpose: str | None = None, limit: int = 200) -> list[dict[str, Any]]:
+def list_drafts(status: str | None = None, purpose: str | None = None, limit: int = 200, offset: int = 0) -> list[dict[str, Any]]:
     conditions: list[str] = []
     params: list[Any] = []
     if status:
@@ -323,8 +364,17 @@ def list_drafts(status: str | None = None, purpose: str | None = None, limit: in
         conditions.append("draft_purpose=?")
         params.append(purpose)
     where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
-    params.append(limit)
-    return fetch_all(f"SELECT * FROM task_drafts {where} ORDER BY created_at DESC LIMIT ?", tuple(params))
+    params.extend([limit, offset])
+    return fetch_all(f"SELECT * FROM task_drafts {where} ORDER BY created_at DESC LIMIT ? OFFSET ?", tuple(params))
+
+
+def count_drafts(status: str | None = None, purpose: str | None = None) -> int:
+    conditions: list[str] = []; params: list[Any] = []
+    if status: conditions.append("task_status=?"); params.append(status)
+    if purpose: conditions.append("draft_purpose=?"); params.append(purpose)
+    where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+    row = fetch_one(f"SELECT COUNT(*) total FROM task_drafts {where}", tuple(params)) or {}
+    return int(row.get("total") or 0)
 
 
 def get_draft(task_draft_id: str) -> dict[str, Any] | None:

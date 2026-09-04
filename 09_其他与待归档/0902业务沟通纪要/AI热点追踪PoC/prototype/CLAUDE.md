@@ -18,30 +18,23 @@
 
 > 注意：本项目通过 FastAPI 提供真实数据接口和静态资源。直接双击 `index.html` 只能看到错误态，不能验证核心流程。
 
-## 本地采集与 Codex 工作项
+## 本地双路采集
 
-手动快速验证（采集、来源处理和事件聚合一次完成）：
+手动快速验证（豆包1项＋Codex 1项，采集、来源处理和事件聚合一次完成）：
 
 ```bash
 python3 scripts/run_collection.py --mode quick --trigger-type manual
 ```
 
-定时完整执行器（默认以当前3小时窗口生成幂等键）：
+手动完整执行器（豆包17项＋Codex 17项；服务端限制3小时内不得重复运行）：
 
 ```bash
-python3 scripts/run_collection.py --mode full --trigger-type schedule
+python3 scripts/run_collection.py --mode full --trigger-type manual
 ```
 
-查看、领取和回传 Codex 工作项：
-
-```bash
-python3 scripts/process_codex_work_items.py --status pending
-python3 scripts/process_codex_work_items.py --claim-next --actor-id codex-local-automation
-python3 scripts/process_codex_work_items.py --complete WRK-xxx --actor-id codex-local-automation --payload /absolute/path/result.json
-```
-
-- Codex 只补充公开证据、事件摘要、风险与存疑，不直接判定真实热点。
-- 后端校验回传字段并计算后续状态，Codex 不能任意改变事件或草案状态。
+- Codex 使用本机已登录 CLI，不需要在项目中配置 API Key。
+- 豆包与 Codex 都是公开搜索手段，只能形成线索和补证，不直接判定真实热点。
+- 自动每3小时采集默认暂停；启动 FastAPI 不会产生搜索调用。
 - MCP 是未来与业务系统联动的一种可选方案；当前本地 PoC 直接通过 SQLite／HTTP 契约交换数据，不依赖 MCP。
 
 ## 语法与服务校验

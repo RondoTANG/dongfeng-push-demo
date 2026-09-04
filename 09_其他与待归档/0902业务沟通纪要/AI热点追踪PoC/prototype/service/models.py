@@ -76,6 +76,26 @@ SCHEMA_STATEMENTS = [
     )
     """,
     """
+    CREATE TABLE IF NOT EXISTS source_discoveries (
+        discovery_id TEXT PRIMARY KEY,
+        source_id TEXT NOT NULL,
+        run_id TEXT NOT NULL,
+        raw_result_id TEXT,
+        query_job_id TEXT NOT NULL,
+        provider_id TEXT NOT NULL,
+        query_id TEXT NOT NULL,
+        query_text TEXT NOT NULL,
+        provider_rank INTEGER,
+        provider_title TEXT,
+        provider_snippet TEXT,
+        retrieved_at TEXT NOT NULL,
+        UNIQUE (source_id, provider_id, query_id),
+        FOREIGN KEY (source_id) REFERENCES source_items(source_id),
+        FOREIGN KEY (run_id) REFERENCES collection_runs(run_id),
+        FOREIGN KEY (query_job_id) REFERENCES query_jobs(query_job_id)
+    )
+    """,
+    """
     CREATE TABLE IF NOT EXISTS invalid_logs (
         invalid_id TEXT PRIMARY KEY,
         run_id TEXT NOT NULL,
@@ -105,7 +125,7 @@ SCHEMA_STATEMENTS = [
         hotspot_judgement_available INTEGER NOT NULL DEFAULT 0,
         hotspot_status TEXT NOT NULL DEFAULT 'unknown',
         hotspot_unavailable_reason_json TEXT NOT NULL DEFAULT '[]',
-        event_status TEXT NOT NULL DEFAULT 'needs_evidence',
+        event_status TEXT NOT NULL DEFAULT 'pending_review',
         decision_reason TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
@@ -140,6 +160,41 @@ SCHEMA_STATEMENTS = [
         completed_at TEXT,
         error_message TEXT,
         FOREIGN KEY (event_id) REFERENCES events(event_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS evidence_requests (
+        evidence_request_id TEXT PRIMARY KEY,
+        event_id TEXT NOT NULL,
+        status TEXT NOT NULL,
+        question TEXT NOT NULL,
+        unresolved_items_json TEXT NOT NULL DEFAULT '[]',
+        search_queries_json TEXT NOT NULL DEFAULT '[]',
+        selected_methods_json TEXT NOT NULL DEFAULT '[]',
+        lookback_hours INTEGER NOT NULL DEFAULT 72,
+        estimated_calls_json TEXT NOT NULL DEFAULT '{}',
+        confirmed_by TEXT,
+        confirmed_at TEXT,
+        result_summary TEXT,
+        created_at TEXT NOT NULL,
+        completed_at TEXT,
+        error_message TEXT,
+        FOREIGN KEY (event_id) REFERENCES events(event_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS evidence_jobs (
+        evidence_job_id TEXT PRIMARY KEY,
+        evidence_request_id TEXT NOT NULL,
+        provider_id TEXT NOT NULL,
+        query_text TEXT,
+        status TEXT NOT NULL,
+        result_count INTEGER NOT NULL DEFAULT 0,
+        result_json TEXT,
+        started_at TEXT,
+        finished_at TEXT,
+        error_message TEXT,
+        FOREIGN KEY (evidence_request_id) REFERENCES evidence_requests(evidence_request_id)
     )
     """,
     """
@@ -251,8 +306,10 @@ SCHEMA_STATEMENTS = [
     "CREATE INDEX IF NOT EXISTS idx_queries_run ON query_jobs(run_id)",
     "CREATE INDEX IF NOT EXISTS idx_sources_run ON source_items(run_id)",
     "CREATE INDEX IF NOT EXISTS idx_sources_event ON source_items(event_id)",
+    "CREATE INDEX IF NOT EXISTS idx_discoveries_source ON source_discoveries(source_id, retrieved_at)",
     "CREATE INDEX IF NOT EXISTS idx_events_run ON events(run_id)",
     "CREATE INDEX IF NOT EXISTS idx_work_items_status ON codex_work_items(status)",
+    "CREATE INDEX IF NOT EXISTS idx_evidence_requests_event ON evidence_requests(event_id, created_at)",
     "CREATE INDEX IF NOT EXISTS idx_publications_status ON original_publications(tracking_status)",
     "CREATE INDEX IF NOT EXISTS idx_snapshots_publication ON publication_metric_snapshots(publication_id, captured_at)",
     "CREATE INDEX IF NOT EXISTS idx_evaluations_publication ON publication_evaluations(publication_id, evaluated_at)",
@@ -275,6 +332,11 @@ JSON_FIELDS = {
     "hotspot_unavailable_reason_json",
     "input_json",
     "output_json",
+    "unresolved_items_json",
+    "search_queries_json",
+    "selected_methods_json",
+    "estimated_calls_json",
+    "result_json",
     "recommended_platforms_json",
     "target_member_tags_json",
     "engagement_actions_json",

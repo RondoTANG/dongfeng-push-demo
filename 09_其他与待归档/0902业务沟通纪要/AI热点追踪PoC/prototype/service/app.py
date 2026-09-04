@@ -10,11 +10,18 @@ from pydantic import BaseModel, Field
 
 from .database import add_audit, init_database
 from .config_loader import business_config_summary, reload_configs
-from .drafts import get_draft, list_drafts, review_draft, review_event, update_draft
-from .effects import add_snapshot, create_publication, evaluate_publication, get_publication, list_publications
-from .events import aggregate_run, get_event, list_events, merge_events, split_event
-from .pipeline import execute_collection, import_real_sample
-from .repositories import get_run, list_audit, list_invalid, list_runs, list_sources
+from .drafts import count_drafts, get_draft, list_drafts, review_draft, review_event, update_draft
+from .evidence_requests import (
+    confirm_evidence_request, create_evidence_plan, execute_evidence_request,
+    get_evidence_request, list_evidence_requests,
+)
+from .effects import add_snapshot, count_publications, create_publication, evaluate_publication, get_publication, list_publications
+from .events import aggregate_run, count_events, get_event, list_events, merge_events, split_event
+from .pipeline import execute_collection, import_real_sample, reserve_collection_run, run_cooldown
+from .repositories import (
+    count_audit, count_invalid, count_runs, count_sources, get_run,
+    list_audit, list_invalid, list_runs, list_sources,
+)
 from .settings import DATABASE_PATH, PROJECT_ROOT
 from .work_items import claim_work_item, complete_work_item, fail_work_item, get_work_item, list_work_items
 
@@ -74,15 +81,27 @@ class SplitRequest(BaseModel):
 
 
 class EventReviewRequest(BaseModel):
-    review_result: str = Field(pattern="^(approved|approved_after_edit|rejected)$")
+    review_result: str = Field(pattern="^(approved|rejected)$")
     event_status: str | None = None
     reviewer: str = Field(default="local-operator", min_length=2, max_length=80)
     review_note: str | None = Field(default=None, max_length=1000)
     evidence_summary: str = Field(min_length=5, max_length=3000)
     risk_summary: str = Field(default="未发现需要阻断草案生成的明确风险", max_length=2000)
-    recommended_action: str = Field(default="由运营分别判断是否形成原创增长草案或源内容加热草案", max_length=1000)
+    recommended_action: str = Field(default="由运营先判断是否形成原创增长草案；如事件存在可执行关联内容，可同时评估是否直接加热", max_length=1000)
     action_paths: list[str] = Field(default_factory=lambda: ["original_growth"], max_length=2)
     boost_source_ids: list[str] = Field(default_factory=list, max_length=3)
+
+
+class EvidencePlanRequest(BaseModel):
+    question: str | None = Field(default=None, max_length=500)
+    unresolved_items: list[str] = Field(default_factory=list, max_length=8)
+    search_queries: list[str] = Field(default_factory=list, max_length=3)
+    lookback_hours: int = Field(default=72, ge=1, le=720)
+
+
+class EvidenceConfirmRequest(BaseModel):
+    methods: list[str] = Field(min_length=1, max_length=4)
+    confirmed_by: str = Field(default="本地运营", min_length=2, max_length=80)
 
 
 class DraftUpdateRequest(BaseModel):
@@ -147,8 +166,9 @@ def health() -> dict[str, object]:
 
 
 @app.get("/api/runs")
-def runs(limit: int = Query(default=50, ge=1, le=200)) -> dict[str, object]:
-    return {"items": list_runs(limit), "limit": limit}
+def runs(page: int = Query(default=1, ge=1), page_size: int = Query(default=20, ge=1, le=100)) -> dict[str, object]:
+    total = count_runs()
+    return {"items": list_runs(page_size, (page - 1) * page_size), "page": page, "page_size": page_size, "total": total}
 
 
 @app.get("/api/runs/{run_id}")
@@ -161,14 +181,37 @@ def run_detail(run_id: str) -> dict[str, object]:
 
 @app.post("/api/runs", status_code=202)
 def create_run(payload: RunRequest, background_tasks: BackgroundTasks) -> dict[str, object]:
+    cooldown = run_cooldown(payload.mode)
+    if not cooldown["allowed"]:
+        raise HTTPException(status_code=429, detail={"message": "运行仍在冷却期，请勿重复产生搜索调用", **cooldown})
+    run_id = reserve_collection_run(
+        mode=payload.mode,
+        trigger_type=payload.trigger_type,
+        idempotency_key=payload.idempotency_key,
+    )
     background_tasks.add_task(
         execute_and_aggregate,
+        run_id=run_id,
         mode=payload.mode,
         trigger_type=payload.trigger_type,
         idempotency_key=payload.idempotency_key,
         timeout=payload.timeout,
     )
-    return {"accepted": True, "message": "运行已进入本地执行队列"}
+    return {
+        "accepted": True,
+        "run_id": run_id,
+        "planned_query_count": 17 if payload.mode == "full" else 1,
+        "planned_job_count": 34 if payload.mode == "full" else 2,
+        "providers": ["doubao_global_search", "codex_web_search"],
+        "message": "双路运行已进入本地执行队列",
+    }
+
+
+@app.get("/api/runs/cooldown/{mode}")
+def run_cooldown_status(mode: str) -> dict[str, object]:
+    if mode not in {"quick", "full"}:
+        raise HTTPException(status_code=400, detail="mode必须为quick或full")
+    return run_cooldown(mode)
 
 
 @app.post("/api/runs/import-real-sample")
@@ -180,13 +223,20 @@ def import_sample() -> dict[str, object]:
 @app.get("/api/sources")
 def sources(
     run_id: str | None = None,
-    status: str | None = None,
+    status: str | None = "valid",
     platform: str | None = None,
     keyword: str | None = None,
-    limit: int = Query(default=200, ge=1, le=500),
+    fetched_from: str | None = None,
+    fetched_to: str | None = None,
+    published_from: str | None = None,
+    published_to: str | None = None,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
 ) -> dict[str, object]:
-    items = list_sources(run_id=run_id, status=status, platform=platform, keyword=keyword, limit=limit)
-    return {"items": items, "count": len(items)}
+    filters = dict(run_id=run_id, status=status, platform=platform, keyword=keyword, fetched_from=fetched_from, fetched_to=fetched_to, published_from=published_from, published_to=published_to)
+    total = count_sources(**filters)
+    items = list_sources(**filters, limit=page_size, offset=(page - 1) * page_size)
+    return {"items": items, "page": page, "page_size": page_size, "total": total}
 
 
 @app.get("/api/invalid-records")
@@ -194,10 +244,12 @@ def invalid_records(
     run_id: str | None = None,
     rule_id: str | None = None,
     keyword: str | None = None,
-    limit: int = Query(default=200, ge=1, le=500),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
 ) -> dict[str, object]:
-    items = list_invalid(run_id, rule_id, keyword, limit)
-    return {"items": items, "count": len(items)}
+    total = count_invalid(run_id, rule_id, keyword)
+    items = list_invalid(run_id, rule_id, keyword, page_size, (page - 1) * page_size)
+    return {"items": items, "page": page, "page_size": page_size, "total": total}
 
 
 @app.get("/api/audit")
@@ -206,10 +258,12 @@ def audit(
     action: str | None = None,
     actor_id: str | None = None,
     keyword: str | None = None,
-    limit: int = Query(default=200, ge=1, le=500),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
 ) -> dict[str, object]:
-    items = list_audit(object_type=object_type, action=action, actor_id=actor_id, keyword=keyword, limit=limit)
-    return {"items": items, "count": len(items)}
+    total = count_audit(object_type=object_type, action=action, actor_id=actor_id, keyword=keyword)
+    items = list_audit(object_type=object_type, action=action, actor_id=actor_id, keyword=keyword, limit=page_size, offset=(page - 1) * page_size)
+    return {"items": items, "page": page, "page_size": page_size, "total": total}
 
 
 @app.get("/api/config/summary")
@@ -269,9 +323,10 @@ def aggregate(run_id: str) -> dict[str, int]:
 
 
 @app.get("/api/events")
-def events(status: str | None = None, run_id: str | None = None, limit: int = Query(default=200, ge=1, le=500)) -> dict[str, object]:
-    items = list_events(status=status, run_id=run_id, limit=limit)
-    return {"items": items, "count": len(items)}
+def events(status: str | None = None, run_id: str | None = None, page: int = Query(default=1, ge=1), page_size: int = Query(default=20, ge=1, le=100)) -> dict[str, object]:
+    total = count_events(status, run_id)
+    items = list_events(status=status, run_id=run_id, limit=page_size, offset=(page - 1) * page_size)
+    return {"items": items, "page": page, "page_size": page_size, "total": total}
 
 
 @app.get("/api/events/{event_id}")
@@ -306,6 +361,46 @@ def event_split(event_id: str, payload: SplitRequest) -> dict[str, object]:
 def event_review(event_id: str, payload: EventReviewRequest) -> dict[str, object]:
     try:
         return review_event(event_id, **payload.model_dump())
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.post("/api/events/{event_id}/evidence-plan")
+def evidence_plan(event_id: str, payload: EvidencePlanRequest) -> dict[str, object]:
+    try:
+        return create_evidence_plan(
+            event_id,
+            question=payload.question,
+            unresolved_items=payload.unresolved_items or None,
+            search_queries=payload.search_queries or None,
+            lookback_hours=payload.lookback_hours,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/api/evidence-requests")
+def evidence_requests(event_id: str | None = None, limit: int = Query(default=100, ge=1, le=500)) -> dict[str, object]:
+    items = list_evidence_requests(event_id, limit)
+    return {"items": items, "count": len(items)}
+
+
+@app.get("/api/evidence-requests/{request_id}")
+def evidence_request_detail(request_id: str) -> dict[str, object]:
+    item = get_evidence_request(request_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="补证申请不存在")
+    return item
+
+
+@app.post("/api/evidence-requests/{request_id}/confirm", status_code=202)
+def evidence_request_confirm(request_id: str, payload: EvidenceConfirmRequest, background_tasks: BackgroundTasks) -> dict[str, object]:
+    try:
+        item = confirm_evidence_request(request_id, methods=payload.methods, confirmed_by=payload.confirmed_by)
+        background_tasks.add_task(execute_evidence_request, request_id)
+        return {"accepted": True, "evidence_request": item, "message": "补证已确认并进入执行队列"}
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
@@ -362,10 +457,12 @@ def work_item_fail(work_item_id: str, payload: WorkItemFail) -> dict[str, object
 def drafts(
     status: str | None = None,
     purpose: str | None = None,
-    limit: int = Query(default=200, ge=1, le=500),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
 ) -> dict[str, object]:
-    items = list_drafts(status, purpose, limit)
-    return {"items": items, "count": len(items)}
+    total = count_drafts(status, purpose)
+    items = list_drafts(status, purpose, page_size, (page - 1) * page_size)
+    return {"items": items, "page": page, "page_size": page_size, "total": total}
 
 
 @app.get("/api/drafts/{task_draft_id}")
@@ -398,9 +495,10 @@ def draft_review(task_draft_id: str, payload: DraftReviewRequest) -> dict[str, o
 
 
 @app.get("/api/publications")
-def publications(status: str | None = None, limit: int = Query(default=200, ge=1, le=500)) -> dict[str, object]:
-    items = list_publications(status, limit)
-    return {"items": items, "count": len(items)}
+def publications(status: str | None = None, page: int = Query(default=1, ge=1), page_size: int = Query(default=20, ge=1, le=100)) -> dict[str, object]:
+    total = count_publications(status)
+    items = list_publications(status, page_size, (page - 1) * page_size)
+    return {"items": items, "page": page, "page_size": page_size, "total": total}
 
 
 @app.get("/api/publications/{publication_id}")

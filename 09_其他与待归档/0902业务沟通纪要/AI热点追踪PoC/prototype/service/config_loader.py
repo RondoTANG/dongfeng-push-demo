@@ -78,7 +78,7 @@ CONFIG_NAMES = {
     "sources": "来源平台与站点",
     "queries": "基础查询目录",
     "processing": "清洗、聚合与判定",
-    "drafts": "双路作业草案",
+    "drafts": "原创主链与关联内容支路",
     "contract": "输出数据契约",
     "hotspot": "热点数据准入",
 }

@@ -21,7 +21,7 @@
 | FLD-009 | SRC-004 | 运行中心 | `query_text` | 查询词 | 完整文本 | 由配置生成 | 不可为空 | 实际执行内容 | 查询任务表 |
 | FLD-010 | SRC-009 | 运行中心 | `query_status`、`retry_count` | 查询状态／重试 | 状态＋次数 | pending/running/success/no_result/failed | 失败显示安全错误摘要 | 不回显凭证 | 查询任务表 |
 | FLD-011 | SRC-003 | 线索工作台 | `source_id` | 线索编号 | 文本 | 唯一值 | 不可为空 | 来源追溯 | 线索列表 |
-| FLD-012 | SRC-006 | 线索工作台 | `retrieved_by` | 获取方式 | 提供方标签 | doubao_global_search/codex_search/standard_push | 未识别显示 unresolved | 区分数据能力 | 线索列表 |
+| FLD-012 | SRC-006 | 线索工作台 | `discoveries[].provider_id` | 发现工具 | 多提供方标签 | doubao_global_search/codex_web_search/standard_push | 未识别显示 unresolved | 同一线索可被多路发现 | 线索列表、详情 |
 | FLD-013 | SRC-006 | 线索工作台 | `source_platform` | 来源平台 | 图标＋中文名 | 官网／新闻／微博／抖音／小红书／B站／头条／微信系／其他／unresolved | 不能猜测；显示域名 | 平台覆盖边界 | 列表、事件证据 |
 | FLD-014 | SRC-006 | 线索工作台 | `source_site_name`、`source_account` | 站点／账号 | 文本 | 域名规则或页面信息 | 无账号显示“未识别” | 平台与账号分开 | 列表、详情 |
 | FLD-015 | SRC-003 | 线索工作台 | `original_url`、`canonical_url` | 原始／规范链接 | 可点击链接 | 去参数后的 canonical URL | URL 不可访问显示失败 | 去重依据 | 列表、详情 |
@@ -45,9 +45,9 @@
 | FLD-033 | SRC-007 | 事件详情 | `hotspot_judgement_available` | 可否判定热点 | 是／否 | 本期搜索来源固定 false | 必须给出原因 | 数据准入门槛 | 详情 |
 | FLD-034 | SRC-007 | 事件详情 | `hotspot_status` | 热点状态 | 状态标签 | 本期固定 unknown | 不显示默认高低热度 | 禁止主观热度 | 详情、列表 |
 | FLD-035 | SRC-007 | 事件详情 | `hotspot_unavailable_reason` | 不可判定原因 | 原因清单 | 缺平台原生量／时序快照／UGC作者／覆盖审计 | `unknown` 时必填 | 用户明确要求 | 详情 |
-| FLD-036 | SRC-007 | 事件详情 | `event_status` | 事件结论 | 状态标签 | needs_evidence/pending_review/relevant_event_clue/brand_content_opportunity/manual_review/watch/rejected | 无结论保持 pending_review | 业务可行动性 | 列表、审核 |
+| FLD-036 | SRC-007 | 事件详情 | `event_status` | 事件结论 | 状态标签 | pending_review/relevant_event_clue/brand_content_opportunity/rejected | 无结论保持 pending_review | 只有审核通过才激活行动方向 | 列表、审核 |
 | FLD-037 | SRC-007 | 事件详情 | `decision_reason` | 判断依据 | 结构化段落 | 证据＋存疑＋建议 | 审核后必填 | 不输出空泛评分 | 审核抽屉 |
-| FLD-038 | SRC-003 | 事件审核 | `review_result` | 审核结果 | 单选 | pending/approved/approved_after_edit/rejected | 提交时必选 | 人工门槛 | 审核表单 |
+| FLD-038 | SRC-003 | 事件审核 | `review_result` | 审核结果 | 单选 | pending/approved/rejected | 提交时必选 | 通过时才可选事实结论与行动方向 | 审核表单 |
 | FLD-039 | SRC-003 | 事件审核 | `reviewer`、`reviewed_at`、`review_note` | 审核人／时间／备注 | 身份＋时间＋文本 | operator | 驳回时备注必填 | 审计留痕 | 事件详情 |
 | FLD-040 | SRC-003 | 草案审批 | `task_draft_id` | 草案编号 | 文本 | 唯一值 | 不可为空 | 草案追溯 | 草案列表 |
 | FLD-041 | SRC-008 | 草案审批 | `task_type` | 作业类型 | 中文标签 | original_comment/original_content/source_content_boost/original_post_boost | 必须与草案目的匹配 | 范围门槛 | 列表、表单 |
@@ -71,14 +71,22 @@
 | FLD-059 | SRC-015 | 草案审批 | `target_url` | 目标内容链接 | 可点击URL | 来自已选来源的规范链接 | 无效URL或非可互动目标时拒绝生成 | 作业执行对象 | 草案详情 |
 | FLD-060 | SRC-015 | 草案审批 | `target_content_title` | 目标内容标题 | 最多两行 | 继承已选来源标题 | 无标题时使用可追溯摘要并标记 | 确认加热对象 | 草案详情 |
 | FLD-061 | SRC-015 | 草案审批 | `engagement_actions` | 互动动作 | 多选标签 | like/positive_comment/share/favorite | 源内容加热至少一项；运营可调整，具体平台动作规则见SRC-008 | 动作建议 | 草案编辑 |
-| FLD-062 | 用户修订 | 原创后效追踪 | `publication_id`、`source_draft_id` | 发布记录／原草案 | 关联编号 | 仅关联 approved original_growth | 前置不满足拒绝登记 | 原创路径追溯 | 列表、详情 |
-| FLD-063 | 用户修订 | 原创后效追踪 | `publication_url`、`platform`、`platform_content_id` | 实际发布内容 | 可点击URL＋平台 | 支持平台枚举 | URL无效或重复拒绝；内容ID可空 | 实际观察对象 | 登记抽屉、详情 |
-| FLD-064 | 用户修订 | 原创后效追踪 | `published_at`、`registration_source` | 发布时间／登记来源 | 日期时间＋来源标签 | operator/business_push/import | 发布时间必填 | 登记证据 | 详情 |
-| FLD-065 | 用户修订 | 原创后效追踪 | `snapshot_at`、`data_source` | 快照时间／数据来源 | 日期时间＋来源标签 | existing_collector/business_push/manual_evidence | 时间必填 | 快照可追溯 | 快照列表 |
-| FLD-066 | 用户修订 | 原创后效追踪 | `metrics_json` | 指标快照 | 指标卡 | view_count/like_count/comment_count/share_count/favorite_count | 非负；无指标需不可用原因 | 同口径数据 | 快照列表 |
-| FLD-067 | 用户修订 | 原创后效追踪 | `delta_metrics_json`、`data_status` | 指标增量／数据状态 | 首末差值＋状态 | tracking/ready_for_evaluation/growth_observed/no_growth_observed/data_anomaly | 少于2快照不评价；回退为异常 | 确定性计算 | 详情、评价 |
-| FLD-068 | 用户修订 | 原创后效追踪 | `decision`、`decision_reason` | 后效结论／原因 | 单选＋文本 | create_followup_boost/watch/no_boost/manual_review | 提交时必填 | 人工门槛 | 评价抽屉 |
-| FLD-069 | 用户修订 | 草案审批 | `target_submission_id`、`trigger_evaluation_id` | 原创后二次加热目标／触发判断 | 关联编号 | 仅 original_post_boost 必填 | 不得与target_source_id混用 | 两类加热隔离 | 草案详情 |
+| FLD-062 | SRC-016 | 原创后效追踪 | `publication_id`、`source_draft_id` | 发布记录／原草案 | 关联编号 | 仅关联 approved original_growth | 前置不满足拒绝登记 | 原创路径追溯 | 列表、详情 |
+| FLD-063 | SRC-016 | 原创后效追踪 | `publication_url`、`platform`、`platform_content_id` | 实际发布内容 | 可点击URL＋平台 | 支持平台枚举 | URL无效或重复拒绝；内容ID可空 | 实际观察对象 | 登记抽屉、详情 |
+| FLD-064 | SRC-016 | 原创后效追踪 | `published_at`、`registration_source` | 发布时间／登记来源 | 日期时间＋来源标签 | operator/business_push/import | 发布时间必填 | 登记证据 | 详情 |
+| FLD-065 | SRC-016 | 原创后效追踪 | `snapshot_at`、`data_source` | 快照时间／数据来源 | 日期时间＋来源标签 | existing_collector/business_push/manual_evidence | 时间必填 | 快照可追溯 | 快照列表 |
+| FLD-066 | SRC-016 | 原创后效追踪 | `metrics_json` | 指标快照 | 指标卡 | view_count/like_count/comment_count/share_count/favorite_count | 非负；无指标需不可用原因 | 同口径数据 | 快照列表 |
+| FLD-067 | SRC-016 | 原创后效追踪 | `delta_metrics_json`、`data_status` | 指标增量／数据状态 | 首末差值＋状态 | tracking/ready_for_evaluation/growth_observed/no_growth_observed/data_anomaly | 少于2快照不评价；回退为异常 | 确定性计算 | 详情、评价 |
+| FLD-068 | SRC-016 | 原创后效追踪 | `decision`、`decision_reason` | 后效结论／原因 | 单选＋文本 | create_followup_boost/watch/no_boost/manual_review | 提交时必填 | 人工门槛 | 评价抽屉 |
+| FLD-069 | SRC-016 | 草案审批 | `target_submission_id`、`trigger_evaluation_id` | 原创后二次加热目标／触发判断 | 关联编号 | 仅 original_post_boost 必填 | 不得与target_source_id混用 | 两类加热隔离 | 草案详情 |
+| FLD-070 | SRC-017 | 线索工作台 | `source_discoveries` | 搜索发现记录 | 工具＋查询＋时间＋排名 | 同一source_id可多条 | 不得用单一retrieved_by覆盖其他来源 | 双路追溯 | 线索列表、详情 |
+| FLD-071 | SRC-017 | 运行中心 | `planned_query_count`、`provider_count`、`planned_job_count`、`executed_job_count` | 双路任务覆盖 | 查询数×工具数 | full=17×2，quick=1×2 | 一路失败为partial_success | 不把17条查询误当成34项全成功 | 指标卡、运行列表 |
+| FLD-072 | SRC-017 | 运行中心 | `cooldown_seconds`、`remaining_seconds`、`next_allowed_at` | 运行冷却 | 时长＋下次可运行时间 | full=10800秒，quick=600秒 | 冷却期服务端返429 | 避免重复付费调用 | 发起运行前 |
+| FLD-073 | SRC-017 | 运行中心 | `automation.enabled` | 自动采集 | 状态＋说明 | 本期默认false | 启动服务不得自动调用搜索 | 付费保护 | 自动化状态条 |
+| FLD-074 | SRC-017 | 事件审核 | `evidence_request` | 补证方案 | 问题＋存疑项＋查询词＋工具＋预计次数 | pending_confirmation/confirmed/running/completed/partial_success/failed/cancelled | 未确认不创建搜索任务 | 人工确认调用范围 | 补证抽屉 |
+| FLD-075 | SRC-017 | 事件审核 | `evidence_jobs` | 补证执行明细 | 提供方＋查询词＋结果数＋状态 | codex_web_search/doubao_global_search/existing_url_parse/manual_link | 任一工具失败展示原因 | 补证非黑箱 | 补证记录 |
+| FLD-076 | SRC-017 | 列表通用 | `page`、`page_size`、`total`、`items` | 服务端分页 | 页码＋每页条数＋总数 | page>=1，1<=page_size<=100 | 超出最后一页返回空items | 大数据量可用性 | 运行、线索、事件、草案、后效、无效、审计 |
+| FLD-077 | SRC-017 | 草案审批 | `task_brief` | 完整作业要求初稿 | 四段结构化正文 | 作业详情／平台适配指引／创作方向／作业规则 | 不得只有标题；审批前可编辑 | AI只生成初稿，运营确认 | 草案详情、编辑 |
 
 ## Open Field Questions
 

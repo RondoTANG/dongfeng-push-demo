@@ -4,16 +4,18 @@
   top: 16px;
   left: 16px;
   z-index: 99990;
-  width: 36px;
+  width: auto;
+  min-width: 76px;
   height: 36px;
   border: 2px solid #ff4d4f;
-  border-radius: 50%;
+  border-radius: 999px;
   background: #fff;
   color: #ff4d4f;
   box-shadow: 0 4px 14px rgba(255, 77, 79, 0.25);
   cursor: pointer;
-  font-size: 18px;
-  font-weight: 700;
+  padding: 0 13px;
+  font-size: 13px;
+  font-weight: 600;
   line-height: 1;
 }
 
