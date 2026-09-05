@@ -73,6 +73,16 @@ def domain_rules() -> list[dict[str, Any]]:
     return sorted(rules, key=lambda item: len(item.get("domain", "")), reverse=True)
 
 
+def risk_rules() -> list[dict[str, Any]]:
+    return load_configs()["processing"].get("risk_gate", {}).get("rules", [])
+
+
+def risk_display_text(text: str) -> str:
+    for rule in risk_rules():
+        text = text.replace(rule["tag"], rule["name"])
+    return text
+
+
 CONFIG_NAMES = {
     "brands": "品牌与实体",
     "sources": "来源平台与站点",
@@ -194,7 +204,7 @@ def business_config_summary() -> dict[str, Any]:
             "auto_publish_enabled": False,
             "allowed_event_status": allowed_event_status,
             "draft_statuses": current_statuses,
-            "deferred": ["正式下发", "任务执行", "结果回流与效果评估"],
+            "deferred": ["正式系统自动下发", "自动执行互动", "生产级全量采集"],
         },
         "brands": {
             "items": brands,
@@ -221,6 +231,8 @@ def business_config_summary() -> dict[str, Any]:
             "event_clustering": processing.get("event_clustering", {}),
             "event_decision": processing.get("event_decision", []),
             "risk_tags": processing.get("risk_gate", {}).get("risk_tags", []),
+            "risk_rules": risk_rules(),
+            "time_normalization": processing.get("time_normalization", {}),
         },
         "hotspot": {
             "current_output": "公开搜索事件固定为‘热点不可判定’，并列出缺失原因",

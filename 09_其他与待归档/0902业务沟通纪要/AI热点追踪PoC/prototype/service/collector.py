@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import subprocess
 import tempfile
+from datetime import datetime, timedelta
 from typing import Any
 
 from .settings import CODEX_CLI_PATH, DOUBAO_SCRIPT_PATH, PROJECT_ROOT
@@ -97,11 +98,14 @@ def search_codex_batch(queries: list[dict[str, Any]], *, timeout: int = 240) -> 
         if not cli.exists():
             raise RuntimeError("本机未找到 Codex CLI，请从 Codex 桌面应用启动或配置 CODEX_CLI_PATH")
         compact_queries = [{"query_id": item["query_id"], "query": item["query"]} for item in queries]
+        now = datetime.now().astimezone()
+        window = f"当前采集时间{now.isoformat()}，仅检索{(now-timedelta(hours=72)).isoformat()}以来发布的内容，优先最近24小时。"
         prompt = (
-            "你是公开信息检索执行器。必须逐条处理输入查询，使用公开网页搜索；"
+            window + "你是公开信息检索执行器。必须逐条处理输入查询，使用公开网页搜索；"
             "只返回可访问页面的标题、URL、摘要、公开发布时间、domain 和 hostname。"
             "搜索排序和结果数不代表热点，不输出热点结论，不修改任何本地文件。"
-            "每条查询最多返回5项；无法取得时填写error并返回空items。输入："
+            "不得把当前时间或检索时间当成发布时间，网页没有明确日期时publish_time填null。摘要保留页面头部原始发布时间及关键事实。"
+            "每条查询最多返回5项；正常搜索但没有相关近期结果时返回空items和null error；无法执行时填写error并返回空items。输入："
             + json.dumps(compact_queries, ensure_ascii=False)
         )
         with tempfile.TemporaryDirectory(prefix="ai-hotspot-codex-") as temp_dir:
@@ -109,8 +113,8 @@ def search_codex_batch(queries: list[dict[str, Any]], *, timeout: int = 240) -> 
             output_path = Path(temp_dir) / "result.json"
             schema_path.write_text(json.dumps(_codex_schema(), ensure_ascii=False), encoding="utf-8")
             command = [
-                str(cli), "--search", "-a", "never", "-s", "read-only", "-C", str(PROJECT_ROOT),
-                "exec", "--ephemeral", "--output-schema", str(schema_path),
+                str(cli), "--search", "-a", "never", "-s", "read-only", "-C", str(temp_dir),
+                "exec", "--skip-git-repo-check", "--ephemeral", "--output-schema", str(schema_path),
                 "--output-last-message", str(output_path), prompt,
             ]
             completed = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False)

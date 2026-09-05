@@ -8,7 +8,8 @@ from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from .collector import load_existing_sample, search_codex_batch, search_doubao
-from .config_loader import active_brands, config_versions, domain_rules, query_catalog
+from .config_loader import active_brands, config_versions, domain_rules, query_catalog, load_configs
+from .source_time import resolve_publication_time
 from .database import add_audit, connection, json_text, new_id, now_iso
 from .settings import FULL_RUN_COOLDOWN_SECONDS, QUICK_RUN_COOLDOWN_SECONDS, REAL_SAMPLE_PATH
 
@@ -73,28 +74,41 @@ def _match_brands(text: str) -> list[dict[str, Any]]:
     return matches
 
 
-def _invalid_reason(item: dict[str, Any], query_group: str, brand_matches: list[dict[str, Any]]) -> tuple[str, str] | None:
+def _invalid_reason(item: dict[str, Any], query_group: str, brand_matches: list[dict[str, Any]], reference: datetime | None = None) -> tuple[str, str] | None:
     url = (item.get("url") or "").strip()
     title = (item.get("title") or "").strip()
     snippet = (item.get("snippet") or "").strip()
     text = f"{title}\n{snippet}"
     if not url or not (title or snippet):
         return "INV001", "无法访问或无有效URL"
+    parts = urlsplit(url)
+    if parts.scheme not in {"http", "https"} or not parts.netloc:
+        return "INV001", "无有效HTTP网页链接"
+    page_rules = load_configs()["processing"].get("source_validation", {}).get("non_event_page_rules", [])
+    for rule in page_rules:
+        if ((rule.get("title_pattern") and re.search(rule["title_pattern"], title))
+                or (rule.get("url_pattern") and re.search(rule["url_pattern"], url))):
+            return "INV006", rule["reason"]
     if any(term in text for term in ADMIN_TERMS):
         return "INV003", "纯招投标采购招聘行政信息"
     if sum(term in text for term in PROMOTION_TERMS) >= 2:
         return "INV004", "纯促销引流"
-    published, _ = _parse_time(item.get("publish_time"))
+    published = resolve_publication_time(item, reference).get("published_at")
     if published:
         try:
             published_dt = datetime.fromisoformat(published)
-            now = datetime.now().astimezone()
+            now = reference or datetime.now().astimezone()
             if published_dt.tzinfo is None:
                 published_dt = published_dt.replace(tzinfo=now.tzinfo)
-            if published_dt < now - timedelta(hours=72):
-                return "INV005", "旧闻重新索引：发布时间超过72小时且当前未识别新增事实"
+            max_hours = load_configs()["queries"]["execution"].get("late_signal_hours", 72)
+            if published_dt < now - timedelta(hours=max_hours):
+                return "INV005", f"旧闻：发布时间超过{max_hours}小时；本次搜索获取时间不能代替发布时间"
+            if published_dt > now + timedelta(hours=1):
+                return "INV008", "发布时间位于未来，暂不纳入有效线索"
         except ValueError:
             pass
+    if not published:
+        return "INV008", "发布时间无法核验：供应商字段与正文头部均无可靠发布时间，暂不纳入有效线索"
     if any(term in title for term in NON_EVENT_TITLES) and len(snippet) < 160:
         return "INV006", "无实际事件：导航或常驻列表页"
     if query_group == "brand" and not brand_matches:
@@ -249,7 +263,8 @@ def _store_query_and_items(
                 invalid = _invalid_reason(item, query.get("query_group", "unknown"), brand_matches)
                 source_status = "invalid" if invalid else "valid"
                 platform, site_name = _resolve_platform(item.get("domain"), item.get("hostname"))
-                published_at, time_confidence = _parse_time(item.get("publish_time"))
+                time_result = resolve_publication_time(item)
+                published_at, time_confidence = time_result["published_at"], time_result["confidence"]
                 db.execute(
                     """
                     INSERT INTO source_items (
@@ -292,6 +307,8 @@ def _store_query_and_items(
                         """,
                         (new_id("INV"), run_id, source_id, invalid[0], invalid[1], timestamp),
                     )
+            if not existing:
+                db.execute("UPDATE source_items SET publication_time_basis_json=? WHERE source_id=?", (json_text(time_result), source_id))
             db.execute(
                 """
                 INSERT OR IGNORE INTO source_discoveries (
@@ -408,6 +425,10 @@ def execute_collection(
             return run_id
     catalog = query_catalog()
     selected = catalog[:1] if mode == "quick" else catalog
+    search_now = datetime.now().astimezone()
+    lookback = load_configs()["queries"]["execution"].get("late_signal_hours", 72)
+    date_range = f"{search_now-timedelta(hours=lookback):%Y年%m月%d日}至{search_now:%Y年%m月%d日}"
+    selected = [{**query, "query": f"{query['query']} {date_range}"} for query in selected]
     failed = 0
     last_error: str | None = None
     if "doubao_global_search" in providers:
@@ -415,7 +436,7 @@ def execute_collection(
             try:
                 response = search_doubao(query["query"], timeout=timeout)
                 _store_query_and_items(
-                    run_id, query, response["items"], response["processed"], provider_id="doubao_global_search"
+                    run_id, query, response["items"], response.get("raw_response", response["processed"]), provider_id="doubao_global_search"
                 )
             except Exception as exc:
                 failed += 1

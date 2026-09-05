@@ -66,7 +66,7 @@ def list_sources(
         item["discoveries"] = fetch_all(
             "SELECT * FROM source_discoveries WHERE source_id=? ORDER BY retrieved_at", (item["source_id"],)
         )
-        item["discovered_by"] = list(dict.fromkeys(row["provider_id"] for row in item["discoveries"]))
+        item["discovered_by"] = list(dict.fromkeys(row["provider_id"] for row in item["discoveries"])) or [item["retrieved_by"]]
     return items
 
 

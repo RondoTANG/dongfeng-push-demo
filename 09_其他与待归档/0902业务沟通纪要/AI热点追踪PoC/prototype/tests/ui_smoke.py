@@ -37,10 +37,15 @@ def main() -> None:
         page.wait_for_load_state("networkidle")
         assert page.locator('[data-filter="fetched_from"]').count() == 1
         assert page.locator('[data-filter="published_from"]').count() == 1
+        page.evaluate('window.dispatchEvent(new Event("resize")); window.dispatchEvent(new Event("scroll"));')
+        assert page.locator("#anno-toggle-btn").count() == 0
+        assert "搜索来源" in page.locator("table").first.inner_text()
+        assert "正文／搜索摘要" in page.locator("table").first.inner_text()
         page.goto(f"{BASE_URL}/?smoke=run-check#page=run-center")
         page.wait_for_load_state("networkidle")
         assert "已暂停" in page.locator(".automation-strip").inner_text()
-        assert page.locator("#anno-toggle-btn").inner_text() == "产品标注"
+        assert page.locator("#anno-toggle-btn").count() == 0
+        assert page.locator("[data-import-sample]").count() == 0
         browser.close()
     if errors:
         raise AssertionError("浏览器错误：" + " | ".join(errors))

@@ -6,6 +6,7 @@ from typing import Any
 
 from .database import add_audit, connection, fetch_all, fetch_one, json_text, new_id, now_iso
 from .events import get_event
+from .config_loader import risk_display_text
 
 
 ALLOWED_EVENT_OUTCOMES = {"relevant_event_clue", "brand_content_opportunity"}
@@ -112,7 +113,7 @@ def _create_or_get_original_draft(event: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("事件没有可追溯来源，不能生成作业草案")
     platforms = _recommend_platforms(event)
     tags = [PLATFORM_LABELS[item] for item in platforms if item in PLATFORM_LABELS]
-    risk_notes = [f"事件风险标签：{tag}" for tag in (event.get("risk_tags") or [])]
+    risk_notes = [f"事件风险标签：{risk_display_text(tag)}" for tag in (event.get("risk_tags") or [])]
     risk_notes.extend(event.get("hotspot_unavailable_reason") or [])
     task_draft_id = new_id("DRF")
     timestamp = now_iso()

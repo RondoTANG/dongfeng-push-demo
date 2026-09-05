@@ -4,6 +4,13 @@ owner: "产品"
 reviewer: "运营"
 
 source_validation:
+  non_event_page_rules:
+    - title_pattern: "聚合所有.*(?:新闻|快讯)|第[0-9]+页[-—].*资讯|企业新闻|品牌官网|官方网站|【官网】"
+      reason: "栏目、滚动资讯或官网常驻页不是单一近期事件，须使用具体内容详情链接"
+    - url_pattern: "https?://[^/]*tousu\\.sina\\.com\\.cn/company/view"
+      reason: "企业投诉汇总页不是单一事件，须使用具体投诉详情链接"
+    - url_pattern: "https?://(?:www\\.)?weibo\\.com/(?:u/)?[0-9]+/?(?:[?#].*)?$"
+      reason: "微博账号主页不是单条微博，须使用具体内容详情链接"
   required_fields:
     - original_url
     - title_or_snippet
@@ -28,15 +35,19 @@ source_validation:
       action: auto_discard
     - rule_id: INV005
       name: "旧闻重新索引"
-      condition: "event_at或published_at超过72小时，且无新增事实、新回应或新一轮传播"
+      condition: "可核验发布时间超过采集时刻前72小时；旧事件的新回应必须作为独立近期内容留证，不用搜索获取时间放行旧页面"
       action: auto_discard
     - rule_id: INV006
       name: "无实际事件"
-      condition: "只有品牌口号、导航页、百科页或产品常驻页，无新增动作或事实"
+      condition: "品牌口号、导航、百科、常驻产品页、滚动资讯或投诉汇总页不是单一事件；按non_event_page_rules识别，须有具体内容详情链接"
       action: auto_discard
     - rule_id: INV007
       name: "行业事件无目标品牌关系"
       condition: "行业事件经9品牌完整关联补采后仍为no_relation"
+      action: auto_discard
+    - rule_id: INV008
+      name: "发布时间无法核验"
+      condition: "供应商字段和正文头部均无可靠发布时间，或发布时间在未来；保留排除原因，暂不进入有效线索及事件队列"
       action: auto_discard
   invalid_output: invalid_log
   invalid_requires_human_review: false
@@ -73,14 +84,15 @@ time_normalization:
     - medium
     - low
     - unknown
-  missing_time_action: "进入pending_review并写明时间不可确认，不得默认当前时间"
+  missing_time_action: "暂不纳入工作台，写入INV008排除记录；不得将搜索时间当作发布时间"
+  extraction_rule: "优先解析正文头部的发布／浏览等元信息行，再用供应商发布时间；不从叙事段落推断发布日期。缺年份的月日按最近过去日期推定，并标为中等置信度。"
   window_rules:
     - window: "0-24h"
       action: eligible
     - window: "24-72h"
-      action: "仅有新增事实或新回应时进入pending_review，否则auto_discard"
+      action: "作为延迟收录线索允许进入；展示实际发布时间，不代表热点"
     - window: ">72h"
-      action: "无新增事实时auto_discard"
+      action: "auto_discard；新回应须由独立近期内容作为新线索证明"
 
 entity_resolution:
   config_ref: "品牌实体字典_v0.1.yaml"
@@ -160,6 +172,16 @@ industry_brand_relation:
   no_relation_action: auto_discard
 
 risk_gate:
+  rules:
+    - {tag: sales_volume, name: "销量与交付数据", enabled: true, keywords: ["销量", "交付量"], description: "核对统计周期、单位及数据来源"}
+    - {tag: price_or_discount, name: "价格与优惠", enabled: true, keywords: ["售价", "价格", "优惠"], description: "核对车型版本、权益条件与有效期"}
+    - {tag: accident_or_safety, name: "事故与安全", enabled: true, keywords: ["事故", "安全", "自燃"], description: "核实事故与安全相关事实，不凭关键词认定负面"}
+    - {tag: recall, name: "产品召回", enabled: true, keywords: ["召回"], description: "以召回公告核对范围与原因"}
+    - {tag: regulation, name: "监管与政策", enabled: true, keywords: ["监管", "处罚"], description: "核对发布机构、适用范围和执行时间"}
+    - {tag: competitor_comparison, name: "竞品对比", enabled: true, keywords: ["对比", "竞品"], description: "核对对比条件一致性及证据"}
+    - {tag: intelligent_driving_l3, name: "智能驾驶能力表述", enabled: true, keywords: ["L3", "智能驾驶", "智驾"], description: "核对辅助驾驶能力、适用条件及宣传口径"}
+    - {tag: negative_sentiment, name: "争议或负面线索", enabled: true, keywords: ["亏损", "投诉", "争议", "负面"], description: "仅作风险提醒，须核实语境和事实"}
+    - {tag: fact_conflict, name: "事实冲突", enabled: true, keywords: [], description: "由证据核验或人工确认触发，不作关键词匹配"}
   risk_tags:
     - sales_volume
     - price_or_discount

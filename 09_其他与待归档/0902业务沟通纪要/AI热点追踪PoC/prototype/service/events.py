@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from .database import add_audit, connection, fetch_all, fetch_one, json_text, new_id, now_iso
-from .config_loader import active_brands
+from .config_loader import active_brands, risk_rules
 from .pipeline import _match_brands
 
 
@@ -17,18 +17,6 @@ HOTSPOT_MISSING = [
     "无法稳定识别独立UGC作者及账号影响力",
     "公开搜索的社交平台覆盖范围与漏采情况不可审计",
 ]
-
-
-RISK_KEYWORDS = {
-    "sales_volume": ("销量", "交付量"),
-    "price_or_discount": ("售价", "价格", "优惠"),
-    "accident_or_safety": ("事故", "安全", "自燃"),
-    "recall": ("召回",),
-    "regulation": ("监管", "处罚"),
-    "competitor_comparison": ("对比", "竞品"),
-    "intelligent_driving_l3": ("L3", "智能驾驶", "智驾"),
-    "negative_sentiment": ("亏损", "投诉", "争议", "负面"),
-}
 
 
 MODEL_PATTERN = re.compile(r"(?<![A-Za-z0-9])(?:M\d{3}|X\d{3}|L\d(?:Y|\+)?|梦想家\d+|eπ\d+)(?![A-Za-z0-9])", re.I)
@@ -76,7 +64,7 @@ def _source_candidates(source: dict[str, Any]) -> list[dict[str, str]]:
 
 
 def _risk_tags(text: str) -> list[str]:
-    return [tag for tag, terms in RISK_KEYWORDS.items() if any(term in text for term in terms)]
+    return [rule["tag"] for rule in risk_rules() if rule.get("enabled", True) and any(term.casefold() in text.casefold() for term in rule.get("keywords", []))]
 
 
 def _official_domain_relations(source: dict[str, Any]) -> list[dict[str, Any]]:

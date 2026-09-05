@@ -4,7 +4,7 @@
   var state = { data: null, loading: true, error: null, tab: 'brands' };
   var tabs = [
     ['brands', '品牌与实体'], ['queries', '查询目录'], ['sources', '来源识别'],
-    ['processing', '处理规则'], ['drafts', '作业草案'], ['hotspot', '热点数据准入']
+    ['processing', '处理规则'], ['risks', '风险标签'], ['drafts', '作业草案'], ['hotspot', '热点数据准入']
   ];
   var capabilityNames = {
     platform_content_id: '平台内容标识', native_engagement_metrics: '平台原生互动指标',
@@ -83,6 +83,14 @@
     return '<h3 class="section-title">自动无效规则</h3>' + invalid + '<h3 class="section-title">去重与事件聚合</h3><div class="process-list">' + dedup + '<div class="process-step is-emphasis"><span>事件聚合</span><p>' + AppCommon.escapeHtml(data.event_clustering.aggregation_rule) + '</p></div><div class="process-step"><span>独立来源</span><p>' + AppCommon.escapeHtml(data.event_clustering.independent_source_rule) + '</p></div></div>';
   }
 
+  function renderRisks() {
+    var rules = state.data.processing.risk_rules || [];
+    return '<p class="section-caption">风险标签由清洗聚合与判定规则配置驱动。命中关键词仅提示需要核验，不代表事件为负面；此处展示生效配置，修改配置文件后重新加载生效。</p>' + DataTable.render([
+      {label:'风险标签',key:'name'}, {label:'触发关键词',render:function(row){return AppCommon.escapeHtml((row.keywords || []).join('、') || '证据核验／人工确认');}},
+      {label:'核验要求',key:'description'}, {label:'状态',render:function(row){return boolTag(row.enabled);}}
+    ], rules);
+  }
+
   function renderDrafts() {
     var data = state.data.drafts;
     var stage = state.data.stage;
@@ -96,7 +104,7 @@
   }
 
   function renderPanel() {
-    var renderer = { brands: renderBrands, queries: renderQueries, sources: renderSources, processing: renderProcessing, drafts: renderDrafts, hotspot: renderHotspot }[state.tab];
+    var renderer = { brands: renderBrands, queries: renderQueries, sources: renderSources, processing: renderProcessing, risks: renderRisks, drafts: renderDrafts, hotspot: renderHotspot }[state.tab];
     return '<div class="config-tabs" role="tablist">' + tabs.map(function (item) { return '<button role="tab" class="config-tab' + (state.tab === item[0] ? ' is-active' : '') + '" data-config-tab="' + item[0] + '">' + item[1] + '</button>'; }).join('') + '</div><div class="config-panel">' + renderer() + '</div>';
   }
 

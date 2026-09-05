@@ -15,7 +15,12 @@ from service.evidence_requests import confirm_evidence_request, create_evidence_
 from service.events import aggregate_run, get_event
 from service.pipeline import execute_collection, run_cooldown
 from service.collector import search_codex_batch
+from service.source_time import resolve_publication_time, TZ
+from service.pipeline import _invalid_reason
+from service.config_loader import risk_rules, risk_display_text
+from service.events import _risk_tags
 from service.repositories import count_sources, get_run, list_sources
+from scripts.reprocess_local_run import reprocess
 
 
 def result_item(title: str, url: str, publish_time: str | None = None) -> dict[str, object]:
@@ -31,6 +36,56 @@ def result_item(title: str, url: str, publish_time: str | None = None) -> dict[s
 
 
 class ServiceTestCase(unittest.TestCase):
+    def test_visible_old_publication_overrides_search_date(self) -> None:
+        item = {"title": "汽车舆论事件", "url": "https://example.com/old", "publish_time": "2026-09-05T01:18:00+08:00", "snippet": "汽车舆论事件\n龙衍特种车工场\n35浏览 · 08-20 · 上海\n8 月 18 日，公安部发布消息。"}
+        resolved = resolve_publication_time(item, datetime(2026, 9, 5, tzinfo=TZ))
+        self.assertTrue(resolved["published_at"].startswith("2026-08-20"))
+        self.assertTrue(resolved["conflict"])
+        self.assertEqual(resolved["basis"], "正文头部发布时间")
+
+    def test_narrative_date_is_not_publication_date(self) -> None:
+        item = {"title": "汽车动态", "url": "https://example.com/undated", "snippet": "汽车动态\n8月29日发生的一场活动，今天仍值得讨论。", "publish_time": None}
+        self.assertIsNone(resolve_publication_time(item)["published_at"])
+        self.assertEqual(_invalid_reason(item, "topic", [])[0], "INV008")
+
+    def test_risk_labels_and_matcher_share_config(self) -> None:
+        self.assertIn("recall", _risk_tags("官方发布产品召回通知"))
+        self.assertEqual(risk_display_text("事件风险标签：recall"), "事件风险标签：产品召回")
+        self.assertEqual(len(risk_rules()), 9)
+
+    def test_company_listing_is_not_a_single_recent_event(self) -> None:
+        item = result_item("领克汽车_黑猫投诉_新浪网", "https://tousu.sina.com.cn/company/view/?couid=123")
+        self.assertEqual(_invalid_reason(item, "topic", [])[0], "INV006")
+        item = result_item("猛士m817 - 聚合所有猛士m817相关热门新闻快讯", "https://example.com/tag")
+        self.assertEqual(_invalid_reason(item, "topic", [])[0], "INV006")
+        item = result_item("80万以上小型SUV自主新车第7页-最新资讯-易车", "https://example.com/list")
+        self.assertEqual(_invalid_reason(item, "topic", [])[0], "INV006")
+
+    def test_reprocess_reuses_saved_data_without_search(self) -> None:
+        event_id = self._seed_event()
+        run_id = get_event(event_id)["run_id"]
+        with patch("service.pipeline.search_doubao") as doubao, patch("service.pipeline.search_codex_batch") as codex:
+            result = reprocess(run_id)
+            self.assertEqual(result["external_search_calls"], 0)
+            doubao.assert_not_called()
+            codex.assert_not_called()
+
+    def test_reprocess_preserves_reviewed_results(self) -> None:
+        event_id = self._seed_event()
+        with connection() as db:
+            db.execute("UPDATE events SET event_status='rejected' WHERE event_id=?", (event_id,))
+        with self.assertRaises(RuntimeError):
+            reprocess(get_event(event_id)["run_id"])
+        self.assertEqual(get_event(event_id)["event_status"], "rejected")
+
+    def test_legacy_status_migration_is_idempotent(self) -> None:
+        event_id = self._seed_event()
+        with connection() as db:
+            db.execute("UPDATE events SET event_status='needs_evidence' WHERE event_id=?", (event_id,))
+        init_database()
+        init_database()
+        self.assertEqual(get_event(event_id)["event_status"], "pending_review")
+
     def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory(prefix="ai-hotspot-test-")
         self.old_path = database.DATABASE_PATH

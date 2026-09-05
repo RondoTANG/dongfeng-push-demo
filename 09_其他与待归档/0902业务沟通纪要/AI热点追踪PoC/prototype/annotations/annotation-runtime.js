@@ -132,6 +132,11 @@
   }
 
   function render() {
+    if (!getRawAnnotations().length) {
+      document.querySelectorAll('#anno-toggle-btn, #anno-overlay').forEach(function (element) { element.remove(); });
+      closePopup();
+      return;
+    }
     ensureToggle();
     var overlay = ensureOverlay();
     overlay.innerHTML = '';
@@ -526,6 +531,7 @@
   }
 
   function init() {
+    if (!getRawAnnotations().length) return;
     try {
       ensureToggle();
       ensureOverlay();

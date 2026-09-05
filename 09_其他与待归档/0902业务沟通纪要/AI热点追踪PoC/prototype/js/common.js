@@ -6,7 +6,7 @@
     success: ['成功', 'green'], failed: ['失败', 'red'], no_result: ['无结果', 'neutral'],
     valid: ['有效线索', 'green'], invalid: ['自动无效', 'neutral'], fetch_failed: ['获取失败', 'red'],
     pending_review: ['待审核', 'amber'], needs_evidence: ['待补证', 'violet'], manual_review: ['人工研判', 'amber'],
-    relevant_event_clue: ['相关事件线索', 'blue'], brand_content_opportunity: ['品牌内容机会', 'green'],
+    relevant_event_clue: ['事件事实成立', 'blue'], brand_content_opportunity: ['品牌内容机会', 'green'],
     watch: ['观察', 'neutral'], rejected: ['已驳回', 'red'], unknown: ['不可判定', 'neutral'],
     draft_pending_review: ['草案待审批', 'amber'], approved: ['已通过', 'green'],
     completed: ['已完成', 'green'], in_progress: ['处理中', 'blue'], running: ['执行中', 'blue'], cancelled: ['已取消', 'neutral'],

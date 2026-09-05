@@ -239,3 +239,30 @@ Evidence: Playwright断言事件审核2条行动路径、草案页主链说明�
 Result: pass
 Consecutive Failures: 0
 Next Action: 使用真实原创发布链接与热点关联文章／视频链接分别验证连续快照，并由业务确认两类加热的动作、人数与频控口径
+
+Date: 2026-09-05T09:42:00+08:00
+Step: prd-business-question-hierarchy
+Scope: document
+Local URL / File: `prd/AI热点发现与护卫军作业联动_PRD_v0.2.html` 、 https://rondotang.github.io/dongfeng-push-demo/ai-hotspot-prd/
+Tool: Playwright＋GitHub Pages发布校验＋静态检索
+Command / Check: 检查执行摘要的问题卡片数量、业务问题二文本、补充场景层级、原创后效主流程图及不同视口溢出
+Passed: 首屏仅2个问题卡片；业务问题二为原创发布后的传播增长与追加加热；不存在“业务问题三”；热点关联内容直加使用补充场景展示；主流程图包含原创草案、实际发布、传播增量、后效判断和追加加热；1440／1280／768／390像素均无横向溢出和控制台错误
+Failed: None
+Evidence: 本地HTML与`ai-hotspot-prd/index.html`一致；GitHub提交`1015e708`；公网HTTP 200，线上与本地SHA-256均为`312bfc00bbd6587cac4b8b7ccb3dd55c6827fbd3c7d9c3b0f9ea02c375abb3b6`
+Result: pass
+Consecutive Failures: 0
+Next Action: 业务按两个核心问题评审；关联内容直加仅在事件存在合适目标时评估
+
+Date: 2026-09-05T10:02:00+08:00
+Step: source-freshness-provenance-real-run
+Scope: service-ui-data
+Local URL / File: http://127.0.0.1:8765/#page=clues
+Tool: unittest、Playwright、真实豆包Global Search与本机Codex CLI、SQLite审计
+Command / Check: `python3 -m unittest discover -s tests -v`；`python3 tests/ui_smoke.py`；API完整运行；使用已返回数据离线重新清洗
+Passed: 15项服务测试及7页烟测通过；真实线索列表第一页20条、第二页5条；事件第一页20条；搜索来源与正文摘要可见；详情存在日期依据和逐条发现记录；滚动／缩放后无空标注按钮；风险配置9条中文标签；完整运行冷却返回429；历史导入接口返回410；浏览器无页面异常
+Real Run: RUN-55d873bcdf50；2026-09-05 09:47发起。豆包17个查询返回51条；Codex14个查询有结果共14条、3个查询无近期结果；没有执行失败。65次发现、56条批次内去重来源，按当前规则保留25条有效、排除31条，生成24个待审核事件。真实结果中暂无同URL双工具共同命中；多路标签合并由服务单测验证，不伪造双路命中样本。
+Data Reset: 用户授权后先作SQLite完整备份，清除旧164条来源、88个事件及关联测试记录；备份为`data/backups/before-reset-20260905-094658-238160.db`，完整性检查通过，可恢复。数据库与备份不入Git。
+Evidence: `service/source_time.py`识别08-20正文头部日期并优先于供应商09-05日期；叙事段落日期不冒充发布日；时间缺失／未来日期排除；栏目／滚动／投诉汇总页排除。离线重处理保存原始响应及发现记录，不重复搜索，有人工处理时拒绝覆盖。
+Failed: 初次截图回归发现滚动仍触发空标注按钮，已在render入口增加保护并重测通过。首次流程测试因SPA异步加载及测试未关闭抽屉失败，改为等待实际控件并关闭抽屉后通过。
+Result: pass
+Next Action: 自动采集维持PAUSED，等待用户审核新线索与事件；不自动审批或下发。本地PRD已同步时间过滤与中文风险配置，本轮未发布线上PRD。

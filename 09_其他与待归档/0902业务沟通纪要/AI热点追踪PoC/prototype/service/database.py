@@ -60,6 +60,11 @@ def init_database() -> None:
         _migrate_task_drafts_followup(db)
         for statement in followup_statements:
             db.execute(statement)
+        columns = {row[1] for row in db.execute("PRAGMA table_info(source_items)")}
+        if "publication_time_basis_json" not in columns:
+            db.execute("ALTER TABLE source_items ADD COLUMN publication_time_basis_json TEXT NOT NULL DEFAULT '{}' ")
+        # 历史研判状态统一回到待审核；不能将旧机器建议当成人工通过。
+        db.execute("UPDATE events SET event_status='pending_review' WHERE event_status IN ('manual_review','needs_evidence','watch')")
 
 
 def _migrate_task_drafts(db: sqlite3.Connection) -> None:
@@ -197,6 +202,12 @@ def decode_row(row: sqlite3.Row | None) -> dict[str, Any] | None:
             result[public_name] = raw
     if "hotspot_judgement_available" in result:
         result["hotspot_judgement_available"] = bool(result["hotspot_judgement_available"])
+    if "risk_tags" in result or "risk_notes" in result:
+        from .config_loader import risk_display_text
+        if "risk_tags" in result:
+            result["risk_labels"] = [risk_display_text(tag) for tag in result["risk_tags"]]
+        if "risk_notes" in result:
+            result["risk_notes"] = [risk_display_text(note) for note in result["risk_notes"]]
     return result
 
 

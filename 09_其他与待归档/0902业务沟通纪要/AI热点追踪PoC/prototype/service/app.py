@@ -41,6 +41,13 @@ app = FastAPI(
 )
 
 
+@app.middleware("http")
+async def disable_local_cache(request, call_next):
+    response = await call_next(request)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 class RunRequest(BaseModel):
     mode: str = Field(default="quick", pattern="^(quick|full)$")
     trigger_type: str = Field(default="manual", pattern="^(manual|schedule)$")
@@ -216,8 +223,7 @@ def run_cooldown_status(mode: str) -> dict[str, object]:
 
 @app.post("/api/runs/import-real-sample")
 def import_sample() -> dict[str, object]:
-    run_id = import_real_sample()
-    return get_run(run_id) or {"run_id": run_id}
+    raise HTTPException(status_code=410, detail="历史样本导入已停用，请使用完整搜索或快速验证获取当前数据")
 
 
 @app.get("/api/sources")

@@ -90,6 +90,9 @@ body { overflow: hidden; }
 .text-positive { color: var(--green-600); }
 .text-muted { color: var(--ink-500); }
 .line-clamp-2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.line-clamp-3 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.clue-excerpt { min-width: 210px; max-width: 310px; font-weight: 400; line-height: 1.7; color: var(--text-secondary, #536176); }
+.provider-row { display: flex; flex-wrap: wrap; gap: 4px; }
 .page-wide { width: min(1720px, 100%); }
 .event-workspace, .draft-workspace { min-height: calc(100vh - 154px); display: grid; grid-template-columns: 330px minmax(0,1fr); background: #fff; border: 1px solid var(--line-200); border-radius: var(--radius-md); box-shadow: var(--shadow-card); overflow: hidden; }
 .event-queue, .draft-list { min-width: 0; border-right: 1px solid var(--line-200); background: #fafbfc; }

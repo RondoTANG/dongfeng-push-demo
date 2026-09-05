@@ -15,7 +15,7 @@
     var sourceSummary = latest.step_summary && latest.step_summary.source_processing || {};
     var metrics = '<div class="metrics-grid" data-anno="run-center-metrics">' +
       metric('最近运行', latest.status ? (AppCommon.statusMeta[latest.status] || [latest.status])[0] : '暂无运行', latest.run_id || '等待首次执行', latest.status === 'failed' ? 'tone-red' : '') +
-      metric('双路任务覆盖', String(coverage.executed_job_count || coverage.executed || 0) + ' / ' + String(coverage.planned_job_count || coverage.planned || 0), latest.mode === 'full' ? '17条查询 × 2个搜索工具' : '快速或导入模式') +
+      metric('双路任务覆盖', String(coverage.executed_job_count || coverage.executed || 0) + ' / ' + String(coverage.planned_job_count || coverage.planned || 0), latest.mode === 'full' ? '17条查询 × 2个搜索工具' : '快速双路验证') +
       metric('有效线索', String(sourceSummary.valid || 0), '自动无效 ' + String(sourceSummary.invalid || 0) + ' 条') +
       metric('待处理事件', String(state.events.filter(function (item) { return item.event_status === 'pending_review'; }).length), '搜索事件热点均不可判定') +
       '</div>';
@@ -32,12 +32,11 @@
     var lastScheduled = automation.last_scheduled_run || {};
     var automationPanel = '<section class="automation-strip" data-anno="local-automation"><div><span>自动采集</span><strong>' + (automationConfig.enabled ? '已启用 · 每3小时' : '已暂停 · 仅手工运行') + '</strong></div><div><span>最近定时批次</span><strong>' + AppCommon.escapeHtml(lastScheduled.run_id || '暂无') + '</strong></div><div><span>完整运行频控</span><strong>3小时一次</strong></div><div class="automation-strip__note"><strong>双路执行</strong><span>完整运行同时执行豆包17项与Codex 17项；任一来源未执行时不得显示完整成功。</span></div></section>';
     return metrics + automationPanel + '<section class="card table-card" data-anno="run-center-batches"><div class="card-header"><div><h2>运行批次</h2><span>实际执行记录，不以配置条数代替</span></div><button class="btn btn-sm" data-refresh-runs>刷新</button></div>' +
-      DataTable.render(columns, state.runs, { emptyTitle: '还没有运行批次', emptyText: '可先导入真实样本，或发起一次双路快速验证' }) + DataTable.pagination(state.page, state.pageSize, state.total, 'data-run-page') + '</section>';
+      DataTable.render(columns, state.runs, { emptyTitle: '还没有运行批次', emptyText: '可发起一次双路快速验证或完整搜索' }) + DataTable.pagination(state.page, state.pageSize, state.total, 'data-run-page') + '</section>';
   }
 
   function render() {
-    var actions = '<button class="btn" data-import-sample>导入真实样本</button>' +
-      '<button class="btn" data-run-mode="full">完整双路运行（34项）</button>' +
+    var actions = '<button class="btn" data-run-mode="full">完整双路运行（34项）</button>' +
       '<button class="btn btn-primary" data-run-mode="quick">快速双路验证（2项）</button>';
     return '<section class="page">' + Layout.pageHead('运行中心', '每个批次记录实际查询、来源处理、失败与配置快照', actions) +
       '<div class="boundary-banner"><strong>公开信息线索 PoC</strong><span>豆包与 Codex 用于发现和补证；没有平台原生指标与连续快照时，不输出真实热点结论。</span></div>' +
@@ -90,17 +89,6 @@
     drawer.element.querySelector('[data-confirm-run]').onclick = function (event) { executeRun(mode, event.currentTarget, drawer); };
   }
 
-  async function importSample(button) {
-    button.disabled = true;
-    try {
-      var run = await AppCommon.api('/api/runs/import-real-sample', { method: 'POST' });
-      await AppCommon.api('/api/runs/' + run.run_id + '/aggregate', { method: 'POST' });
-      AppCommon.showToast('真实豆包样本已导入并完成事件聚合', 'success');
-      await load();
-    } catch (error) { AppCommon.showToast(error.message, 'error'); }
-    button.disabled = false;
-  }
-
   async function showRun(runId) {
     try {
       var run = await AppCommon.api('/api/runs/' + runId);
@@ -123,8 +111,6 @@
     page.onclick = async function (event) {
       var runButton = event.target.closest('[data-run-mode]');
       if (runButton) return startRun(runButton.dataset.runMode, runButton);
-      var importButton = event.target.closest('[data-import-sample]');
-      if (importButton) return importSample(importButton);
       var detailButton = event.target.closest('[data-run-detail]');
       if (detailButton) return showRun(detailButton.dataset.runDetail);
       if (event.target.closest('[data-refresh-runs]') || event.target.closest('[data-retry-action]')) return load();
