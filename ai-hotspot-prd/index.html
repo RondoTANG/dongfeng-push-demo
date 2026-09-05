@@ -308,7 +308,7 @@
     }
     .two-question {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
+      grid-template-columns: repeat(2, minmax(0,1fr));
       gap: 1px;
       background: var(--line);
       border: 1px solid var(--line);
@@ -319,6 +319,20 @@
     }
     .question span { color: var(--orange); font-family: Georgia, serif; font-size: 13px; font-weight: 700; }
     .question strong { display: block; margin-top: 16px; font-family: var(--serif); font-size: 22px; line-height: 1.5; }
+    .supplement-branch {
+      display: grid;
+      grid-template-columns: 132px minmax(0,1fr);
+      gap: 18px;
+      align-items: start;
+      margin: 16px 0 24px;
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--orange);
+      border-radius: 8px;
+      background: #fffaf5;
+    }
+    .supplement-branch strong { color: var(--ink); font-size: 14px; }
+    .supplement-branch p { margin: 0; font-size: 14px; line-height: 1.7; }
 
     .callout {
       position: relative;
@@ -1583,7 +1597,7 @@
       .module-no { width: 30px; }
       .module-head h2 { font-size: 21px; }
       .section-label { font-size: 16px; }
-      .two-question, .stage-split, .rule-grid, .acceptance-grid, .knowledge, .requirement-grid { grid-template-columns: 1fr; }
+      .two-question, .stage-split, .rule-grid, .acceptance-grid, .knowledge, .requirement-grid, .supplement-branch { grid-template-columns: 1fr; }
       .stage + .stage { border-top: 1px solid var(--line); }
       details.requirement[open],
       .requirement-grid > details.requirement:last-child:nth-child(odd) { grid-column: auto; }
@@ -1666,13 +1680,12 @@
         <header class="module-head"><div class="module-no">01</div><div><h2>执行摘要</h2><p>先统一业务终局、现阶段能力边界与本轮PoC验收口径。</p></div></header>
 
         <div class="section-label">业务问题</div>
-        <p class="lede">业务不是要“搜到新闻”，而是要在有效响应窗口内判断：<strong>哪些热点值得发原创作业，以及哪条热点源文章或视频值得直接加热。</strong></p>
+        <p class="lede">业务不是要“搜到新闻”，而是要在有效响应窗口内连续判断：<strong>哪些热点值得发原创作业；原创发布后是否出现传播增长、是否需要追加加热。</strong></p>
         <div class="two-question">
           <article class="question"><span>业务问题一</span><strong>哪些热点值得发起原创作业，借势形成内容增长？</strong></article>
-          <article class="question"><span>业务问题二｜主闭环</span><strong>原创内容发布后是否出现传播增长，是否需要追加点赞、正向评论等加热作业？</strong></article>
-          <article class="question"><span>业务问题三｜补充支路</span><strong>热点事件中若有可执行的关联文章或视频，是否值得直接加热？</strong></article>
+          <article class="question"><span>业务问题二</span><strong>原创内容发布后是否出现传播增长，是否需要追加点赞、正向评论等加热作业？</strong></article>
         </div>
-        <div class="callout info"><strong>业务问题二是原创增长的后续主闭环</strong><p>原创作业发布后不能结束：登记实际发布链接，接收同一内容的后效指标快照，观察传播是否增长，再由运营决定继续观察、无需加热、人工核验，或生成一份独立审批的“原创后二次加热”草案。关联源内容直接加热只是额外支路，不替代该闭环。</p></div>
+        <div class="supplement-branch"><strong>补充场景</strong><p><b>热点关联内容直接加热：</b>当事件已有可执行的平台文章或视频时，可额外判断是否直接组织点赞、正向评论等作业；它不作为核心业务问题编号，也不替代原创发布后的后效闭环。</p></div>
 
         <div class="section-label">问题拆解与业务闭环</div>
         <p>把业务规划拆成“发现、判断、原创决策、发布、后效反馈”主链，并在事件有可执行关联内容时增加直接加热支路。</p>
@@ -1681,15 +1694,15 @@
           <tbody>
             <tr><td><strong>发现</strong></td><td>哪些平台出现了新的东风相关内容和讨论</td><td>持续采集或检索、来源标准化、平台与账号识别</td></tr>
             <tr><td><strong>判断</strong></td><td>多条内容是否属于同一事件，事件是否正在发酵</td><td>无效过滤、转载去重、事件聚合、热点数据准入与分平台趋势计算</td></tr>
-            <tr><td><strong>决策</strong></td><td>事件是否与东风相关、是否值得通过原创响应；是否存在可直接加热的关联内容</td><td>品牌关系、事实证据、风险提示、原创价值与源内容可执行性复核</td></tr>
-            <tr><td><strong>执行A</strong></td><td>哪些事件值得形成原创表达，在哪个平台发布</td><td>原创评论／内容草案、平台标签匹配与运营审批</td></tr>
-            <tr><td><strong>执行B</strong></td><td>哪条热点源文章或视频值得放大，采取什么动作</td><td>目标来源、目标URL、点赞／正向评论等动作与运营审批</td></tr>
-            <tr><td><strong>反馈A</strong></td><td>原创发布后是否出现传播增长，是否需要进一步加热该原创内容</td><td>登记发布链接、接收同口径快照、计算增量、运营判断，按需生成原创后二次加热草案</td></tr>
-            <tr><td><strong>反馈B</strong></td><td>正式作业执行后是否达到业务目标</td><td>后续回收任务参与和执行结果，持续优化规则</td></tr>
+            <tr><td><strong>决策</strong></td><td>事件是否与东风相关、是否值得通过原创响应</td><td>品牌关系、事实证据、风险提示与原创价值复核</td></tr>
+            <tr><td><strong>原创执行</strong></td><td>哪些事件值得形成原创表达，在哪个平台发布</td><td>原创评论／内容草案、平台标签匹配与运营审批</td></tr>
+            <tr><td><strong>原创后效</strong></td><td>原创发布后是否出现传播增长，是否需要进一步加热该原创内容</td><td>登记发布链接、接收同口径快照、计算增量、运营判断，按需生成原创后二次加热草案</td></tr>
+            <tr><td><strong>补充场景</strong></td><td>事件中是否已有值得放大的平台文章或视频</td><td>目标来源、目标URL、点赞／正向评论等动作与运营审批</td></tr>
+            <tr><td><strong>规则反馈</strong></td><td>正式作业执行后是否达到业务目标</td><td>后续回收任务参与和执行结果，持续优化规则</td></tr>
           </tbody>
         </table>
         <div class="diagram-shell">
-          <div class="diagram-caption"><strong>一条原创增长主链＋一条关联内容直加支路</strong><span>主链延伸到原创发布后的增长观察和追加加热；支路只在有合适目标文章／视频时启用</span></div>
+          <div class="diagram-caption"><strong>原创增长主闭环</strong><span>先判断是否发原创，再以发布后的真实传播数据决定是否追加加热</span></div>
           <div class="flow-map" role="img" aria-label="AI热点发现到加热作业业务流程图">
             <div class="flow-row">
               <div class="flow-node"><b>01 持续发现</b><p>9品牌、8主题；公开搜索或未来平台原生数据</p></div>
@@ -1700,15 +1713,15 @@
             </div>
             <div class="flow-bridge"></div>
             <div class="flow-row reverse">
-              <div class="flow-node action"><b>10 分别审批</b><p>两类草案独立通过或驳回，均不自动下发</p></div>
-              <div class="flow-node"><b>09 补充支路</b><p>如有合适关联文章／视频，可绑定目标配置直接加热动作</p></div>
-              <div class="flow-node"><b>08 选择目标内容</b><p>来源必须属于事件证据，平台与URL可执行</p></div>
-              <div class="flow-node"><b>07 原创增长</b><p>生成原创评论／内容草案，匹配擅长平台</p></div>
-              <div class="flow-node action"><b>06 原创决策</b><p>值得响应时生成原创增长草案；源内容直加不替代主链</p></div>
+              <div class="flow-node action"><b>10 追加加热</b><p>需要时生成原创发布后加热草案并独立审批</p></div>
+              <div class="flow-node"><b>09 后效判断</b><p>运营判断继续观察、无需加热、人工核验或追加加热</p></div>
+              <div class="flow-node"><b>08 传播增量</b><p>基于至少两个同一内容、同口径快照计算变化</p></div>
+              <div class="flow-node"><b>07 实际发布</b><p>原创审批后发布，并登记真实链接与平台</p></div>
+              <div class="flow-node action"><b>06 原创草案</b><p>生成原创评论／内容作业，匹配平台并人工审批</p></div>
             </div>
           </div>
+          <div class="supplement-branch"><strong>补充场景</strong><p>事件有可执行关联文章／视频 → 运营确认目标内容 → 生成绑定该内容的直接加热草案 → 独立审批。</p></div>
         </div>
-        <div class="callout info"><strong>原创发布后效是主链，不是附加分支</strong><p>原创增长草案审批通过并实际发布 → 登记发布链接 → 接收至少两个同一内容、同口径指标快照 → 计算增量 → 运营判断 → 按需生成原创后二次加热草案并独立审批。热点关联源内容直接加热作为补充支路，两者的目标对象和触发条件不同。</p></div>
 
         <div class="section-label">分阶段落地方案</div>
         <div class="stage-split">
