@@ -13,6 +13,15 @@
     }).join('');
   }
 
+  function aiErrorMessage(item) {
+    var message = item.error_message || 'AI研判未完成，采集和事件数据不受影响。';
+    var timeout = message.match(/timed out after\s+(\d+)\s+seconds/i);
+    if (timeout) {
+      return 'Codex AI研判超过' + timeout[1] + '秒，已停止当前事件；采集和事件数据不受影响，请稍后手工重试。';
+    }
+    return message;
+  }
+
   function renderAiAnalysis(event) {
     var items = event.work_items || [];
     var item = items.length ? items[items.length - 1] : null;
@@ -23,7 +32,7 @@
     var execution = output.execution || {};
     var retry = ['pending','failed'].indexOf(item.status) >= 0 ? '<button class="btn btn-sm" data-retry-ai="' + item.work_item_id + '">' + (item.status === 'failed' ? '重新执行AI研判' : '执行AI研判') + '</button>' : '';
     return '<div class="ai-analysis is-' + item.status + '"><div class="ai-analysis__head"><div><strong>Codex AI语义研判 · ' + (statusNames[item.status] || item.status) + '</strong><span class="mono">' + AppCommon.escapeHtml(item.work_item_id) + '</span></div>' + retry + '</div>' +
-      (item.status === 'completed' ? '<p>' + AppCommon.escapeHtml(output.summary || event.decision_reason || '') + '</p><div class="ai-analysis__meta"><span>内容语气：' + AppCommon.escapeHtml(toneNames[output.content_tone] || '无法判断') + '</span><span>执行器：' + AppCommon.escapeHtml(execution.executor || 'codex_cli') + '</span><span>模型：' + AppCommon.escapeHtml(execution.model || '服务器Codex默认模型') + '</span></div>' : '<p>' + AppCommon.escapeHtml(item.error_message || '系统将在采集与事件聚合后自动调用服务器Codex；AI不会自动通过事件。') + '</p>') + '</div>';
+      (item.status === 'completed' ? '<p>' + AppCommon.escapeHtml(output.summary || event.decision_reason || '') + '</p><div class="ai-analysis__meta"><span>内容语气：' + AppCommon.escapeHtml(toneNames[output.content_tone] || '无法判断') + '</span><span>执行器：' + AppCommon.escapeHtml(execution.executor || 'codex_cli') + '</span><span>模型：' + AppCommon.escapeHtml(execution.model || '服务器Codex默认模型') + '</span><span>尝试次数：' + Number(item.attempt_count || 1) + '</span></div>' : '<p>' + AppCommon.escapeHtml(aiErrorMessage(item)) + '</p><div class="ai-analysis__meta"><span>尝试次数：' + Number(item.attempt_count || 0) + '</span><span>失败不会影响采集数据，也不会自动重试</span></div>') + '</div>';
   }
 
   function renderQueue() {

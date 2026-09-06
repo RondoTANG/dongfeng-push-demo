@@ -22,7 +22,8 @@ DOUBAO_SCRIPT_PATH = POC_ROOT / "run_doubao_search.py"
 CODEX_CLI_PATH = os.getenv("CODEX_CLI_PATH") or shutil.which("codex") or "/Applications/ChatGPT.app/Contents/Resources/codex"
 CODEX_AI_MODEL = os.getenv("AI_HOTSPOT_CODEX_MODEL", "").strip() or None
 CODEX_AI_TIMEOUT_SECONDS = int(os.getenv("AI_HOTSPOT_CODEX_AI_TIMEOUT", "240"))
-CODEX_AI_BATCH_SIZE = max(1, min(20, int(os.getenv("AI_HOTSPOT_CODEX_AI_BATCH_SIZE", "8"))))
+# 每轮最多从队列领取多少项；模型调用始终按单个事件顺序执行。
+CODEX_AI_BATCH_SIZE = max(1, min(20, int(os.getenv("AI_HOTSPOT_CODEX_AI_BATCH_SIZE", "1"))))
 FULL_RUN_COOLDOWN_SECONDS = 3 * 60 * 60
 QUICK_RUN_COOLDOWN_SECONDS = 10 * 60
 

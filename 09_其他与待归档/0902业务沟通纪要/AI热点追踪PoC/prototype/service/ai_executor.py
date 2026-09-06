@@ -154,6 +154,8 @@ def _prompt(payloads: list[dict[str, Any]]) -> str:
 
 
 def _run_codex(payloads: list[dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any]]:
+    if len(payloads) != 1:
+        raise ValueError("事件语义研判必须按单个工作项执行")
     cli = Path(CODEX_CLI_PATH)
     if not cli.exists():
         raise RuntimeError(f"未找到Codex CLI：{CODEX_CLI_PATH}")
@@ -166,7 +168,20 @@ def _run_codex(payloads: list[dict[str, Any]]) -> tuple[dict[str, Any], dict[str
         if CODEX_AI_MODEL:
             command.extend(["-m", CODEX_AI_MODEL])
         command.extend(["exec", "--skip-git-repo-check", "--ephemeral", "--output-schema", str(schema_path), "--output-last-message", str(output_path), "-"])
-        completed = subprocess.run(command, input=_prompt(payloads), capture_output=True, text=True, timeout=CODEX_AI_TIMEOUT_SECONDS, check=False)
+        try:
+            completed = subprocess.run(
+                command,
+                input=_prompt(payloads),
+                capture_output=True,
+                text=True,
+                timeout=CODEX_AI_TIMEOUT_SECONDS,
+                check=False,
+            )
+        except subprocess.TimeoutExpired:
+            raise RuntimeError(
+                f"Codex AI研判超过{CODEX_AI_TIMEOUT_SECONDS}秒，已停止当前事件；"
+                "采集和事件数据不受影响，请稍后手工重试"
+            ) from None
         if completed.returncode != 0:
             detail = (completed.stderr or completed.stdout or "Codex AI研判失败").strip()
             raise RuntimeError(detail[-1500:])
@@ -274,37 +289,47 @@ def _validated_output(raw: dict[str, Any], item: dict[str, Any], execution: dict
 
 
 def process_work_items(items: list[dict[str, Any]]) -> dict[str, Any]:
-    if not items:
-        return {"requested": 0, "completed": 0, "failed": 0, "work_item_ids": []}
-    claimed = []
-    for item in items[:CODEX_AI_BATCH_SIZE]:
-        claimed.append(claim_work_item(item["work_item_id"], ACTOR_ID))
-    try:
-        raw_payload, execution = _run_codex([_event_payload(item) for item in claimed])
-        mapped = {str(r.get("work_item_id")): r for r in raw_payload.get("results", []) if isinstance(r, dict)}
-        completed_ids = []
-        failed_ids = []
-        for item in claimed:
-            raw = mapped.get(item["work_item_id"])
+    """逐项执行AI研判，避免一个慢事件使整个批次超时并丢失结果。"""
+    totals: dict[str, Any] = {
+        "requested": 0,
+        "completed": 0,
+        "failed": 0,
+        "work_item_ids": [],
+        "failed_work_item_ids": [],
+        "errors": {},
+    }
+    for queued_item in items:
+        totals["requested"] += 1
+        work_item_id = queued_item["work_item_id"]
+        claimed: dict[str, Any] | None = None
+        try:
+            claimed = claim_work_item(work_item_id, ACTOR_ID)
+            raw_payload, execution = _run_codex([_event_payload(claimed)])
+            mapped = {
+                str(result.get("work_item_id")): result
+                for result in raw_payload.get("results", [])
+                if isinstance(result, dict)
+            }
+            raw = mapped.get(work_item_id)
             if not raw:
-                fail_work_item(item["work_item_id"], ACTOR_ID, "Codex AI输出缺少对应工作项")
-                failed_ids.append(item["work_item_id"])
-                continue
-            output = _validated_output(raw, item, execution)
+                raise RuntimeError("Codex AI输出缺少当前工作项")
+            output = _validated_output(raw, claimed, execution)
             if not output["summary"] or not output["decision_reason"]:
-                fail_work_item(item["work_item_id"], ACTOR_ID, "Codex AI输出缺少摘要或判断依据")
-                failed_ids.append(item["work_item_id"])
-                continue
-            complete_work_item(item["work_item_id"], ACTOR_ID, output)
-            completed_ids.append(item["work_item_id"])
-        return {"requested": len(claimed), "completed": len(completed_ids), "failed": len(failed_ids), "work_item_ids": completed_ids, "failed_work_item_ids": failed_ids, "execution": execution}
-    except Exception as exc:
-        for item in claimed:
-            try:
-                fail_work_item(item["work_item_id"], ACTOR_ID, str(exc))
-            except Exception:
-                pass
-        raise
+                raise RuntimeError("Codex AI输出缺少摘要或判断依据")
+            complete_work_item(work_item_id, ACTOR_ID, output)
+            totals["completed"] += 1
+            totals["work_item_ids"].append(work_item_id)
+        except Exception as exc:
+            error_message = str(exc).strip() or "Codex AI研判失败"
+            if claimed is not None:
+                try:
+                    fail_work_item(work_item_id, ACTOR_ID, error_message)
+                except Exception:
+                    pass
+            totals["failed"] += 1
+            totals["failed_work_item_ids"].append(work_item_id)
+            totals["errors"][work_item_id] = error_message[:500]
+    return totals
 
 
 def process_run_work_items(run_id: str) -> dict[str, Any]:
@@ -312,22 +337,23 @@ def process_run_work_items(run_id: str) -> dict[str, Any]:
         "SELECT w.* FROM codex_work_items w JOIN events e ON e.event_id=w.event_id WHERE e.run_id=? AND w.status='pending' ORDER BY w.created_at",
         (run_id,),
     )
-    totals = {"requested": 0, "completed": 0, "failed": 0, "work_item_ids": [], "failed_work_item_ids": []}
+    totals = {
+        "requested": 0,
+        "completed": 0,
+        "failed": 0,
+        "work_item_ids": [],
+        "failed_work_item_ids": [],
+        "errors": {},
+    }
     for start in range(0, len(rows), CODEX_AI_BATCH_SIZE):
         batch = rows[start:start + CODEX_AI_BATCH_SIZE]
-        try:
-            result = process_work_items(batch)
-        except Exception as exc:
-            result = {
-                "requested": len(batch), "completed": 0, "failed": len(batch),
-                "work_item_ids": [], "failed_work_item_ids": [item["work_item_id"] for item in batch],
-                "error": str(exc)[:1000],
-            }
+        result = process_work_items(batch)
         totals["requested"] += result["requested"]
         totals["completed"] += result["completed"]
         totals["failed"] += result["failed"]
         totals["work_item_ids"].extend(result.get("work_item_ids", []))
         totals["failed_work_item_ids"].extend(result.get("failed_work_item_ids", []))
+        totals["errors"].update(result.get("errors", {}))
     with connection() as db:
         row = db.execute("SELECT step_summary_json FROM collection_runs WHERE run_id=?", (run_id,)).fetchone()
         summary = json.loads(row[0] or "{}") if row else {}

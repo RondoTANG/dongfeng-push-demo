@@ -4,6 +4,7 @@ import tempfile
 import unittest
 import json
 import os
+import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
@@ -23,7 +24,7 @@ from service.events import _risk_tags
 from service.repositories import count_sources, get_run, list_sources
 from service import access_control
 from service.work_items import enqueue_analysis_work_item, claim_work_item, complete_work_item
-from service.ai_executor import process_work_items
+from service.ai_executor import _run_codex, process_work_items
 from service.doubao_result_processor import handler as process_doubao_result
 from scripts.reprocess_local_run import reprocess
 
@@ -414,6 +415,48 @@ class ServiceTestCase(unittest.TestCase):
         self.assertEqual(completed["output"]["original_growth_blueprint"]["mandatory_topics"], [])
         self.assertEqual([e["source_id"] for e in completed["output"]["evidence"]], ["SRC-SEED"])
 
+    def test_ai_executor_isolates_failure_and_continues_next_item(self) -> None:
+        first_event_id = self._seed_event("TIMEOUT")
+        second_event_id = self._seed_event("SUCCESS")
+        first = enqueue_analysis_work_item(first_event_id, reason="测试超时隔离")
+        second = enqueue_analysis_work_item(second_event_id, reason="测试继续执行")
+        raw = {
+            "work_item_id": second["work_item_id"], "summary": "第二个事件完成", "decision_reason": "证据可供人工审核",
+            "content_tone": "neutral", "tone_reason": "事实描述", "evidence": [], "risk_tags": [],
+            "entity_mentions": [], "entity_uncertainties": [],
+            "original_growth_blueprint": {
+                "recommended": False, "reason": "暂不建议", "task_title": "", "mandatory_topics": [],
+                "core_proposition": "", "evidence_summary": "", "platforms": [], "creative_directions": [],
+                "prohibited_claims": [], "risk_notes": [],
+            },
+            "source_content_boost_blueprints": [],
+            "evidence_resolution": {"resolved_items": [], "unresolved_items": ["缺少平台原生指标"]},
+        }
+        execution = {"executor": "codex_cli", "model": "test"}
+        with patch(
+            "service.ai_executor._run_codex",
+            side_effect=[RuntimeError("Codex AI研判超过240秒，已停止当前事件；采集和事件数据不受影响，请稍后手工重试"), ({"results": [raw]}, execution)],
+        ) as run_codex:
+            result = process_work_items([first, second])
+        self.assertEqual(run_codex.call_count, 2)
+        self.assertTrue(all(len(call.args[0]) == 1 for call in run_codex.call_args_list))
+        self.assertEqual((result["completed"], result["failed"]), (1, 1))
+        failed = get_event(first_event_id)["work_items"][-1]
+        completed = get_event(second_event_id)["work_items"][-1]
+        self.assertEqual(failed["status"], "failed")
+        self.assertIn("采集和事件数据不受影响", failed["error_message"])
+        self.assertNotIn("Command '[", failed["error_message"])
+        self.assertEqual(completed["status"], "completed")
+
+    def test_codex_timeout_is_reported_without_command_details(self) -> None:
+        with patch("service.ai_executor.Path.exists", return_value=True), patch(
+            "service.ai_executor.subprocess.run",
+            side_effect=subprocess.TimeoutExpired(cmd=["codex"], timeout=240),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "采集和事件数据不受影响") as raised:
+                _run_codex([{"work_item_id": "WRK-TIMEOUT"}])
+        self.assertNotIn("Command '[", str(raised.exception))
+
     def test_cooldown_uses_latest_run(self) -> None:
         with patch("service.pipeline.search_doubao", return_value={"items": [], "processed": {"success": True}}), patch(
             "service.pipeline.search_codex_batch",
@@ -465,11 +508,12 @@ class ServiceTestCase(unittest.TestCase):
         second_ids = {item["source_id"] for item in second_page}
         self.assertTrue(first_ids.isdisjoint(second_ids))
 
-    def _seed_event(self) -> str:
+    def _seed_event(self, suffix: str = "SEED") -> str:
         timestamp = now_iso()
-        run_id = "RUN-SEED"
-        source_id = "SRC-SEED"
-        event_id = "EVT-SEED"
+        run_id = f"RUN-{suffix}"
+        source_id = f"SRC-{suffix}"
+        event_id = f"EVT-{suffix}"
+        source_url = f"https://example.com/{suffix.lower()}"
         with connection() as db:
             db.execute(
                 "INSERT INTO collection_runs (run_id,trigger_type,mode,status,started_at) VALUES (?,?,?,'success',?)",
@@ -480,7 +524,7 @@ class ServiceTestCase(unittest.TestCase):
                     source_id,run_id,retrieved_by,query_ids_json,source_status,source_platform,
                     original_url,canonical_url,title,snippet,fetched_at,first_seen_at
                 ) VALUES (?,?,?,'[]','valid','general_web',?,?,?,?,?,?)""",
-                (source_id, run_id, "doubao_global_search", "https://example.com/seed", "https://example.com/seed", "岚图汽车产品信息", "公开事实", timestamp, timestamp),
+                (source_id, run_id, "doubao_global_search", source_url, source_url, "岚图汽车产品信息", "公开事实", timestamp, timestamp),
             )
             db.execute(
                 """INSERT INTO events (
@@ -499,7 +543,7 @@ class ServiceTestCase(unittest.TestCase):
             )
             db.execute(
                 "INSERT INTO event_evidence (evidence_id,event_id,source_id,evidence_type,evidence_text,evidence_url,provided_by,created_at) VALUES (?,?,?,?,?,?,?,?)",
-                ("EVD-SEED", event_id, source_id, "source_excerpt", "岚图汽车发布产品信息。", "https://example.com/seed", "test", timestamp),
+                (f"EVD-{suffix}", event_id, source_id, "source_excerpt", "岚图汽车发布产品信息。", source_url, "test", timestamp),
             )
         return event_id
 
