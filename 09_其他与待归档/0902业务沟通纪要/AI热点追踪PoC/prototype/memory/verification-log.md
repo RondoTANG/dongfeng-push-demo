@@ -1,6 +1,6 @@
 # 验证记录
 
-- 2026-09-06 AI研判超时隔离修复：`python3 -m unittest discover -s tests -p 'test_*.py'`共43项通过，覆盖首项超时后第二项继续完成、每次模型调用仅含一个事件、友好超时信息不暴露原始命令；`node --check js/pages/event-detail.js`、Python编译和配置校验通过。服务器发布版本`20260906-152402`，公网健康检查返回200，线上事件详情脚本含友好提示，服务进程实际读取`AI_HOTSPOT_CODEX_AI_BATCH_SIZE=1`，无Codex子进程。发布未触发搜索或AI重试；核对时既有工作项为3项完成、4项失败。
+- 2026-09-06 AI研判超时隔离修复：`python3 -m unittest discover -s tests -p 'test_*.py'`共43项通过，覆盖首项超时后第二项继续完成、每次模型调用仅含一个事件、友好超时信息不暴露原始命令；`node --check js/pages/event-detail.js`、Python编译和配置校验通过。服务器最终发布版本`20260906-153542`，公网健康检查返回200，线上事件详情脚本含友好提示并读取真实`attempts`字段，服务进程实际读取`AI_HOTSPOT_CODEX_AI_BATCH_SIZE=1`，无Codex子进程。发布未触发搜索或AI重试；核对时既有工作项为3项完成、4项失败。
 
 - 2026-09-06公网部署：发布版本`20260906-125632`运行于服务器，`https://hotspot.dbuddy.uk/api/health`返回200；应用和独立Cloudflare Tunnel服务均为active。现有SQLite与可编辑配置迁移成功，重启后自动采集仍为停止、周期3小时。公网管理员与访客登录成功，会话Cookie含Secure和HttpOnly；访客读取配置成功，访问密钥管理和手工运行接口均返回403。部署验收临时访客密钥已撤销，仅保留审计记录；未执行豆包／Codex搜索任务。服务器Codex CLI登录状态为`Logged in using ChatGPT`，只读、临时、无工具调用的最小命令返回`CODEX_SERVER_OK`。
 
