@@ -17,11 +17,14 @@ from service.work_items import (  # noqa: E402
     get_work_item,
     list_work_items,
 )
+from service.ai_executor import process_pending_work_items  # noqa: E402
 
 
 ALLOWED_OUTPUT_FIELDS = {
     "summary", "decision_reason", "evidence", "risk_tags",
     "entity_mentions", "entity_uncertainties", "brand_relations",
+    "content_tone", "tone_reason", "original_growth_blueprint",
+    "source_content_boost_blueprints", "evidence_resolution", "execution",
 }
 
 
@@ -53,6 +56,7 @@ def main() -> int:
     action.add_argument("--claim", metavar="WORK_ITEM_ID", help="领取指定工作项")
     action.add_argument("--complete", metavar="WORK_ITEM_ID", help="使用 --payload 完成指定工作项")
     action.add_argument("--fail", metavar="WORK_ITEM_ID", help="将指定工作项记为失败")
+    action.add_argument("--process-pending", action="store_true", help="调用当前运行机器的Codex CLI处理待办语义研判")
     parser.add_argument("--payload", type=Path, help="Codex 结构化回传 JSON 文件")
     parser.add_argument("--message", help="失败原因")
     parser.add_argument("--actor-id", default="codex-local-automation")
@@ -61,6 +65,9 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
+        if args.process_pending:
+            emit({"ok": True, "status": "processed", **process_pending_work_items(args.limit)})
+            return 0
         if args.claim_next:
             items = list_work_items("pending", 1)
             if not items:

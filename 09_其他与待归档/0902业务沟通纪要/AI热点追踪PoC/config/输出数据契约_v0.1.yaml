@@ -40,6 +40,18 @@ enums:
     - draft_pending_review
     - approved
     - rejected
+  ai_work_item_status:
+    - pending
+    - in_progress
+    - completed
+    - failed
+    - cancelled
+  content_tone:
+    - positive
+    - neutral
+    - negative
+    - mixed
+    - unknown
 
 datasets:
   collection_run:
@@ -167,6 +179,38 @@ datasets:
       independent_source_count: "表示独立证据广度，不表示用户讨论量"
       entity_mentions: "事件内已由证据支持的车型、人物、活动或机构识别结果；不要求维护完整全局实体表"
       entity_uncertainties: "证据不足或关系冲突时记录原始名称、类型、不确定原因、建议关系和证据来源；非空时事件进入pending_review"
+
+  codex_work_item:
+    primary_key: work_item_id
+    required_fields:
+      - work_item_id
+      - event_id
+      - work_type
+      - status
+      - input
+      - attempts
+      - created_at
+    completed_output_fields:
+      - summary
+      - decision_reason
+      - content_tone
+      - tone_reason
+      - evidence
+      - risk_tags
+      - entity_mentions
+      - entity_uncertainties
+      - brand_relations
+      - original_growth_blueprint
+      - source_content_boost_blueprints
+      - evidence_resolution
+      - execution
+    execution_fields:
+      - executor
+      - model
+      - started_at
+      - completed_at
+      - prompt_contract_version
+    validation_rule: "品牌关系不得超出规则已确认范围；风险、平台、互动动作与来源ID必须通过白名单及事件归属校验；AI失败保留原因，未完成不得通过事件并生成草案"
 
   evidence_request:
     primary_key: evidence_request_id

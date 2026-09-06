@@ -169,6 +169,14 @@ body { overflow: hidden; }
 .info-block > span { display: block; margin-bottom: 8px; color: var(--ink-600); font-size: 11px; font-weight: 700; }
 .info-block p { margin: 5px 0; color: var(--ink-700); font-size: 12px; }
 .decision-copy { margin: 0; padding: 14px; color: var(--ink-700); background: #f5f8fc; border-left: 3px solid #6f8fbf; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 12px; line-height: 1.7; }
+.ai-analysis { margin: 16px 0; padding: 14px 16px; background: #f2f7ff; border: 1px solid #d6e4f8; border-left: 3px solid var(--blue-600); border-radius: var(--radius-sm); }
+.ai-analysis.is-failed { background: #fff5f5; border-color: #f2caca; border-left-color: #cf3f3f; }
+.ai-analysis__head, .ai-analysis__head > div { display: flex; align-items: center; gap: 10px; }
+.ai-analysis__head { justify-content: space-between; }
+.ai-analysis__head strong { color: var(--ink-900); font-size: 13px; }
+.ai-analysis__head span { color: var(--ink-500); font-size: 10px; }
+.ai-analysis > p { margin: 9px 0 0; color: var(--ink-700); font-size: 12px; line-height: 1.7; }
+.ai-analysis__meta { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--ink-500); font-size: 10px; }
 .empty-state.compact { min-height: 120px; }
 .review-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .review-form .full { grid-column: 1 / -1; }

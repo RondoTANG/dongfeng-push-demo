@@ -5,6 +5,8 @@ from typing import Any
 from .collector import search_codex_batch, search_doubao
 from .database import add_audit, connection, fetch_all, fetch_one, json_text, new_id, now_iso
 from .events import get_event
+from .work_items import enqueue_analysis_work_item
+from .ai_executor import process_work_items
 
 
 ALLOWED_METHODS = {"codex_web_search", "doubao_global_search", "existing_url_parse", "manual_link"}
@@ -168,4 +170,13 @@ def execute_evidence_request(request_id: str) -> dict[str, Any]:
         )
     result = get_evidence_request(request_id) or {}
     add_audit("execute", "evidence_request", request_id, actor_type="system", actor_id="evidence-runner", after=result)
+    if evidence:
+        work_item = enqueue_analysis_work_item(
+            request["event_id"], reason="定向补证完成后重新研判",
+            request_context={"evidence_request_id": request_id, "question": request.get("question"), "unresolved_items": request.get("unresolved_items") or []},
+        )
+        try:
+            process_work_items([work_item])
+        except Exception as exc:
+            add_audit("analysis_failed", "evidence_request", request_id, actor_type="codex", actor_id="codex-ai-runner", after={"error": str(exc)[:1000]})
     return result

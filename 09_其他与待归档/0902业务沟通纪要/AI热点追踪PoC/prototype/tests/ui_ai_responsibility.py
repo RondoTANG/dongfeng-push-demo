@@ -26,11 +26,14 @@ def main():
                 page.set_viewport_size({'width': width, 'height': 1000})
                 page.goto(url, wait_until='networkidle')
                 assert page.locator('.responsibility-table tbody tr').count() == 11
-                assert '尚未接通' in page.locator('.responsibility-table').inner_text()
+                responsibility_text = page.locator('.responsibility-table').inner_text()
+                assert '事件语义研判' in responsibility_text
+                assert '已接通' in responsibility_text
+                assert '尚未接通' not in responsibility_text
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), (name, width)
                 if name == 'flow':
                     assert page.locator('.flow .step').count() == 9
-                    assert page.locator('.flow .missing').count() == 2
+                    assert page.locator('.flow .ai').count() >= 3
                 else:
                     page.locator('#module-3').scroll_into_view_if_needed()
                 page.screenshot(path=str(output / f'{name}-{width}.png'))

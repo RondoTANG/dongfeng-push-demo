@@ -2,10 +2,33 @@ from __future__ import annotations
 
 from typing import Any
 
-from .database import add_audit, connection, fetch_all, fetch_one, json_text, now_iso
+from .database import add_audit, connection, fetch_all, fetch_one, json_text, new_id, now_iso
 
 
 ALLOWED_WORK_TYPES = {"evidence_and_analysis", "evidence_only", "draft_analysis"}
+
+
+def enqueue_analysis_work_item(event_id: str, *, reason: str, request_context: dict[str, Any] | None = None) -> dict[str, Any]:
+    with connection() as db:
+        event = db.execute("SELECT event_id,event_title,event_date,brand_relations_json FROM events WHERE event_id=?", (event_id,)).fetchone()
+        if not event:
+            raise LookupError("关联事件不存在")
+        db.execute("UPDATE codex_work_items SET status='cancelled' WHERE event_id=? AND status IN ('pending','failed')", (event_id,))
+        source_ids = [row[0] for row in db.execute("SELECT DISTINCT source_id FROM event_evidence WHERE event_id=? AND source_id IS NOT NULL", (event_id,)).fetchall()]
+        work_item_id = new_id("WRK")
+        payload = {
+            "event_title": event["event_title"], "event_date": event["event_date"],
+            "brand_relations": __import__("json").loads(event["brand_relations_json"] or "[]"),
+            "source_ids": source_ids, "reason": reason, "request_context": request_context or {},
+            "required_output": ["summary", "decision_reason", "evidence", "risk_tags", "entity_mentions", "entity_uncertainties", "original_growth_blueprint", "source_content_boost_blueprints", "evidence_resolution"],
+        }
+        db.execute(
+            "INSERT INTO codex_work_items (work_item_id,event_id,work_type,status,input_json,created_at) VALUES (?,?,'evidence_and_analysis','pending',?,?)",
+            (work_item_id, event_id, json_text(payload), now_iso()),
+        )
+    item = get_work_item(work_item_id) or {}
+    add_audit("enqueue", "codex_work_item", work_item_id, actor_type="system", actor_id="work-item-router", after={"event_id": event_id, "reason": reason})
+    return item
 
 
 def list_work_items(status: str | None = None, limit: int = 100) -> list[dict[str, Any]]:

@@ -89,7 +89,7 @@ sudo npm install -g @openai/codex
 
 Codex CLI 的安装、登录方式以 OpenAI 官方文档为准：[Codex CLI入门](https://help.openai.com/en/articles/11096431)、[Codex CLI登录说明](https://help.openai.com/en/articles/11381614-api-codex-cli-and-sign-in-with-chatgpt)。
 
-当前服务会在执行完整／快速采集时直接调用运行机器上的 `codex`。因此，服务器部署有两种边界：
+当前服务会在执行完整／快速采集时直接调用运行机器上的 `codex`完成公开搜索，并在来源规则清洗、事件聚合后再次调用同一Codex CLI完成结构化语义研判和作业蓝图；原创后效触发追加加热时也会调用。所有调用使用服务器登录态，不依赖用户电脑在线，也不会同步为Codex桌面“已安排事项”。因此，服务器部署有两种边界：
 
 1. **当前可直接落地**：在服务器以 `ai-hotspot` 账号登录 Codex CLI。无需开放本机接口，本机也不必保持在线。
 2. **坚持使用本机 Codex**：应另做“本机工作进程主动轮询服务器任务并回传”的出站模式，不能把本机 Codex 或本机 FastAPI 直接暴露到公网。当前代码尚未实现基础采集任务的远程领取，不能只改地址就宣称可用。
@@ -201,6 +201,18 @@ sudo journalctl -u ai-hotspot-poc -n 100 --no-pager
 - 每次升级前备份 `ai_hotspot_poc.db`；备份时优先短暂停服，或使用 SQLite 在线备份命令。
 - `runtime.env`、Codex 登录目录和 SQLite 均不进入发布包。
 - 自动采集默认关闭；管理员开启后由服务器调度，周期和启停状态持久化在外置数据目录。
+
+如需清空体验环境，必须停服并使用业务数据清理脚本。脚本会先生成权限仅限服务账号的SQLite完整备份，再清理采集批次、来源、事件、审核、补证、草案、原创发布及后效数据；访问密钥、登录会话、配置审计、运行配置和Codex授权均保留：
+
+```bash
+sudo systemctl stop ai-hotspot-poc
+sudo -u ai-hotspot env \
+  AI_HOTSPOT_DATA_DIR=/var/lib/ai-hotspot-poc/data \
+  /opt/ai-hotspot-poc/venv/bin/python \
+  /opt/ai-hotspot-poc/current/prototype/scripts/reset_business_data.py \
+  --confirm-business-reset
+sudo systemctl start ai-hotspot-poc
+```
 
 代码升级后的固定动作：
 

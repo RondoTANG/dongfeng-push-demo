@@ -20,6 +20,9 @@ AUTOMATION_SEED_PATH = PROJECT_ROOT / "config" / "automation.json"
 REAL_SAMPLE_PATH = POC_ROOT / "运行结果" / "2026-09-03_豆包原始结果.json"
 DOUBAO_SCRIPT_PATH = POC_ROOT / "run_doubao_search.py"
 CODEX_CLI_PATH = os.getenv("CODEX_CLI_PATH") or shutil.which("codex") or "/Applications/ChatGPT.app/Contents/Resources/codex"
+CODEX_AI_MODEL = os.getenv("AI_HOTSPOT_CODEX_MODEL", "").strip() or None
+CODEX_AI_TIMEOUT_SECONDS = int(os.getenv("AI_HOTSPOT_CODEX_AI_TIMEOUT", "240"))
+CODEX_AI_BATCH_SIZE = max(1, min(20, int(os.getenv("AI_HOTSPOT_CODEX_AI_BATCH_SIZE", "8"))))
 FULL_RUN_COOLDOWN_SECONDS = 3 * 60 * 60
 QUICK_RUN_COOLDOWN_SECONDS = 10 * 60
 

@@ -13,10 +13,12 @@
     var latest = state.runs[0] || {};
     var coverage = latest.query_coverage || {};
     var sourceSummary = latest.step_summary && latest.step_summary.source_processing || {};
+    var aiSummary = latest.step_summary && latest.step_summary.codex_ai_analysis || {};
     var metrics = '<div class="metrics-grid" data-anno="run-center-metrics">' +
       metric('最近运行', latest.status ? (AppCommon.statusMeta[latest.status] || [latest.status])[0] : '暂无运行', latest.run_id || '等待首次执行', latest.status === 'failed' ? 'tone-red' : '') +
       metric('双路任务覆盖', String(coverage.executed_job_count || coverage.executed || 0) + ' / ' + String(coverage.planned_job_count || coverage.planned || 0), latest.mode === 'full' ? String(Math.ceil((coverage.planned_job_count || 0) / 2)) + '条查询 × 2个搜索工具' : '快速双路验证') +
       metric('有效线索', String(sourceSummary.valid || 0), '自动无效 ' + String(sourceSummary.invalid || 0) + ' 条') +
+      metric('Codex AI研判', String(aiSummary.completed || 0) + ' / ' + String(aiSummary.requested || 0), aiSummary.failed ? '失败 ' + aiSummary.failed + ' 项，可在事件详情重试' : '生成待人工审核的语义结论与草案蓝图', aiSummary.failed ? 'tone-red' : '') +
       metric('待处理事件', String(state.events.filter(function (item) { return item.event_status === 'pending_review'; }).length), '搜索事件热点均不可判定') +
       '</div>';
     var columns = [
@@ -40,7 +42,7 @@
     var actions = '<button class="btn" data-run-mode="full">完整双路运行</button>' +
       '<button class="btn btn-primary" data-run-mode="quick">快速双路验证（2项）</button>';
     return '<section class="page">' + Layout.pageHead('运行中心', '每个批次记录实际查询、来源处理、失败与配置快照', actions) +
-      '<div class="boundary-banner"><strong>公开信息线索 PoC</strong><span>豆包与 Codex 用于发现和补证；没有平台原生指标与连续快照时，不输出真实热点结论。</span></div>' +
+      '<div class="boundary-banner"><strong>公开信息线索 PoC</strong><span>豆包与 Codex 执行双路搜索；来源通过规则清洗后，Codex AI基于已入库证据完成语义研判和作业蓝图。没有平台原生指标与连续快照时，不输出真实热点结论。</span></div>' +
       '<div id="run-center-content">' + renderContent() + '</div></section>';
   }
 

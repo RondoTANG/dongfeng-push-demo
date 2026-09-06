@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-import re
 from typing import Any
 
 from .database import add_audit, connection, fetch_all, fetch_one, json_text, new_id, now_iso
@@ -40,63 +39,51 @@ BOOST_ACTIONS_BY_PLATFORM = {
 }
 
 
-def _recommend_platforms(event: dict[str, Any]) -> list[str]:
-    title = event.get("event_title") or ""
-    source_platforms = set(event.get("source_platforms") or [])
-    recommendations: list[str] = []
-    if "weibo" in source_platforms:
-        recommendations.append("weibo")
-    if any(term in title for term in ("视频", "车展", "直播", "亮相", "实车")):
-        recommendations.extend(["douyin", "xiaohongshu"])
-    if any(term in title for term in ("上市", "配置", "价格", "选车", "体验")):
-        recommendations.extend(["xiaohongshu", "toutiao"])
-    if not recommendations or any(term in title for term in ("发布", "交付", "技术", "质量", "市场", "规划")):
-        recommendations.extend(["toutiao", "wechat_official_account"])
-    return list(dict.fromkeys(recommendations))[:2]
-
-
-PLATFORM_GUIDANCE = {
-    "douyin": "内容形态：30—90秒口播、实拍混剪或图文轮播；开头3秒呈现经证据核验的核心看点，字幕突出事实，不虚构体验。",
-    "xiaohongshu": "内容形态：图文笔记或短视频；标题明确主体与信息点，正文分段表达，可从真实使用场景或同价位选择角度展开。",
-    "weibo": "内容形态：短评、多图或短视频博文；文案简洁，使用运营确认的话题，配图或视频并保留个人观点。",
-    "toutiao": "内容形态：短图文、中短评或视频；标题点明核心事实，正文先结论后依据，适合较完整的行业解读。",
-    "wechat_official_account": "内容形态：公众号图文；按事件背景、已核验事实、产品或行业价值、个人观点组织，不使用未核验数据。",
-    "wechat_channels": "内容形态：短视频或直播切片；使用可授权素材，口播仅引用事件证据，避免实时数据和效果承诺。",
-}
-
-
-def _original_draft_brief(event: dict[str, Any], platforms: list[str], source_ids: list[str]) -> str:
-    evidence_rows = fetch_all(
-        "SELECT evidence_text FROM event_evidence WHERE event_id=? ORDER BY created_at LIMIT 3", (event["event_id"],)
+def _latest_ai_output(event_id: str) -> tuple[dict[str, Any], str]:
+    work_item = fetch_one(
+        "SELECT * FROM codex_work_items WHERE event_id=? AND work_type='evidence_and_analysis' ORDER BY created_at DESC LIMIT 1",
+        (event_id,),
     )
-    evidence_text = "\n".join(str(item.get("evidence_text") or "") for item in evidence_rows)
-    hashtags = list(dict.fromkeys(re.findall(r"#[^#\s，。；、]{2,30}#?", evidence_text)))[:4]
-    topic_text = "、".join(hashtags) if hashtags else "待运营依据官方口径补充；系统不从搜索摘要臆造话题"
+    if not work_item:
+        raise ValueError("事件尚未生成Codex AI研判任务，不能生成作业草案")
+    if work_item.get("status") != "completed" or not isinstance(work_item.get("output"), dict):
+        detail = work_item.get("error_message") or "请等待AI研判完成或重新执行失败工作项"
+        raise ValueError(f"Codex AI研判未完成，不能生成作业草案：{detail}")
+    return work_item["output"], work_item["work_item_id"]
+
+
+def _ai_original_draft_brief(event: dict[str, Any], blueprint: dict[str, Any], source_ids: list[str]) -> str:
+    topics = blueprint.get("mandatory_topics") or []
+    topic_text = "、".join(topics) if topics else "待运营依据官方口径补充；AI未从现有证据中确认可用话题"
+    platforms = blueprint.get("platforms") or []
     platform_text = "\n".join(
-        f"- {PLATFORM_LABELS.get(platform, platform).replace('能力', '')}：{PLATFORM_GUIDANCE.get(platform, '按平台内容规范形成原创表达，具体形式由运营确认。')}"
-        for platform in platforms
+        f"- {PLATFORM_LABELS.get(item.get('platform_id'), item.get('platform_id', '目标平台')).replace('能力', '')}："
+        f"{item.get('content_form') or '内容形态待确认'}；{item.get('guidance') or '发布方式待运营确认'}（推荐依据：{item.get('reason') or '基于事件内容'}）"
+        for item in platforms
     ) or "- 目标平台待运营确认。"
-    evidence_summary = "；".join(
-        str(item.get("evidence_text") or "").strip().replace("\n", " ")[:180] for item in evidence_rows if item.get("evidence_text")
-    ) or event.get("event_title") or "当前未取得可展示的正文证据"
+    directions = "\n".join(f"{index}. {text}" for index, text in enumerate(blueprint.get("creative_directions") or [], 1)) or "1. 由运营结合可用素材补充创作方向。"
+    prohibited = list(dict.fromkeys([
+        *(blueprint.get("prohibited_claims") or []),
+        "不得把公开搜索线索表述为真实热点",
+        "没有平台原生数据时，不得使用“全网热议”“正在爆发”“冲上热搜”等表述",
+        "不得添加证据未支持的销量、排名、互动量或用户评价",
+    ]))
+    rules = "\n".join(f"{index}. {text}" for index, text in enumerate(prohibited, 1))
     return (
-        "本任务基于公开信息线索形成，不代表真实热点结论。\n\n"
+        "本作业要求由Codex AI依据当前事件证据生成，经程序校验后进入人工审批；不代表真实热点结论。\n\n"
         "一、作业详情\n"
         f"1. 必带话题：{topic_text}\n"
-        f"2. 核心命题：围绕“{event.get('event_title')}”开展原创创作，只使用已核验证据说明事件事实及其品牌或行业价值。\n"
-        f"3. 已核验证据摘要：{evidence_summary}\n"
+        f"2. 核心命题：{blueprint.get('core_proposition') or event.get('event_title')}\n"
+        f"3. 已核验证据摘要：{blueprint.get('evidence_summary') or event.get('decision_reason')}\n"
         f"4. 证据编号：{'、'.join(source_ids)}\n\n"
         "二、平台适配指引\n"
         f"{platform_text}\n\n"
         "三、创作方向参考\n"
-        "1. 普通用户解读：用通俗语言解释事件对购车、用车或行业认知的影响。\n"
-        "2. 真实场景视角：仅在有可靠素材时结合通勤、长途、家庭或户外等场景，不得模拟未发生的车主体验。\n"
-        "3. 行业观察视角：结合已核验事实分析产品或行业价值，不扩大为销量、排名或全网口碑结论。\n\n"
+        f"{directions}\n\n"
         "四、作业规则\n"
-        "1. 内容必须原创，不得照搬官方或他人账号内容，不得组织同质化复制评论。\n"
-        "2. 不得添加证据未支持的价格、销量、配置、排名、互动量和用户评价。\n"
-        "3. 不得使用“全网热议”“正在爆发”“冲上热搜”等未经平台原生数据证明的表述。\n"
-        "4. 违规、申诉周期和积分处理沿用护卫军正式作业规则，发布前由运营补齐并确认。"
+        f"{rules}\n"
+        f"{len(prohibited) + 1}. 内容必须原创，不得照搬官方或他人账号内容，不得组织同质化复制评论。\n"
+        f"{len(prohibited) + 2}. 违规、申诉周期和积分处理沿用护卫军正式作业规则，发布前由运营补齐并确认。"
     )
 
 
@@ -111,10 +98,18 @@ def _create_or_get_original_draft(event: dict[str, Any]) -> dict[str, Any]:
     source_ids = list(dict.fromkeys(item["source_id"] for item in evidence if item.get("source_id")))
     if not source_ids:
         raise ValueError("事件没有可追溯来源，不能生成作业草案")
-    platforms = _recommend_platforms(event)
+    ai_output, ai_work_item_id = _latest_ai_output(event["event_id"])
+    blueprint = ai_output.get("original_growth_blueprint") or {}
+    if not blueprint:
+        raise ValueError("Codex AI研判结果缺少原创增长草案蓝图")
+    platforms = [item.get("platform_id") for item in (blueprint.get("platforms") or []) if item.get("platform_id") in PLATFORM_LABELS]
+    if not platforms:
+        raise ValueError("Codex AI未给出可用发布平台，需先补充证据或重新研判")
     tags = [PLATFORM_LABELS[item] for item in platforms if item in PLATFORM_LABELS]
     risk_notes = [f"事件风险标签：{risk_display_text(tag)}" for tag in (event.get("risk_tags") or [])]
     risk_notes.extend(event.get("hotspot_unavailable_reason") or [])
+    risk_notes.extend(blueprint.get("risk_notes") or [])
+    risk_notes.append(f"AI研判工作项：{ai_work_item_id}；AI建议理由：{blueprint.get('reason') or '未单列'}")
     task_draft_id = new_id("DRF")
     timestamp = now_iso()
     deadline = (datetime.now().astimezone() + timedelta(hours=24)).isoformat(timespec="minutes")
@@ -132,19 +127,18 @@ def _create_or_get_original_draft(event: dict[str, Any]) -> dict[str, Any]:
             (
                 task_draft_id,
                 event["event_id"],
-                f"原创作业｜{event.get('event_title')}",
-                _original_draft_brief(event, platforms, source_ids),
+                blueprint.get("task_title") or f"原创作业｜{event.get('event_title')}",
+                _ai_original_draft_brief(event, blueprint, source_ids),
                 json_text(platforms),
                 json_text(tags),
                 deadline,
                 json_text(source_ids),
-                json_text(
-                    [
-                        "不得把公开搜索线索表述为真实热点",
-                        "没有平台原生数据时，不得使用“全网热议”“正在爆发”“冲上热搜”等表述",
-                        "不得添加证据未支持的销量、排名、互动量或用户评价",
-                    ]
-                ),
+                json_text(list(dict.fromkeys([
+                    *(blueprint.get("prohibited_claims") or []),
+                    "不得把公开搜索线索表述为真实热点",
+                    "没有平台原生数据时，不得使用“全网热议”“正在爆发”“冲上热搜”等表述",
+                    "不得添加证据未支持的销量、排名、互动量或用户评价",
+                ]))),
                 json_text(list(dict.fromkeys(risk_notes))),
                 timestamp,
                 timestamp,
@@ -207,7 +201,13 @@ def _create_or_get_boost_draft(event: dict[str, Any], source_id: str) -> dict[st
     if existing:
         return existing
 
-    actions = BOOST_ACTIONS_BY_PLATFORM[platform][:2]
+    ai_output, ai_work_item_id = _latest_ai_output(event["event_id"])
+    blueprint = next((item for item in (ai_output.get("source_content_boost_blueprints") or []) if item.get("source_id") == source_id), None)
+    if not blueprint:
+        raise ValueError(f"Codex AI研判未生成来源 {source_id} 的加热草案蓝图")
+    actions = [item for item in (blueprint.get("engagement_actions") or []) if item in BOOST_ACTIONS_BY_PLATFORM[platform]]
+    if not actions:
+        actions = BOOST_ACTIONS_BY_PLATFORM[platform][:2]
     task_draft_id = new_id("DRF")
     timestamp = now_iso()
     deadline = (datetime.now().astimezone() + timedelta(hours=6)).isoformat(timespec="minutes")
@@ -215,6 +215,8 @@ def _create_or_get_boost_draft(event: dict[str, Any], source_id: str) -> dict[st
     brief = (
         "本草案用于加热热点事件中的目标文章或视频本身，不要求用户另行发布原创内容。\n\n"
         f"目标内容：{title}\n目标链接：{target_url}\n"
+        f"AI建议：{blueprint.get('reason') or '需运营结合业务价值确认'}\n"
+        f"正向评论方向：{blueprint.get('comment_direction') or '围绕已核验事实表达真实观点，不复制统一话术'}\n"
         "运营须确认目标内容值得放大、链接有效且互动动作符合平台规则，再决定点赞、正向评论等任务要求。"
     )
     risk_notes = list(dict.fromkeys([
@@ -222,6 +224,7 @@ def _create_or_get_boost_draft(event: dict[str, Any], source_id: str) -> dict[st
         *(event.get("hotspot_unavailable_reason") or []),
         "公开搜索只能证明发现该内容，不能证明其真实热度；是否值得加热由运营结合业务判断确认",
         "避免短时间集中操作、同质化评论和诱导性表达，任务人数与时间窗待运营配置",
+        f"AI研判工作项：{ai_work_item_id}",
     ]))
     with connection() as db:
         db.execute(
@@ -303,6 +306,17 @@ def review_event(
         if final_status in TASK_GENERATING_OUTCOMES and "source_content_boost" in action_paths:
             for source_id in list(dict.fromkeys(boost_source_ids))[:3]:
                 _validate_boost_source(event_id, source_id)
+        if final_status in TASK_GENERATING_OUTCOMES:
+            ai_output, _ = _latest_ai_output(event_id)
+            if "original_growth" in action_paths:
+                blueprint = ai_output.get("original_growth_blueprint") or {}
+                if not blueprint or not blueprint.get("platforms"):
+                    raise ValueError("Codex AI研判未生成完整原创增长草案蓝图，不能通过并生成草案")
+            if "source_content_boost" in action_paths:
+                available_blueprints = {item.get("source_id") for item in (ai_output.get("source_content_boost_blueprints") or [])}
+                missing = set(boost_source_ids) - available_blueprints
+                if missing:
+                    raise ValueError(f"Codex AI研判缺少所选来源的加热蓝图：{'、'.join(sorted(missing))}")
     review_id = new_id("REV")
     timestamp = now_iso()
     with connection() as db:

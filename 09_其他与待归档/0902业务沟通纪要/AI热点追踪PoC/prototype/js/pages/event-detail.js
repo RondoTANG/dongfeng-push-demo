@@ -13,6 +13,19 @@
     }).join('');
   }
 
+  function renderAiAnalysis(event) {
+    var items = event.work_items || [];
+    var item = items.length ? items[items.length - 1] : null;
+    if (!item) return '<div class="ai-analysis is-pending"><div><strong>Codex AI研判尚未创建</strong><span>只有完成AI语义研判与作业蓝图后，才能通过事件并生成草案。</span></div></div>';
+    var statusNames = { pending: '等待执行', in_progress: '正在分析', completed: '分析完成', failed: '执行失败', cancelled: '已取消' };
+    var output = item.output || {};
+    var toneNames = { positive: '正向', neutral: '中性', negative: '负向', mixed: '正负混合', unknown: '无法判断' };
+    var execution = output.execution || {};
+    var retry = ['pending','failed'].indexOf(item.status) >= 0 ? '<button class="btn btn-sm" data-retry-ai="' + item.work_item_id + '">' + (item.status === 'failed' ? '重新执行AI研判' : '执行AI研判') + '</button>' : '';
+    return '<div class="ai-analysis is-' + item.status + '"><div class="ai-analysis__head"><div><strong>Codex AI语义研判 · ' + (statusNames[item.status] || item.status) + '</strong><span class="mono">' + AppCommon.escapeHtml(item.work_item_id) + '</span></div>' + retry + '</div>' +
+      (item.status === 'completed' ? '<p>' + AppCommon.escapeHtml(output.summary || event.decision_reason || '') + '</p><div class="ai-analysis__meta"><span>内容语气：' + AppCommon.escapeHtml(toneNames[output.content_tone] || '无法判断') + '</span><span>执行器：' + AppCommon.escapeHtml(execution.executor || 'codex_cli') + '</span><span>模型：' + AppCommon.escapeHtml(execution.model || '服务器Codex默认模型') + '</span></div>' : '<p>' + AppCommon.escapeHtml(item.error_message || '系统将在采集与事件聚合后自动调用服务器Codex；AI不会自动通过事件。') + '</p>') + '</div>';
+  }
+
   function renderQueue() {
     var items = state.events;
     return '<aside class="event-queue"><div class="event-queue__head"><strong>事件队列</strong><select class="form-control" data-event-status-filter><option value="">全部结论</option>' +
@@ -30,6 +43,7 @@
       '<div class="mobile-event-detail-nav"><button class="btn btn-text" type="button" data-mobile-event-back><span aria-hidden="true">←</span> 返回事件列表</button><span>事件详情</span></div>' +
       '<header class="event-detail-head"><div><div class="event-kicker"><span class="mono">' + event.event_id + '</span>' + AppCommon.statusTag(event.event_status) + '</div><h2>' + AppCommon.escapeHtml(event.event_title) + '</h2><div class="tag-row">' + brandTags(event.brand_relations) + '</div></div><div class="page-head__actions">' + (event.can_split ? '<button class="btn" title="将部分来源移到新事件，原事件至少保留一条来源" data-split-event>拆分</button>' : '') + '<button class="btn" title="多条事件实际描述同一事实时合并" data-merge-event>合并</button>' + (canReview ? '<button class="btn" data-evidence-plan>发起补证</button><button class="btn btn-primary" data-review-event>审核事件</button>' : '') + '</div></header>' +
       '<div class="fact-grid"><div><span>事件时间</span><strong>' + AppCommon.escapeHtml(event.event_date || '时间不明') + '</strong></div><div><span>来源／独立来源</span><strong>' + event.source_count + ' / ' + event.independent_source_count + '</strong></div><div><span>覆盖平台</span><strong>' + AppCommon.escapeHtml((event.source_platforms || []).map(AppCommon.platformName).join('、') || '待识别') + '</strong></div><div><span>当前处理</span>' + AppCommon.statusTag(event.event_status) + '</div></div>' +
+      renderAiAnalysis(event) +
       '<div class="heat-gate"><div class="heat-gate__title"><span>数据准入未满足</span><strong>热点不可判定</strong></div><p>当前事件由公开搜索线索形成，可支持事实研判，但不能证明哪个平台正在快速发酵。</p><ul>' + (event.hotspot_unavailable_reason || []).map(function (reason) { return '<li>' + AppCommon.escapeHtml(reason) + '</li>'; }).join('') + '</ul></div>' +
       '<div class="detail-columns"><div><section class="detail-section"><h3>证据时间线</h3>' + EvidenceTimeline.render(event.evidence) + '</section></div><div>' +
       '<section class="detail-section"><h3>存疑与风险</h3>' +
@@ -175,6 +189,15 @@
       if (selectButton) return selectEvent(selectButton.dataset.selectEvent);
       if (event.target.closest('[data-mobile-event-back]')) return showMobileList();
       if (event.target.closest('[data-review-event]')) return openReview();
+      var retryAi = event.target.closest('[data-retry-ai]');
+      if (retryAi) {
+        retryAi.disabled = true;
+        AppCommon.api('/api/codex/work-items/' + retryAi.dataset.retryAi + '/process', { method: 'POST' }).then(function () {
+          AppCommon.showToast('Codex AI研判已重新进入执行队列', 'success');
+          window.setTimeout(function () { selectEvent(state.selected.event_id); }, 1500);
+        }).catch(function (error) { retryAi.disabled = false; AppCommon.showToast(error.message, 'error'); });
+        return;
+      }
       if (event.target.closest('[data-evidence-plan]')) return openEvidencePlan();
       if (event.target.closest('[data-retry-action]')) return load();
       if (event.target.closest('[data-merge-event]')) return AppCommon.showToast('合并接口已就绪；请先在后续批量选择交互中选择至少两个事件');

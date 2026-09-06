@@ -30,6 +30,7 @@ from .repositories import (
 )
 from .settings import AUTH_COOKIE_SECURE, AUTH_SESSION_HOURS, DATABASE_PATH, PROJECT_ROOT
 from .work_items import claim_work_item, complete_work_item, fail_work_item, get_work_item, list_work_items
+from .ai_executor import process_pending_work_items, process_run_work_items, process_work_items
 from .access_control import (
     authenticate_key, create_session, create_viewer_key, delete_session, get_session,
     init_access_control, list_access_keys, reveal_viewer_key, revoke_access_key,
@@ -231,6 +232,12 @@ class WorkItemComplete(BaseModel):
     entity_mentions: list[dict[str, object]] | None = None
     entity_uncertainties: list[dict[str, object]] | None = None
     brand_relations: list[dict[str, object]] | None = None
+    content_tone: str | None = None
+    tone_reason: str | None = None
+    original_growth_blueprint: dict[str, object] | None = None
+    source_content_boost_blueprints: list[dict[str, object]] | None = None
+    evidence_resolution: dict[str, object] | None = None
+    execution: dict[str, object] | None = None
 
 
 class WorkItemFail(BaseModel):
@@ -323,6 +330,7 @@ def execute_and_aggregate(**kwargs: object) -> None:
     run = get_run(run_id) or {}
     if run.get("status") in {"success", "partial_success"}:
         aggregate_run(run_id)
+        process_run_work_items(run_id)
 
 
 @app.get("/api/health")
@@ -465,7 +473,9 @@ def automation_status() -> dict[str, object]:
         "in_progress_work_item_count": len(in_progress),
         "runner_command": "python3 scripts/run_collection.py --mode full --trigger-type manual",
         "trigger_policy": "admin_configurable_schedule",
-        "work_item_command": "python3 scripts/process_codex_work_items.py --claim-next --actor-id codex-local-automation",
+        "work_item_command": "python3 scripts/process_codex_work_items.py --process-pending",
+        "ai_analysis_enabled": True,
+        "ai_analysis_mode": "采集后自动执行Codex语义研判并生成作业蓝图；人工审核后才形成待审批草案",
         "mcp_required": False,
         "enabled_query_count": len(query_catalog()),
     }
@@ -613,10 +623,11 @@ def config_domain_delete(domain: str, request: Request) -> dict[str, object]:
 
 
 @app.post("/api/runs/{run_id}/aggregate")
-def aggregate(run_id: str) -> dict[str, int]:
+def aggregate(run_id: str) -> dict[str, object]:
     if not get_run(run_id):
         raise HTTPException(status_code=404, detail="运行批次不存在")
-    return aggregate_run(run_id)
+    result = aggregate_run(run_id)
+    return {**result, "codex_ai_analysis": process_run_work_items(run_id)}
 
 
 @app.get("/api/events")
@@ -748,6 +759,17 @@ def work_item_fail(work_item_id: str, payload: WorkItemFail) -> dict[str, object
         return fail_work_item(work_item_id, payload.actor_id, payload.error_message)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/api/codex/work-items/{work_item_id}/process", status_code=202)
+def work_item_process(work_item_id: str, background_tasks: BackgroundTasks) -> dict[str, object]:
+    item = get_work_item(work_item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="工作项不存在")
+    if item.get("status") not in {"pending", "failed"}:
+        raise HTTPException(status_code=409, detail=f"当前状态不可执行：{item.get('status')}")
+    background_tasks.add_task(process_work_items, [item])
+    return {"accepted": True, "work_item_id": work_item_id, "message": "Codex AI研判已进入执行队列"}
 
 
 @app.get("/api/drafts")

@@ -22,6 +22,8 @@ from service.config_loader import risk_rules, risk_display_text
 from service.events import _risk_tags
 from service.repositories import count_sources, get_run, list_sources
 from service import access_control
+from service.work_items import enqueue_analysis_work_item, claim_work_item, complete_work_item
+from service.ai_executor import process_work_items
 from service.doubao_result_processor import handler as process_doubao_result
 from scripts.reprocess_local_run import reprocess
 
@@ -343,7 +345,7 @@ class ServiceTestCase(unittest.TestCase):
         with patch(
             "service.evidence_requests.search_codex_batch",
             return_value={"E01": {"items": [item], "raw_response": {}, "error": None}},
-        ), patch("service.evidence_requests.search_doubao", return_value={"items": [item]}):
+        ), patch("service.evidence_requests.search_doubao", return_value={"items": [item]}), patch("service.evidence_requests.process_work_items", return_value={"completed": 1}):
             result = execute_evidence_request(plan["evidence_request_id"])
         self.assertEqual(result["status"], "completed")
         self.assertEqual({job["provider_id"] for job in result["jobs"]}, {"codex_web_search", "doubao_global_search"})
@@ -351,6 +353,7 @@ class ServiceTestCase(unittest.TestCase):
 
     def test_approved_event_generates_complete_original_brief(self) -> None:
         event_id = self._seed_event()
+        self._seed_completed_ai_output(event_id)
         result = review_event(
             event_id,
             review_result="approved",
@@ -366,6 +369,50 @@ class ServiceTestCase(unittest.TestCase):
         brief = result["drafts"][0]["task_brief"]
         for heading in ("一、作业详情", "必带话题", "核心命题", "二、平台适配指引", "三、创作方向参考", "四、作业规则"):
             self.assertIn(heading, brief)
+        self.assertIn("Codex AI", brief)
+
+    def test_approved_event_requires_completed_ai_blueprint(self) -> None:
+        event_id = self._seed_event()
+        with self.assertRaisesRegex(ValueError, "尚未生成Codex AI研判任务"):
+            review_event(
+                event_id, review_result="approved", event_status="relevant_event_clue",
+                reviewer="测试运营", review_note=None, evidence_summary="已核验事件事实和来源链接。",
+                risk_summary="未发现阻断性风险。", recommended_action="生成原创增长草案",
+                action_paths=["original_growth"], boost_source_ids=[],
+            )
+        with connection() as db:
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM candidate_reviews").fetchone()[0], 0)
+
+    def test_ai_executor_calls_codex_contract_and_clamps_model_output(self) -> None:
+        event_id = self._seed_event()
+        item = enqueue_analysis_work_item(event_id, reason="测试真实执行器")
+        raw = {
+            "work_item_id": item["work_item_id"], "summary": "事件摘要", "decision_reason": "事实与品牌关系可审核",
+            "content_tone": "positive", "tone_reason": "产品信息", "evidence": [
+                {"source_id": "SRC-SEED", "text": "岚图汽车发布产品信息。", "url": "https://example.com/seed", "type": "ai_fact"},
+                {"source_id": "SRC-INVENTED", "text": "虚构证据", "url": None, "type": "ai_fact"},
+            ],
+            "risk_tags": ["invented_risk"],
+            "entity_mentions": [{"entity_name": "测试车型", "entity_type": "model", "evidence_source_ids": ["SRC-SEED"]}],
+            "entity_uncertainties": [],
+            "original_growth_blueprint": {
+                "recommended": True, "reason": "适合事实解读", "task_title": "原创作业｜岚图产品信息",
+                "mandatory_topics": ["#证据中不存在的话题#"], "core_proposition": "解释产品价值", "evidence_summary": "岚图汽车发布产品信息。",
+                "platforms": [{"platform_id": "toutiao", "reason": "适合解读", "content_form": "图文", "guidance": "仅引用证据"}],
+                "creative_directions": ["普通用户视角"], "prohibited_claims": ["不得虚构销量"], "risk_notes": [],
+            },
+            "source_content_boost_blueprints": [],
+            "evidence_resolution": {"resolved_items": [], "unresolved_items": ["缺少平台指标"]},
+        }
+        with patch("service.ai_executor._run_codex", return_value=({"results": [raw]}, {"executor": "codex_cli", "model": "test"})):
+            result = process_work_items([item])
+        self.assertEqual(result["completed"], 1)
+        completed = get_event(event_id)["work_items"][-1]
+        self.assertEqual(completed["status"], "completed")
+        self.assertEqual(completed["output"]["brand_relations"][0]["brand_id"], "BR003")
+        self.assertEqual(completed["output"]["risk_tags"], [])
+        self.assertEqual(completed["output"]["original_growth_blueprint"]["mandatory_topics"], [])
+        self.assertEqual([e["source_id"] for e in completed["output"]["evidence"]], ["SRC-SEED"])
 
     def test_cooldown_uses_latest_run(self) -> None:
         with patch("service.pipeline.search_doubao", return_value={"items": [], "processed": {"success": True}}), patch(
@@ -455,6 +502,29 @@ class ServiceTestCase(unittest.TestCase):
                 ("EVD-SEED", event_id, source_id, "source_excerpt", "岚图汽车发布产品信息。", "https://example.com/seed", "test", timestamp),
             )
         return event_id
+
+    def _seed_completed_ai_output(self, event_id: str) -> str:
+        item = enqueue_analysis_work_item(event_id, reason="测试AI研判")
+        claim_work_item(item["work_item_id"], "test-ai")
+        complete_work_item(item["work_item_id"], "test-ai", {
+            "summary": "岚图汽车发布产品信息，事实可供运营审核。",
+            "decision_reason": "来源正文直接涉及岚图汽车，但公开搜索不能证明真实热度。",
+            "evidence": [], "risk_tags": [], "entity_mentions": [], "entity_uncertainties": [],
+            "brand_relations": [{"brand_id": "BR003", "brand_name": "岚图汽车", "relation_status": "direct_mention"}],
+            "content_tone": "positive", "tone_reason": "内容为产品发布信息。",
+            "original_growth_blueprint": {
+                "recommended": True, "reason": "具备品牌事实与可解释价值。", "task_title": "原创作业｜岚图汽车产品信息",
+                "mandatory_topics": [], "core_proposition": "围绕已核验产品信息解释用户价值。",
+                "evidence_summary": "岚图汽车发布产品信息。",
+                "platforms": [{"platform_id": "toutiao", "reason": "适合完整事实解读", "content_form": "中短图文", "guidance": "先结论后依据，不扩大未核验信息"}],
+                "creative_directions": ["从普通用户视角解释事件价值"],
+                "prohibited_claims": ["不得补造销量"], "risk_notes": ["真实热点不可判定"],
+            },
+            "source_content_boost_blueprints": [],
+            "evidence_resolution": {"resolved_items": [], "unresolved_items": ["缺少平台原生热度数据"]},
+            "execution": {"executor": "test"},
+        })
+        return item["work_item_id"]
 
 
 if __name__ == "__main__":

@@ -18,41 +18,41 @@ ul{padding-left:22px;margin-bottom:0}a{color:#2563eb}a:focus-visible{outline:2px
 </style>
 </head>
 <body><main class="wrap">
-<header><h1>PoC处理、服务与审批流程</h1><p class="subtitle">区分AI Agent、程序规则和人工审核；“必须接入”是PoC要求，“已接通”才代表当前服务实际调用。</p></header>
-<div class="notice"><strong>当前AI实际参与：</strong>Codex公开检索与确认后的Codex定向搜索。<br><strong>必须补齐但尚未接通：</strong>事件语义研判、补证回答核验、平台适配与个性化作业内容生成。当前规则与模板不能作为这些AI任务已完成的依据。</div>
+<header><h1>PoC处理、服务与审批流程</h1><p class="subtitle">区分AI Agent、程序规则和人工审核；AI只处理语义与内容生成，不接管确定性门槛和人工审批。</p></header>
+<div class="notice"><strong>当前AI实际参与：</strong>Codex公开检索、定向补证检索、事件语义研判、补证回答核验，以及原创增长、源内容加热和原创后二次加热蓝图生成。<br><strong>确定性边界：</strong>时间、品牌准入、状态、指标增量、来源绑定与审批由程序和运营控制。</div>
 <section class="section"><h2>业务与系统流程</h2>
-<div class="legend"><span>程序规则</span><span class="ai">AI Agent已接通</span><span class="human">人工决策</span><span class="missing">AI必须接入／尚未接通</span></div>
-<p class="flow-note">规定主流程按00—08顺序执行。虚线节点是当前缺失的AI环节；现有服务使用规则与模板继续流转，不代表已完成该AI能力。</p>
+<div class="legend"><span>程序规则</span><span class="ai">AI Agent已接通</span><span class="human">人工决策</span></div>
+<p class="flow-note">主流程按00—08顺序执行。AI输出先由程序校验并进入人工审核；失败时保留原因并可单项重试。</p>
 <ol class="flow"><li class="step"><span class="owner">00 · 程序规则</span><h3>访问鉴权</h3><p>管理员或访客密钥换取会话；访客只读且不可访问密钥管理或任何写接口。</p></li>
 <li class="step human"><span class="owner">01 · 人工＋规则</span><h3>确认运行</h3><p>仅管理员手工确认调用范围；服务检查冷却与幂等，不启用定时采集。</p></li>
 <li class="step ai"><span class="owner">02 · Agent＋接口</span><h3>双路公开搜索</h3><p>Codex：Agent检索与结构化整理，已接通。豆包：程序直调搜索API。</p></li>
 <li class="step "><span class="owner">03 · 程序规则</span><h3>来源清洗与基础归组</h3><p>时间、URL、品牌别名、正文语境词、标题归组；当前没有AI清洗调用。</p></li>
-<li class="step missing"><span class="owner">04 · AI分析 · 尚未接通</span><h3>事件语义研判</h3><p>必须分析事件归组、实体关系、事实冲突、风险语境及作业价值。当前仅有规则结果和待分析接口。</p></li>
+<li class="step ai"><span class="owner">04 · Codex AI · 已接通</span><h3>事件语义研判</h3><p>读取已入库证据，分析事实、内容语气、实体存疑、风险语境、行动建议并生成作业蓝图。</p></li>
 <li class="step "><span class="owner">05 · 程序规则</span><h3>热点数据检查</h3><p>搜索线索输出不可判定及原因；AI不得替代平台指标或放宽准入。</p></li>
 <li class="step human"><span class="owner">06 · 人工＋规则</span><h3>事件审核</h3><p>运营通过／驳回；通过后选择事实结论与行动方向。证据不足走下方补证支路。</p></li>
-<li class="step missing"><span class="owner">07 · AI生成 · 尚未接通</span><h3>平台适配与完整作业要求</h3><p>必须基于已审核证据生成平台理由、核心命题与创作要求。当前仍是关键词推荐＋模板拼装。</p></li>
+<li class="step ai"><span class="owner">07 · Codex AI生成 · 已接通</span><h3>平台适配与完整作业要求</h3><p>基于事件证据生成平台理由、核心命题、创作方向和互动建议；程序附加固定规则。</p></li>
 <li class="step human"><span class="owner">08 · 程序规则＋人工</span><h3>校验与草案审批</h3><p>检查结构、引用、目标绑定与禁止项，再由运营分别审批；不创建正式作业、不自动执行互动。</p></li></ol>
 </section>
 <section class="section"><h2>补证支路与原创后效闭环</h2><div class="branches">
-<article class="branch"><h3>证据不足：先确认，再定向补证</h3><p>运营明确疑点并确认查询词、工具、调用次数 → Codex Agent检索／程序调用豆包 → 程序保存证据 → AI逐项回答疑点 → 回到事件审核。</p><p><strong>当前：</strong>检索与回存已接通；逐疑点回答核验尚未接通，补证完成不等于疑点解决。</p></article>
-<article class="branch"><h3>原创发布后：程序算增量，运营决定加热</h3><p>审批后登记实际发布链接 → 接收同一内容指标快照 → 程序计算增量 → 运营决定是否追加 → AI生成追加作业内容 → 程序校验并人工审批。</p><p><strong>当前：</strong>登记、快照、增量和审批已有服务；内容仍由模板生成。事件源内容直接加热是独立支路，绑定目标源链接，复用07—08，不混用原创发布链接。</p></article>
+<article class="branch"><h3>证据不足：先确认，再定向补证</h3><p>运营明确疑点并确认查询词、工具、调用次数 → Codex Agent检索／程序调用豆包 → 程序保存证据 → Codex AI逐项回答疑点 → 回到事件审核。</p><p><strong>当前：</strong>检索、回存与重新研判均已接通；补证完成仍不等于人工审核通过。</p></article>
+<article class="branch"><h3>原创发布后：程序算增量，运营决定加热</h3><p>审批后登记实际发布链接 → 接收同一内容指标快照 → 程序计算增量 → 运营决定是否追加 → Codex AI生成追加作业内容 → 程序校验并人工审批。</p><p><strong>当前：</strong>登记、快照、增量、AI生成和审批均已接通。事件源内容直接加热是独立支路，绑定目标源链接，不混用原创发布链接。</p></article>
 </div></section>
 <section class="section" id="responsibility"><h2>逐节点执行分工与当前接通状态</h2><div class="table-wrap responsibility-table"><table class="data-table"><thead><tr><th>流程节点</th><th>责任主体</th><th>当前真实执行</th><th>PoC规定处理方式</th></tr></thead><tbody><tr><td>运行与任务编排</td><td>程序规则＋运营</td><td>运营确认；服务生成34／2项任务，控制冷却、幂等与失败记录；不调用AI。</td><td>保持程序执行，Agent不得绕过收费确认或重复运行。</td></tr>
 <tr><td>豆包公开搜索</td><td>程序调用外部接口</td><td>Python调用豆包搜索API，整理返回字段；本项目未追加AI分析调用。</td><td>属于检索工具调用，不视为事件研判。</td></tr>
 <tr><td>Codex公开搜索</td><td>AI Agent｜已接通</td><td>接收查询词与时间范围，使用公开搜索，整理标题、URL、摘要、公开日期并按结构返回。</td><td>Agent执行检索与信息整理；不判断真实热度或替运营审批。</td></tr>
 <tr><td>来源清洗与品牌准入</td><td>程序规则｜未调用AI</td><td>URL／日期解析、72小时窗口、品牌别名和上下文词匹配、栏目与促销过滤。输入可能来自AI搜索，但此节点没有再次调用AI。</td><td>基础准入保持规则执行；复杂实体关系交下一节点研判，不让模型放宽时间或业务范围。</td></tr>
-<tr><td>事件语义研判</td><td>AI分析｜必须接入，尚未接通</td><td>当前使用标题规范化、品牌与日期组合聚合；车型正则和风险关键词打标。不是语义聚类或逐事件AI分析。</td><td>AI核对同一事件、主体／动作／对象、品牌与实体关系、事实冲突、风险语境、作业价值及存疑原因，逐项引用证据；程序校验后形成待审核建议。</td></tr>
+<tr><td>事件语义研判</td><td>Codex AI｜已接通</td><td>基础归组后读取已入库证据，生成事实摘要、内容语气、实体存疑、风险、行动建议和作业蓝图。</td><td>程序限制品牌、来源引用、风险和平台枚举；AI结果只进入人工审核。</td></tr>
 <tr><td>热点数据检查</td><td>程序规则</td><td>搜索事件由程序输出热点不可判定及缺失原因。</td><td>AI不得以搜索排名、条数或主观评分替代平台指标。</td></tr>
-<tr><td>定向补证</td><td>运营＋Agent／接口＋程序</td><td>运营确认问题、查询词、工具与次数；Codex侧由Agent检索，豆包侧直接调API；证据回存后重新待审核，未自动判断疑点是否解决。</td><td>AI必须对照原疑点输出已解决／未解决、依据与剩余缺口；该回答核验尚未接通。没有明确问题不发起补证。</td></tr>
+<tr><td>定向补证</td><td>运营＋Agent／接口＋AI分析</td><td>确认后执行Codex／豆包检索，保存证据并自动创建新AI研判工作项。</td><td>AI对照疑点输出已解决／未解决和剩余缺口；不自动通过。</td></tr>
 <tr><td>事件审核</td><td>运营＋程序校验</td><td>人工通过／驳回；通过后确定事实结论和行动方向，程序检查前置条件。</td><td>AI只提供建议，不代审核；通过后才进入草案生成。</td></tr>
-<tr><td>平台适配与作业内容生成</td><td>AI分析生成｜必须接入，尚未接通</td><td>当前标题关键词推荐平台、截取证据并拼接固定章节模板；没有草案生成模型调用。</td><td>AI依据已审核事实、行动方向、可用素材和平台规范，生成核心命题、创作方向、分平台要求及推荐理由。话题无依据时待运营确认；固定作业规则由程序附加。</td></tr>
+<tr><td>平台适配与作业内容生成</td><td>Codex AI生成｜已接通</td><td>事件研判生成原创与源内容加热蓝图；原创后效决定追加时另行调用Codex生成。</td><td>程序校验证据和枚举、附加固定规则；人工选择行动并审批草案。</td></tr>
 <tr><td>草案校验与审批</td><td>程序规则＋运营</td><td>程序检查状态、证据及目标绑定；运营编辑并分别审批；不正式下发。</td><td>AI结果必须经结构、来源引用与禁止项检查；不通过则留失败原因，不能把模板兜底记为AI生成成功。</td></tr>
-<tr><td>原创后效与追加加热</td><td>程序规则＋运营</td><td>登记实际发布链接、接收快照、计算同口径增量；运营决定是否追加加热，当前草案仍为模板。</td><td>数值计算不交AI；批准追加后，作业内容复用AI生成节点，绑定实际发布内容而非事件源链接。</td></tr></tbody></table></div></section>
+<tr><td>原创后效与追加加热</td><td>程序规则＋运营＋Codex AI</td><td>程序登记链接、接收快照和计算增量；运营选择追加后，Codex生成个性化加热要求。</td><td>数值不交AI；草案绑定实际发布内容并继续人工审批。</td></tr></tbody></table></div></section>
 <section class="section"><h2>AI任务执行与验收要求</h2><ul>
 <li><strong>事件研判：</strong>输入有效来源和证据ID；输出归组建议、事实摘要、实体关系、风险语境、行动建议和存疑原因。写入和状态由服务控制。</li>
 <li><strong>作业生成：</strong>输入已审核事实、行动方向、可用素材和平台规范；输出平台推荐理由、核心命题、创作方向、完整作业要求和待补齐项。固定作业规则由程序附加。</li>
 <li><strong>完成证据：</strong>记录执行ID、模型／执行器、输入证据、提示词与规则版本、原始输出、校验结果及失败原因。存在接口或模板不是AI执行证据。</li>
-<li><strong>异常：</strong>失败标记后受控重试；人工处理或模板兜底必须标明，不能伪装AI生成成功。既有分析工作项接口尚不代表自动分析消费者已接通。</li>
+<li><strong>异常：</strong>失败标记后可在事件详情受控重试；AI未完成时不能通过事件并生成草案，不使用模板伪装AI成功。</li>
 </ul></section>
-<section class="section"><h2>YAML与服务的分工</h2><p>清洗规则YAML包含可读取参数和中文业务约束；中文条件不会自行执行。输出数据契约约定字段与枚举，不是Agent工作流，也不是已覆盖全部接口的统一校验器。</p><p>当前Codex搜索接收检索指令、查询词和搜索结果结构，不读取上述两份完整YAML。确定性条件由程序执行，语义任务按需传入证据和规则；分析生成可直接调用模型，需要工具与多步核验时由Agent执行。</p><p><strong>迁移边界：</strong>替换Agent须适配任务输入、工具权限、结构化回传与异常处理；不能只换名称或复制YAML。WorkBuddy／TRAE兼容性尚未验证。凭证不随规则文件分发，MCP不是前置依赖。</p></section>
+<section class="section"><h2>YAML与服务的分工</h2><p>清洗规则YAML包含可读取参数和中文业务约束；中文条件不会自行执行。输出数据契约约定字段与枚举，不是Agent工作流，也不是已覆盖全部接口的统一校验器。</p><p>Codex搜索接收检索指令、查询词和搜索结果结构；Codex研判接收事件证据、允许品牌、风险标签和结构化输出Schema，不直接读取完整YAML。确定性条件由程序执行。</p><p><strong>迁移边界：</strong>替换Agent须适配任务输入、工具权限、结构化回传与异常处理；不能只换名称或复制YAML。WorkBuddy／TRAE兼容性尚未验证。凭证不随规则文件分发，MCP不是前置依赖。</p></section>
 </main></body></html>

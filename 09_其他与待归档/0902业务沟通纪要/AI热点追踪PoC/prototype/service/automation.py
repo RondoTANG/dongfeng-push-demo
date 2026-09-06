@@ -9,6 +9,7 @@ from typing import Any
 
 from .database import add_audit, connection, now_iso
 from .events import aggregate_run
+from .ai_executor import process_run_work_items
 from .pipeline import execute_collection, reserve_collection_run, run_cooldown
 from .settings import AUTOMATION_CONFIG_PATH, AUTOMATION_SEED_PATH
 
@@ -112,6 +113,7 @@ def _execute_scheduled(run_id: str) -> None:
         row = db.execute("SELECT status FROM collection_runs WHERE run_id=?", (completed_id,)).fetchone()
     if row and row["status"] in {"success", "partial_success"}:
         aggregate_run(completed_id)
+        process_run_work_items(completed_id)
 
 
 async def scheduler_loop(stop_event: asyncio.Event) -> None:

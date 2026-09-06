@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 from .database import add_audit, connection, fetch_all, fetch_one, json_text, new_id, now_iso
 from .drafts import BOOST_ACTIONS_BY_PLATFORM, PLATFORM_LABELS, get_draft
 from .events import get_event
+from .ai_executor import generate_followup_boost_blueprint
 
 
 ALLOWED_PLATFORMS = set(BOOST_ACTIONS_BY_PLATFORM)
@@ -194,6 +195,7 @@ def _create_followup_boost_draft(
     publication: dict[str, Any],
     evaluation_id: str,
     decision_reason: str,
+    blueprint: dict[str, Any],
 ) -> dict[str, Any]:
     existing = fetch_one(
         """
@@ -205,7 +207,7 @@ def _create_followup_boost_draft(
     if existing:
         return get_draft(existing["task_draft_id"]) or existing
     platform = publication["platform"]
-    actions = BOOST_ACTIONS_BY_PLATFORM.get(platform, [])[:2]
+    actions = [item for item in (blueprint.get("engagement_actions") or []) if item in BOOST_ACTIONS_BY_PLATFORM.get(platform, [])]
     if not actions:
         raise ValueError("当前平台没有配置可用的加热动作")
     original_draft = publication.get("original_draft") or {}
@@ -219,6 +221,8 @@ def _create_followup_boost_draft(
         "它不同于直接加热外部热点源文章或视频。\n\n"
         f"原创内容：{title}\n目标链接：{publication['content_url']}\n"
         f"后效判断：{decision_reason}\n"
+        f"AI建议理由：{blueprint.get('recommendation_reason') or '基于当前同口径增量和平台特征形成'}\n"
+        f"正向评论方向：{blueprint.get('comment_direction') or '围绕原创内容中的已核验事实表达真实观点，不复制统一话术'}\n"
         "运营需复核指标来源、增量窗口、任务人数、频控和评论表达后再审批。"
     )
     evidence_source_ids = original_draft.get("evidence_source_ids") or []
@@ -243,23 +247,26 @@ def _create_followup_boost_draft(
                 evaluation_id,
                 publication["content_url"],
                 title,
-                f"原创后二次加热｜{title}",
+                blueprint.get("task_title") or f"原创后二次加热｜{title}",
                 brief,
                 json_text([platform]),
                 json_text([PLATFORM_LABELS.get(platform, f"{platform}能力")]),
                 json_text(actions),
                 deadline,
                 json_text(evidence_source_ids),
-                json_text([
+                json_text(list(dict.fromkeys([
+                    *(blueprint.get("prohibited_claims") or []),
                     "不得要求复制统一评论",
                     "不得把单次指标增量表述为全平台热点",
                     "不得补写采集指标之外的传播效果",
-                ]),
-                json_text([
+                ]))),
+                json_text(list(dict.fromkeys([
+                    *(blueprint.get("risk_notes") or []),
                     f"由原创发布后效评估 {evaluation_id} 触发",
                     "加热决策由运营确认，系统仅计算同一内容在两个快照间的可核验增量",
                     "需遵守目标平台动作、人数和时间窗规则",
-                ]),
+                    f"AI执行：{(blueprint.get('execution') or {}).get('executor', 'codex_cli')}／{(blueprint.get('execution') or {}).get('model', '服务器Codex默认模型')}",
+                ]))),
                 timestamp,
                 timestamp,
             ),
@@ -292,6 +299,13 @@ def evaluate_publication(
         raise ValueError("指标出现回退或口径变化，必须先人工核验，不能直接生成二次加热草案")
     evaluation_id = new_id("EVL")
     timestamp = now_iso()
+    blueprint = None
+    if decision == "create_followup_boost":
+        blueprint = generate_followup_boost_blueprint(publication, {
+            "evaluation_id": evaluation_id, "baseline_snapshot_id": baseline["snapshot_id"],
+            "latest_snapshot_id": latest["snapshot_id"], "delta_metrics": delta_metrics,
+            "growth_status": growth_status, "decision": decision, "decision_reason": decision_reason,
+        })
     with connection() as db:
         db.execute(
             """
@@ -317,7 +331,7 @@ def evaluate_publication(
     draft = None
     if decision == "create_followup_boost":
         publication = get_publication(publication_id) or publication
-        draft = _create_followup_boost_draft(publication, evaluation_id, decision_reason)
+        draft = _create_followup_boost_draft(publication, evaluation_id, decision_reason, blueprint or {})
         with connection() as db:
             db.execute(
                 "UPDATE publication_evaluations SET created_draft_id=? WHERE evaluation_id=?",
