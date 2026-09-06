@@ -1,10 +1,14 @@
 version: "0.1"
-updated_at: "2026-09-04"
+updated_at: "2026-09-06"
 owner: "产品"
 reviewer: "运营"
 
 source_validation:
   non_event_page_rules:
+    - title_pattern: "了解更多有关.*的内容|^(?:新车|汽车新闻|行业资讯)[_｜|]"
+      reason: "主题检索栏目或新闻目录不是单一近期事件，栏目更新日期不得作为文章发布时间"
+    - url_pattern: 'https?://[^/]+/(?:[^?#]*/)?index\.(?:s?html?)(?:[?#].*)?$'
+      reason: "栏目索引页不是单条内容，须提取具体文章详情链接"
     - title_pattern: "聚合所有.*(?:新闻|快讯)|第[0-9]+页[-—].*资讯|企业新闻|品牌官网|官方网站|【官网】"
       reason: "栏目、滚动资讯或官网常驻页不是单一近期事件，须使用具体内容详情链接"
     - url_pattern: "https?://[^/]*tousu\\.sina\\.com\\.cn/company/view"
@@ -43,14 +47,31 @@ source_validation:
       action: auto_discard
     - rule_id: INV007
       name: "行业事件无目标品牌关系"
-      condition: "行业事件经9品牌完整关联补采后仍为no_relation"
+      condition: "当前标题和正文未提供目标品牌关联证据；纯其他品牌销量、上市、召回等不因属于汽车行业而进入工作台。不自动发起全品牌收费补采"
       action: auto_discard
     - rule_id: INV008
       name: "发布时间无法核验"
       condition: "供应商字段和正文头部均无可靠发布时间，或发布时间在未来；保留排除原因，暂不进入有效线索及事件队列"
       action: auto_discard
+    - rule_id: INV009
+      name: "目标品牌关系待核验"
+      condition: "存在目标品牌简称但语境不足；记录不确定原因，暂不进入有效线索及正常事件队列，不等于认定新闻无效"
+      action: exclude_pending_verification
   invalid_output: invalid_log
   invalid_requires_human_review: false
+
+business_relevance:
+  scope: all_active_brands
+  stage: before_workbench_and_aggregation
+  evidence_fields: [title, snippet]
+  query_text_is_evidence: false
+  official_domain_alone_is_evidence: false
+  non_evidence_markers:
+    - '(?m)^\s*(?:相关推荐|相关阅读|推荐阅读|热门推荐|猜你喜欢|相关车型推荐|版权声明)[：:\s]*'
+  accepted: "标题或有效正文直接涉及目标品牌，记录品牌、命中词与证据摘录；是否值得行动仍由事件审核判断"
+  no_relation: "仅同属汽车行业、同价位或同技术不构成关联；保留原始搜索及排除原因"
+  uncertain: "简称或实体关系不确定时单独记录待核验原因，不自动标记业务有效"
+  external_expansion: "不自动为每条竞品执行9品牌双路补采；如需补证，先明确问题、查询词、工具与调用次数并确认"
 
 url_normalization:
   remove_tracking_parameters: true

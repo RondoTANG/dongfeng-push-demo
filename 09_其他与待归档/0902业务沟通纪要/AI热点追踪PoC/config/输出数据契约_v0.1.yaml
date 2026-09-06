@@ -82,6 +82,7 @@ datasets:
       - retrieved_by
       - query_ids
       - source_status
+      - business_relation
       - source_platform
       - source_site_name
       - original_url
@@ -105,6 +106,12 @@ datasets:
       - duplicate_of_source_id
       - time_confidence
       - entity_matches
+
+  business_relation:
+    fields: [eligible, status, rule_id, reason, relations]
+    status_enum: [direct_mention, pending_verification, no_relation]
+    relation_fields: [brand_id, brand_name, relation_status, matched_term, evidence_excerpt, reason]
+    rule: "标题或正文有目标品牌证据才标记eligible；搜索词和推荐区不作为证据。无关联及存疑留因，不进入业务有效列表"
 
   source_discovery:
     primary_key: discovery_id

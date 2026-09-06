@@ -4,6 +4,64 @@
 
 ## 最新状态
 
+- 2026-09-06执行分工文档：python3 tests/ui_ai_responsibility.py通过，流程图与PRD各1440／1280／768宽度无整页横滚，11行分工及8节点存在，未接通AI标识清晰；搜索、桌面折叠和打印样式通过，0脚本错误、0业务写入。截图位于tests/screenshots/ai-responsibility/。首次窄屏点击隐藏桌面按钮导致测试超时，调整至桌面尺寸后复测通过。仅验证文档，不代表AI服务实现已完成。
+
+- 2026-09-06关联证据去重展示、草案文字层级及目录整理：29项服务／结构测试通过；真实线索同段证据归为一组，保留两个关联品牌；现有1份真实草案四章节分层、编辑原文不变。配置校验在任意工作目录通过，重启服务后7页加载正常。没有清库、采集、审批或改写用户草案。
+
+Date: 2026-09-06
+Step: content-layout-and-config-migration
+Scope: incremental
+Local URL / File: http://127.0.0.1:8765/#page=drafts
+Tool: unittest、Playwright
+Command / Check: python3 -m unittest tests.test_project_layout tests.test_poc_services -q；python3 tests/ui_content_layout.py；python3 tests/ui_smoke.py；python3 ../validate_config.py
+Passed: 29项测试；现行总控配置引用可解析，旧路径停用且归档文件存在；7页正常；真实关联去重与草案层级；编辑原文保持一致。
+Failed: None（开发中首次章节正则转义错误已修复，重新执行通过）
+Evidence: tests/screenshots/content-layout-20260906/relation-evidence.png；tests/screenshots/content-layout-20260906/draft-brief.png
+Result: pass
+Next Action: 用户刷新本地页面；历史全量loop终检标注缺项保持单独记录，不宣称全量交付通过。
+
+- 2026-09-06界面修订：26项服务测试、7页烟测、真实发布时间降序／查询色块与编号分离／中文标签／单来源隐藏拆分及三尺寸分页验证通过；多来源拆分表单使用隔离浏览器响应，服务端拆分使用临时数据库回归。未采集、未清库、未替用户拆分或审批。旧loop全量终检历史缺项仍保留。
+
+Date: 2026-09-06
+Step: publication-sort-query-display-and-safe-split
+Scope: incremental
+Local URL / File: http://127.0.0.1:8765/#page=clues
+Tool: unittest、Playwright
+Command / Check: python3 -m unittest tests.test_poc_services -q；python3 tests/ui_smoke.py；python3 tests/ui_relevance.py；python3 tests/ui_split_fixture.py
+Passed: 26项服务测试；7页加载；时区正确的发布时间降序及稳定分页；查询ID不进入查询词；7个真实单来源隐藏拆分；多来源部分选择提交及全选阻断；拆分后两边元数据重算。
+Failed: None
+Evidence: tests/screenshots/relevance-20260906/publication-sorting.png；search-detail.png；event-pagination.png；split-fixture.png（隔离交互）
+Result: pass
+Next Action: 运营刷新本地页面验收；保持自动采集暂停。
+
+- 2026-09-06本轮：21项服务单测、7页烟测、真实查询追溯及三尺寸分页通过；全量旧loop终检仍未通过（历史标注覆盖、引用和验证记录格式缺项），不能把本轮功能验证当成旧工程全量交付通过。
+
+Date: 2026-09-06T12:09:00+08:00
+Step: business-relevance-real-run
+Scope: global
+Local URL / File: http://127.0.0.1:8765/#page=clues
+Tool: unittest、Playwright、SQLite
+Command / Check: python3 -m unittest discover -s tests -p 'test_*.py'；python3 tests/ui_smoke.py；python3 tests/ui_relevance.py
+Passed: 21项单测、7页烟测、同来源4条搜索记录完整显示、1440×800/1120×640/960×540分页可见；原旧24事件队列在清理前实际翻至第二页成功。
+Failed: None
+Evidence: tests/screenshots/relevance-20260906/search-detail.png；tests/screenshots/relevance-20260906/event-pagination.png；RUN-4674e2dae122真实34任务完成、67次发现/58来源/7有效/51排除/7待审核；候选审核和草案均0。backup=data/backups/before-reset-20260906-120110-655560.db。离线重处理配置processing=0.1-44b827e7，保留原采集配置快照，未额外搜索。
+Result: pass
+Consecutive Failures: 0
+Next Action: 运营审核7条业务线索；未验证间接行业机会的完整召回，不宣称7个真实热点。
+
+Date: 2026-09-06T12:08:00+08:00
+Step: legacy-final-audit
+Scope: global
+Local URL / File: memory/annotation-coverage.md
+Tool: 旧工程loop终检
+Command / Check: python3 tools/loop_run.py check . --preflight-stage final
+Passed: 本轮独立服务与页面测试已另行记录
+Failed: 历史验证日志矛盾/格式、SRC-016及SRC-017/FLD-062—077标注引用、R-030—041覆盖、功能说明模板判定尚未满足旧门禁
+Evidence: 终检返回exit_code=1；未修改技能、未手写通过状态
+Result: fail
+Consecutive Failures: 1
+Next Action: 后续单独核对旧工程标注交付记录，不重置当前业务数据
+
 - Overall: Step Verification Complete
 - Last verified: step-10 pass（2026-09-04 17:18 +08:00）
 

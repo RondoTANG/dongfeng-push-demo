@@ -10,6 +10,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from .collector import load_existing_sample, search_codex_batch, search_doubao
 from .config_loader import active_brands, config_versions, domain_rules, query_catalog, load_configs
 from .source_time import resolve_publication_time
+from .business_relation import assess_business_relation
 from .database import add_audit, connection, json_text, new_id, now_iso
 from .settings import FULL_RUN_COOLDOWN_SECONDS, QUICK_RUN_COOLDOWN_SECONDS, REAL_SAMPLE_PATH
 
@@ -111,8 +112,9 @@ def _invalid_reason(item: dict[str, Any], query_group: str, brand_matches: list[
         return "INV008", "发布时间无法核验：供应商字段与正文头部均无可靠发布时间，暂不纳入有效线索"
     if any(term in title for term in NON_EVENT_TITLES) and len(snippet) < 160:
         return "INV006", "无实际事件：导航或常驻列表页"
-    if query_group == "brand" and not brand_matches:
-        return "INV002", "同名或弱关联结果：未匹配已登记品牌"
+    relation = assess_business_relation(item)
+    if not relation["eligible"]:
+        return relation["rule_id"], relation["reason"]
     return None
 
 
@@ -249,7 +251,7 @@ def _store_query_and_items(
             canonical_url = _canonical_url(item.get("url") or "")
             digest = hashlib.sha256(f"{run_id}|{canonical_url}".encode("utf-8")).hexdigest()[:14]
             source_id = f"SRC-{digest}"
-            existing = db.execute("SELECT query_ids_json FROM source_items WHERE source_id = ?", (source_id,)).fetchone()
+            existing = db.execute("SELECT query_ids_json,source_status FROM source_items WHERE source_id = ?", (source_id,)).fetchone()
             if existing:
                 query_ids = set(json.loads(existing["query_ids_json"] or "[]"))
                 query_ids.add(query.get("query_id", "UNKNOWN"))
@@ -257,6 +259,15 @@ def _store_query_and_items(
                     "UPDATE source_items SET query_ids_json=?, fetched_at=? WHERE source_id=?",
                     (json_text(sorted(query_ids)), timestamp, source_id),
                 )
+                # 同一URL后续工具返回更完整证据时重新判定，不由首次弱摘要永久决定去留。
+                relation = assess_business_relation(item)
+                invalid = _invalid_reason(item, query.get("query_group", "unknown"), relation["relations"])
+                if existing["source_status"] == "invalid" and not invalid:
+                    resolved = resolve_publication_time(item)
+                    platform, site = _resolve_platform(item.get("domain"), item.get("hostname"))
+                    db.execute("UPDATE source_items SET source_status='valid',raw_result_id=?,title=?,snippet=?,published_at=?,published_time_confidence=?,publication_time_basis_json=?,business_relation_json=?,source_platform=?,source_site_name=? WHERE source_id=?", (raw_result_id, item.get("title"), item.get("snippet"), resolved["published_at"], resolved["confidence"], json_text(resolved), json_text(relation), platform, site, source_id))
+                    db.execute("INSERT INTO audit_logs(audit_id,actor_type,actor_id,action,object_type,object_id,before_json,after_json,created_at) VALUES(?, 'system','pipeline','relation_evidence_completed','source',?,?,?,?)", (new_id("AUD"), source_id, json_text({"source_status":"invalid"}), json_text({"source_status":"valid", "reason":"同一URL的新搜索证据补齐业务关联及基础条件", "raw_result_id":raw_result_id}), timestamp))
+                    db.execute("DELETE FROM invalid_logs WHERE source_id_or_raw_result_id=?", (source_id,))
             else:
                 text = f"{item.get('title') or ''}\n{item.get('snippet') or ''}"
                 brand_matches = _match_brands(text)
@@ -309,6 +320,7 @@ def _store_query_and_items(
                     )
             if not existing:
                 db.execute("UPDATE source_items SET publication_time_basis_json=? WHERE source_id=?", (json_text(time_result), source_id))
+                db.execute("UPDATE source_items SET business_relation_json=? WHERE source_id=?", (json_text(assess_business_relation(item)), source_id))
             db.execute(
                 """
                 INSERT OR IGNORE INTO source_discoveries (
@@ -436,7 +448,7 @@ def execute_collection(
             try:
                 response = search_doubao(query["query"], timeout=timeout)
                 _store_query_and_items(
-                    run_id, query, response["items"], response.get("raw_response", response["processed"]), provider_id="doubao_global_search"
+                    run_id, query, response["items"], response.get("raw_response", response.get("processed", {})), provider_id="doubao_global_search"
                 )
             except Exception as exc:
                 failed += 1

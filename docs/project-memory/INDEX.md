@@ -4,9 +4,13 @@
 
 ## AI热点PoC维护入口
 
+执行分工说明：`09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/flowcharts/poc-flow.html`及正式PRD第3章。区分现行代码与必须接入但未实现的AI节点；只读回归为`prototype/tests/ui_ai_responsibility.py`。
+
 以下文件均相对于`09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/`：
 
 - `service/source_time.py`：发布时间解析与依据，区分头部发布元信息和正文叙事日期。
+- `service/business_relation.py`：工作台业务关联准入，保存目标品牌、命中词与证据；无关联或简称存疑不进入业务有效列表，聚合和审批再次校验。
+- `tests/ui_relevance.py`：真实搜索关键词追溯与三尺寸分页只读验证。
 - `scripts/reset_local_data.py`：明确授权后备份并清空固定PoC数据库；拒绝清理运行中的批次。
 - `scripts/reprocess_local_run.py`：复用原始来源离线清洗与重新聚合，不调用搜索；已有审核、草案或补证时拒绝覆盖。
 - `memory/verification-log.md`：真实批次、数据清理、服务与页面测试证据。运行数据库及备份均不入Git。
@@ -48,3 +52,12 @@
 - 组织名称存在简称/全称和重复项，关联必须依赖稳定 ID。
 - 根公众号实现为 JSON 文件存储 Demo，不可直接视为生产架构。
 - 工作区已有大量用户未提交改动，修改时避免覆盖。
+
+## 热点PoC目录整理与排版验证
+
+相对`09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/`：
+
+- `config/热点总控配置.yaml`：唯一现行总控入口；`config_refs`相对config目录，服务和校验器使用同一文件。
+- `archive/config/热点采集规则_v0.1.yaml`、`archive/planning/_module-plan.md`：只读历史资料，说明见`archive/README.md`。
+- `prototype/js/common.js`：关联证据归并展示及安全的任务简述层级渲染，不改业务存储。
+- `prototype/tests/test_project_layout.py`、`prototype/tests/ui_content_layout.py`：迁移、字段保留、文本转义与真实页面验证；运行方式见`prototype/memory/project-structure.md`。

@@ -221,7 +221,7 @@ def business_config_summary() -> dict[str, Any]:
                 "lookback_hours": queries.get("execution", {}).get("lookback_hours"),
                 "late_signal_hours": queries.get("execution", {}).get("late_signal_hours"),
                 "provider_failure_policy": queries.get("execution", {}).get("provider_failure_policy"),
-                "industry_brand_relation": "行业结果通过来源有效性检查后，对9个启用品牌全量验证，不轮换、不抽样",
+                "industry_brand_relation": "所有查询结果先用标题与正文核对9个启用品牌；无关联不进入工作台，存疑单独留因，不自动执行收费补采",
             },
         },
         "sources": {"providers": providers, "platforms": platforms, "domains": domains},

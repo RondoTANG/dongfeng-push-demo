@@ -70,6 +70,74 @@
     return ({ doubao_global_search: '豆包搜索', codex_web_search: 'Codex搜索', existing_url_parse: '已有网页解析', manual_link: '人工补充链接' })[provider] || provider || '未知来源';
   }
 
+  function platformName(platform) {
+    return ({ brand_official_website: '品牌官方网站', government_or_central_media: '政府或央媒',
+      industry_media: '行业媒体', news_aggregator: '新闻聚合平台', weibo: '微博', douyin: '抖音',
+      xiaohongshu: '小红书', toutiao: '今日头条', bilibili: '哔哩哔哩', kuaishou: '快手',
+      wechat_official_account: '微信公众号', wechat_channels: '微信视频号',
+      general_web: '公开网页', other_website: '其他网站', unknown: '待识别平台' })[platform] || '待识别平台';
+  }
+
+  function searchRecord(row) {
+    return '<div class="search-query-record"><div><strong>' + escapeHtml(providerName(row.provider_id)) +
+      '</strong><span>搜索时间：' + formatTime(row.retrieved_at) + '</span></div>' +
+      '<small>真实搜索内容</small><p class="actual-search-query">' + escapeHtml(row.query_text || '未记录实际查询词') +
+      '</p><small>配置编号：' + escapeHtml(row.query_id || '未记录') + '（不属于搜索词）</small></div>';
+  }
+
+  function renderRelationEvidence(relation) {
+    var groups = [];
+    (relation.relations || []).forEach(function (row) {
+      var excerpt = String(row.evidence_excerpt || row.reason || '').trim();
+      var normalized = excerpt.replace(/\s+/g, '');
+      var group = groups.find(function (candidate) {
+        var left = candidate.normalized, right = normalized;
+        if (left === right) return true;
+        // 同段证据因命中位置截断相差少量字，只在长前缀完全一致时归并显示。
+        return Math.min(left.length, right.length) >= 100 &&
+          Math.abs(left.length - right.length) <= 40 &&
+          (left.startsWith(right) || right.startsWith(left));
+      });
+      if (!group) { group = { normalized: normalized, excerpt: excerpt, brands: [] }; groups.push(group); }
+      if (normalized.length > group.normalized.length) { group.normalized = normalized; group.excerpt = excerpt; }
+      var brand = row.brand_name || '待核验品牌';
+      if (group.brands.indexOf(brand) < 0) group.brands.push(brand);
+    });
+    return '<section class="source-search-context relation-context"><h3>东风业务关联依据</h3><p class="relation-summary">' +
+      escapeHtml(relation.reason || '未保存关联依据') + '</p>' + groups.map(function (group) {
+        return '<article class="relation-evidence-group"><div class="tag-row"><span class="relation-label">关联品牌</span>' +
+          group.brands.map(function (brand) { return '<span class="mini-tag">' + escapeHtml(brand) + '</span>'; }).join('') +
+          '</div><blockquote>' + escapeHtml(group.excerpt || '未保存证据片段') + '</blockquote></article>';
+      }).join('') + '</section>';
+  }
+
+  function renderTaskBrief(value) {
+    var sections = [], current = { title: '', lines: [] };
+    sections.push(current);
+    String(value || '').split(/\r?\n/).forEach(function (line) {
+      var heading = line.trim().match(/^([一二三四五六七八九十]+)[、．.]\s*(.+)$/);
+      if (heading) { current = { title: heading[1] + '、' + heading[2], lines: [] }; sections.push(current); }
+      else current.lines.push(line);
+    });
+    function bodyLine(line) {
+      var trimmed = line.trim();
+      if (!trimmed) return '';
+      var item = trimmed.match(/^(\d+[.、]|[-•・])\s*(.*)$/);
+      var text = item ? item[2] : trimmed;
+      var label = text.match(/^([^：:]{1,20})[：:](.*)$/);
+      var content = label ? '<strong class="brief-item-label">' + escapeHtml(label[1]) + '：</strong>' + escapeHtml(label[2]) : escapeHtml(text);
+      return '<p class="brief-line' + (item ? ' brief-line--item' : '') + '">' +
+        (item ? '<span class="brief-marker">' + escapeHtml(item[1]) + '</span>' : '') +
+        '<span>' + content + '</span></p>';
+    }
+    return sections.map(function (section) {
+      if (!section.title && !section.lines.some(function (line) { return line.trim(); })) return '';
+      return '<section class="' + (section.title ? 'brief-section' : 'brief-intro') + '">' +
+        (section.title ? '<h4>' + escapeHtml(section.title) + '</h4>' : '') +
+        section.lines.map(bodyLine).join('') + '</section>';
+    }).join('');
+  }
+
   function showToast(message, type) {
     var root = document.getElementById('toast-root');
     if (!root) return;
@@ -86,6 +154,10 @@
     formatTime: formatTime,
     statusTag: statusTag,
     providerName: providerName,
+    platformName: platformName,
+    searchRecord: searchRecord,
+    renderRelationEvidence: renderRelationEvidence,
+    renderTaskBrief: renderTaskBrief,
     statusMeta: STATUS_META,
     showToast: showToast
   };

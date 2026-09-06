@@ -117,7 +117,10 @@ topic_queries:
 
 industry_brand_relation:
   enabled: true
-  trigger: "行业结果通过来源级有效性过滤后"
+  trigger: "所有结果通过基础清洗后，使用标题与正文核对9个启用品牌，再进入业务工作台"
+  execution_mode: local_evidence_first
+  automatic_paid_expansion: false
+  expansion_requirement: "仅明确存疑问题并人工确认时定向补证，不默认执行全品牌收费查询"
   scope: all_active_brands
   query_template: "{event_core_term} {brand_name}"
   providers:

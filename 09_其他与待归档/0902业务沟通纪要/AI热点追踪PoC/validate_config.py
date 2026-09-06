@@ -28,13 +28,13 @@ def ensure_unique(values: list[str], label: str, errors: list[str]) -> None:
 
 
 def main() -> int:
-    master_path = BASE_DIR / "热点采集规则_v0.2.yaml"
+    master_path = CONFIG_DIR / "热点总控配置.yaml"
     master = load_yaml(master_path)
 
     configs: dict[str, dict] = {}
     errors: list[str] = []
     for name, relative_path in master.get("config_refs", {}).items():
-        path = BASE_DIR / relative_path
+        path = master_path.parent / relative_path
         if not path.exists():
             errors.append(f"缺少配置文件: {name} -> {relative_path}")
             continue

@@ -22,13 +22,14 @@ capability_boundary:
     - "AI综合判断可以替代平台原生指标"
   production_dependency: "具备平台内容ID、原生互动指标、连续快照、作者/UGC标识、覆盖与SLA的稳定数据源"
 
+# 引用路径相对于本总控配置所在目录（config/）。
 config_refs:
-  entity_registry: "config/品牌实体字典_v0.1.yaml"
-  source_registry: "config/来源平台字典_v0.1.yaml"
-  query_catalog: "config/查询目录_v0.1.yaml"
-  cleaning_and_decision: "config/清洗聚合与判定规则_v0.1.yaml"
-  output_contract: "config/输出数据契约_v0.1.yaml"
-  task_generation_and_distribution: "config/作业生成与分发规则_v0.1.yaml"
+  entity_registry: "品牌实体字典_v0.1.yaml"
+  source_registry: "来源平台字典_v0.1.yaml"
+  query_catalog: "查询目录_v0.1.yaml"
+  cleaning_and_decision: "清洗聚合与判定规则_v0.1.yaml"
+  output_contract: "输出数据契约_v0.1.yaml"
+  task_generation_and_distribution: "作业生成与分发规则_v0.1.yaml"
 
 pipeline:
   - step_id: P01
@@ -44,17 +45,17 @@ pipeline:
     input: "raw_provider_result"
     output: "source_item或invalid_log"
   - step_id: P04
-    name: "来源平台、账号和实体解析"
+    name: "东风业务关联筛选"
     input: "valid source_item"
-    output: "resolved source_item，以及事件内entity_mentions和entity_uncertainties"
+    output: "有目标品牌证据的source_item；无关联或存疑结果进入排除与审计记录"
   - step_id: P05
     name: "统一事件聚合"
     input: "resolved source_item"
     output: "event"
   - step_id: P06
-    name: "行业事件与9品牌完整关联"
-    input: "未直接命中active品牌的有效行业event"
-    output: "brand_relations或invalid_log"
+    name: "事件内实体识别与品牌关系复核"
+    input: "由业务有效来源聚合的event"
+    output: "brand_relations、entity_mentions、entity_uncertainties与风险提示"
   - step_id: P07
     name: "证据补采与风险检查"
     input: "缺证据、事实冲突或高风险event"

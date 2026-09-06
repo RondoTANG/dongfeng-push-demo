@@ -104,6 +104,7 @@ def search_codex_batch(queries: list[dict[str, Any]], *, timeout: int = 240) -> 
             window + "你是公开信息检索执行器。必须逐条处理输入查询，使用公开网页搜索；"
             "只返回可访问页面的标题、URL、摘要、公开发布时间、domain 和 hostname。"
             "搜索排序和结果数不代表热点，不输出热点结论，不修改任何本地文件。"
+            "只使用每条输入的query字段作为搜索词，query_id仅用于关联返回结果，不得拼入搜索词。"
             "不得把当前时间或检索时间当成发布时间，网页没有明确日期时publish_time填null。摘要保留页面头部原始发布时间及关键事实。"
             "每条查询最多返回5项；正常搜索但没有相关近期结果时返回空items和null error；无法执行时填写error并返回空items。输入："
             + json.dumps(compact_queries, ensure_ascii=False)

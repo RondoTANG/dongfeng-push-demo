@@ -70,7 +70,7 @@
 - 本地参考项目：`04_成长与激励体系/04_成长体系UI原型`。
 - API 文档：豆包 Global Search 接口文档及现有 `run_doubao_search.py`。
 - 业务文档：`prd/AI热点业务规划与现阶段线索PoC解决方案_PRD_v0.2.md`。
-- 配置文档：`config/`下 6 份 YAML 及根目录热点采集规则。
+- 配置文档：`config/`下7份业务YAML（含热点总控配置）；原型工程配置独立保留在prototype/config/。
 - 实测证据：`运行结果/`中豆包、Codex 对照和能力边界文档。
 - 系统现状：`/Users/RondoT/Documents/护卫军相关/09_其他与待归档/数据采集现状.xlsx`。
 - Ontology 约束：护卫军后台菜单、自动化执行、权限分层、配置/凭证分离、确定性结构化数据约束。

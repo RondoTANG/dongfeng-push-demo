@@ -63,6 +63,8 @@ def init_database() -> None:
         columns = {row[1] for row in db.execute("PRAGMA table_info(source_items)")}
         if "publication_time_basis_json" not in columns:
             db.execute("ALTER TABLE source_items ADD COLUMN publication_time_basis_json TEXT NOT NULL DEFAULT '{}' ")
+        if "business_relation_json" not in columns:
+            db.execute("ALTER TABLE source_items ADD COLUMN business_relation_json TEXT NOT NULL DEFAULT '{}' ")
         # 历史研判状态统一回到待审核；不能将旧机器建议当成人工通过。
         db.execute("UPDATE events SET event_status='pending_review' WHERE event_status IN ('manual_review','needs_evidence','watch')")
 

@@ -287,6 +287,9 @@ def review_event(
     else:
         if event_status not in ALLOWED_EVENT_OUTCOMES:
             raise ValueError("通过事件时必须选择可用的事件结论")
+        from .business_relation import event_has_business_evidence
+        if not event_has_business_evidence(event):
+            raise ValueError("当前事件缺少目标品牌关联证据，不能通过审核或生成作业草案")
         if not event.get("evidence"):
             raise ValueError("没有证据的事件不能通过")
         final_status = str(event_status)

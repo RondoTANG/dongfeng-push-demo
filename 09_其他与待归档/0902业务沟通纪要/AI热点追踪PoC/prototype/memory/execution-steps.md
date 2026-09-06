@@ -73,7 +73,7 @@
 - create、update
 
 ### 输入
-- 父目录 `config/*.yaml`、`热点采集规则_v0.2.yaml`、`run_doubao_search.py`
+- 父目录 `config/*.yaml`、`config/热点总控配置.yaml`、`run_doubao_search.py`
 - `memory/field-map.md`：FLD-001–FLD-021、FLD-052–FLD-056
 
 ### 工作

@@ -6,7 +6,7 @@
   function brandTags(relations) {
     if (!relations || !relations.length) return '<span class="mini-tag">品牌关系待核验</span>';
     return relations.map(function (item) {
-      return '<span class="mini-tag">' + AppCommon.escapeHtml(item.brand_name || '未识别品牌') + ' · ' + AppCommon.escapeHtml(item.relation_status) + '</span>';
+      return '<span class="mini-tag" title="' + AppCommon.escapeHtml(item.evidence_excerpt || item.reason || '') + '">' + AppCommon.escapeHtml(item.brand_name || '未识别品牌') + ' · ' + AppCommon.escapeHtml(({direct_mention:'正文直接关联',verified_relation:'证据确认关联',unresolved:'关联待核验'})[item.relation_status] || '关联待核验') + '</span>';
     }).join('');
   }
 
@@ -24,8 +24,8 @@
     if (!event) return '<section class="event-detail-panel"><div class="empty-state"><strong>请选择事件</strong><span>从左侧事件队列查看证据与审核状态</span></div></section>';
     var canReview = event.event_status !== 'rejected';
     return '<section class="event-detail-panel" data-anno="event-evidence-review">' +
-      '<header class="event-detail-head"><div><div class="event-kicker"><span class="mono">' + event.event_id + '</span>' + AppCommon.statusTag(event.event_status) + '</div><h2>' + AppCommon.escapeHtml(event.event_title) + '</h2><div class="tag-row">' + brandTags(event.brand_relations) + '</div></div><div class="page-head__actions"><button class="btn" title="聚合错误时，将当前事件中的不同事实拆开" data-split-event>拆分</button><button class="btn" title="多条事件实际描述同一事实时合并" data-merge-event>合并</button>' + (canReview ? '<button class="btn" data-evidence-plan>发起补证</button><button class="btn btn-primary" data-review-event>审核事件</button>' : '') + '</div></header>' +
-      '<div class="fact-grid"><div><span>事件时间</span><strong>' + AppCommon.escapeHtml(event.event_date || '时间不明') + '</strong></div><div><span>来源／独立来源</span><strong>' + event.source_count + ' / ' + event.independent_source_count + '</strong></div><div><span>覆盖平台</span><strong>' + AppCommon.escapeHtml((event.source_platforms || []).join('、') || '待识别') + '</strong></div><div><span>当前处理</span>' + AppCommon.statusTag(event.event_status) + '</div></div>' +
+      '<header class="event-detail-head"><div><div class="event-kicker"><span class="mono">' + event.event_id + '</span>' + AppCommon.statusTag(event.event_status) + '</div><h2>' + AppCommon.escapeHtml(event.event_title) + '</h2><div class="tag-row">' + brandTags(event.brand_relations) + '</div></div><div class="page-head__actions">' + (event.can_split ? '<button class="btn" title="将部分来源移到新事件，原事件至少保留一条来源" data-split-event>拆分</button>' : '') + '<button class="btn" title="多条事件实际描述同一事实时合并" data-merge-event>合并</button>' + (canReview ? '<button class="btn" data-evidence-plan>发起补证</button><button class="btn btn-primary" data-review-event>审核事件</button>' : '') + '</div></header>' +
+      '<div class="fact-grid"><div><span>事件时间</span><strong>' + AppCommon.escapeHtml(event.event_date || '时间不明') + '</strong></div><div><span>来源／独立来源</span><strong>' + event.source_count + ' / ' + event.independent_source_count + '</strong></div><div><span>覆盖平台</span><strong>' + AppCommon.escapeHtml((event.source_platforms || []).map(AppCommon.platformName).join('、') || '待识别') + '</strong></div><div><span>当前处理</span>' + AppCommon.statusTag(event.event_status) + '</div></div>' +
       '<div class="heat-gate"><div class="heat-gate__title"><span>数据准入未满足</span><strong>热点不可判定</strong></div><p>当前事件由公开搜索线索形成，可支持事实研判，但不能证明哪个平台正在快速发酵。</p><ul>' + (event.hotspot_unavailable_reason || []).map(function (reason) { return '<li>' + AppCommon.escapeHtml(reason) + '</li>'; }).join('') + '</ul></div>' +
       '<div class="detail-columns"><div><section class="detail-section"><h3>证据时间线</h3>' + EvidenceTimeline.render(event.evidence) + '</section></div><div>' +
       '<section class="detail-section"><h3>存疑与风险</h3>' +
@@ -43,7 +43,7 @@
   }
 
   function render() {
-    return '<section class="page page-wide">' + Layout.pageHead('事件审核', '从事件事实、证据和数据缺口出发形成运营结论') + '<div id="event-detail-content">' + renderContent() + '</div></section>';
+    return '<section class="page page-wide event-review-page">' + Layout.pageHead('事件审核', '仅研判通过东风关联筛选的事件；核验证据并决定是否生成作业草案') + '<div id="event-detail-content">' + renderContent() + '</div></section>';
   }
 
   async function load(preferredId) {
@@ -65,6 +65,37 @@
   }
 
   function update() { var root = document.getElementById('event-detail-content'); if (root) root.innerHTML = renderContent(); }
+
+  function openSplit() {
+    var selected = state.selected;
+    if (!selected || !selected.can_split) return;
+    var sources = selected.sources || [];
+    var drawer = UI.openDrawer({
+      title: '拆分事件来源',
+      body: '<div class="review-summary"><strong>仅用于把误聚合的不同事实分开</strong><p>选择要移至新事件的来源，并填写新事件标题。原事件至少保留一条来源；不能把同一篇文章按段落拆分。拆分后两个事件均需重新审核，不会执行搜索或生成作业。</p></div>' +
+        '<label class="form-field">新事件标题<input class="form-control" name="split_title" minlength="4" maxlength="160" placeholder="请概括所选来源描述的独立事实"></label>' +
+        '<div class="split-source-list">' + sources.map(function (source) {
+          return '<label class="split-source-option"><input type="checkbox" name="split_source" value="' + AppCommon.escapeHtml(source.source_id) + '"><span><strong>' + AppCommon.escapeHtml(source.title) + '</strong><small>' + AppCommon.escapeHtml(AppCommon.platformName(source.source_platform)) + ' · ' + AppCommon.formatTime(source.published_at, '时间不明') + '</small></span></label>';
+        }).join('') + '</div><p data-split-feedback>请选择至少一条来源，原事件至少保留一条。</p>',
+      footer: '<button class="btn" data-drawer-close>取消</button><button class="btn btn-primary" data-confirm-split disabled>确认拆分</button>'
+    });
+    var button = drawer.element.querySelector('[data-confirm-split]');
+    var getIds = function () { return Array.from(drawer.element.querySelectorAll('[name="split_source"]:checked')).map(function (input) { return input.value; }); };
+    var getTitle = function () { return drawer.element.querySelector('[name="split_title"]').value.trim(); };
+    drawer.element.oninput = function () {
+      var count = getIds().length;
+      button.disabled = count < 1 || count >= sources.length || getTitle().length < 4;
+      drawer.element.querySelector('[data-split-feedback]').textContent = '移至新事件 ' + count + ' 条，原事件保留 ' + (sources.length - count) + ' 条。' + (count === sources.length ? '不能移走全部来源。' : '');
+    };
+    button.onclick = async function () {
+      button.disabled = true;
+      try {
+        var result = await AppCommon.api('/api/events/' + selected.event_id + '/split', { method: 'POST', body: JSON.stringify({ source_ids: getIds(), new_title: getTitle(), actor_id: '本地运营' }) });
+        drawer.close(); await load(result.event_id);
+        AppCommon.showToast('拆分完成，已打开新事件；两个事件均待审核', 'success');
+      } catch (error) { drawer.element.oninput(); AppCommon.showToast(error.message, 'error'); }
+    };
+  }
 
   function openReview() {
     var drawer = ReviewDrawer.eventReview(state.selected);
@@ -121,7 +152,7 @@
       if (event.target.closest('[data-evidence-plan]')) return openEvidencePlan();
       if (event.target.closest('[data-retry-action]')) return load();
       if (event.target.closest('[data-merge-event]')) return AppCommon.showToast('合并接口已就绪；请先在后续批量选择交互中选择至少两个事件');
-      if (event.target.closest('[data-split-event]')) return AppCommon.showToast('拆分需选择当前事件中的来源证据，接口已保留审计');
+      if (event.target.closest('[data-split-event]')) return openSplit();
       var pageButton = event.target.closest('[data-event-page]');
       if (pageButton) { state.page += pageButton.dataset.eventPage === 'next' ? 1 : -1; return load(); }
     };

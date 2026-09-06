@@ -13,6 +13,7 @@ from service.config_loader import config_versions
 from service.pipeline import _invalid_reason, _match_brands, _finish_run
 from service.events import aggregate_run
 from service.source_time import resolve_publication_time
+from service.business_relation import assess_business_relation
 
 
 def reprocess(run_id: str) -> dict:
@@ -45,6 +46,7 @@ def reprocess(run_id: str) -> dict:
             resolved = resolve_publication_time(item, reference)
             db.execute('UPDATE source_items SET source_status=?,published_at=?,published_time_confidence=?,publication_time_basis_json=? WHERE source_id=?', (status, resolved['published_at'], resolved['confidence'], json_text(resolved), row['source_id']))
             counts[status] += 1
+            db.execute('UPDATE source_items SET business_relation_json=? WHERE source_id=?', (json_text(assess_business_relation(item)), row['source_id']))
             if reason:
                 db.execute('INSERT INTO invalid_logs(invalid_id,run_id,source_id_or_raw_result_id,invalid_rule_id,invalid_reason,discarded_at) VALUES(?,?,?,?,?,?)', (new_id('INV'), run_id, row['source_id'], reason[0], reason[1], now_iso()))
     # 原始响应、查询任务与发现记录完整保留。当前规则版本单独留痕，不冒充首次搜索版本。

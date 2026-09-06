@@ -318,6 +318,7 @@ SCHEMA_STATEMENTS = [
 
 
 JSON_FIELDS = {
+    "business_relation_json",
     "publication_time_basis_json",
     "config_versions_json",
     "query_coverage_json",

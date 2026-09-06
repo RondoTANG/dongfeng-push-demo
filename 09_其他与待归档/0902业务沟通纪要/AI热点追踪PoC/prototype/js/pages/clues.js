@@ -31,12 +31,12 @@
       { label: '操作', width: '105px', render: function (row) { return '<button class="btn btn-text btn-sm" data-source-detail="' + row.source_id + '">详情</button>'; } }
     ];
     return '<section class="card" data-anno="clues-workbench"><div class="card-body">' + filters +
-      '<div class="table-summary"><span>仅展示发布时间可核验、处于采集时刻前72小时内的有效线索（优先近24小时）；旧闻与时间不明记录见“无效与审计记录”</span><strong>' + state.total + ' 条</strong></div>' +
+      '<aside class="clue-window-notice"><strong>展示范围：采集时刻前 72 小时 · 优先近 24 小时</strong><p>仅展示发布时间可核验、具有东风目标品牌关联证据的有效线索。旧闻、时间不明、无关联及待核验记录见“无效与审计记录”。</p></aside><div class="table-summary"><span>按发布时间从新到旧排序</span><strong>' + state.total + ' 条</strong></div>' +
       DataTable.render(columns, state.items, { emptyTitle: '没有符合条件的线索', emptyText: '自动无效结果可在“无效与审计记录”查看' }) + DataTable.pagination(state.page, state.pageSize, state.total, 'data-clue-page') + '</div></section>';
   }
 
   function render() {
-    return '<section class="page">' + Layout.pageHead('信息线索工作台', '公开搜索结果统一处理后进入主工作台；自动无效结果单独留痕') +
+    return '<section class="page">' + Layout.pageHead('信息线索工作台', '基础清洗 → 东风业务关联筛选 → 事件研判；纯其他品牌资讯不进入业务有效列表') +
       '<div class="boundary-banner"><strong>线索不等于热点</strong><span>这里展示“搜到并可追溯的公开信息”，不以搜索排名、转载数或 AI 分数判断真实热度。</span></div>' +
       '<div id="clues-content">' + renderContent() + '</div></section>';
   }
@@ -64,9 +64,14 @@
   function showSource(sourceId) {
     var item = state.items.find(function (source) { return source.source_id === sourceId; });
     if (!item) return;
+    var queryTrace = '<section class="source-search-context"><h3>搜索关键词与获取记录</h3>' + ((item.discoveries || []).map(function (row) {
+      return AppCommon.searchRecord(row);
+    }).join('') || '<p>历史数据未保存独立查询记录，不推测搜索关键词。</p>') + '</section>';
+    var relation = item.business_relation || {};
+    var relationView = AppCommon.renderRelationEvidence(relation);
     UI.openDrawer({
       title: '线索详情',
-      body: '<div class="detail-grid"><div><span>线索编号</span><strong class="mono">' + item.source_id + '</strong></div><div><span>来源平台</span><strong>' + AppCommon.escapeHtml(platformNames[item.source_platform] || item.source_platform) + '</strong></div><div><span>站点／账号</span><strong>' + AppCommon.escapeHtml(item.source_site_name || item.source_account || '未识别') + '</strong></div><div><span>发布时间</span><strong>' + AppCommon.formatTime(item.published_at, '时间不明') + '</strong></div><div><span>搜索获取时间</span><strong>' + AppCommon.formatTime(item.fetched_at, '—') + '</strong></div><div><span>发现工具</span><strong>' + AppCommon.escapeHtml((item.discovered_by || []).map(AppCommon.providerName).join('、') || AppCommon.providerName(item.retrieved_by)) + '</strong></div></div><h3 class="section-title">搜索发现记录</h3>' + ((item.discoveries || []).map(function (row) { return '<div class="evidence-text"><strong>' + AppCommon.escapeHtml(AppCommon.providerName(row.provider_id)) + '</strong> · ' + AppCommon.escapeHtml(row.query_id + ' ' + row.query_text) + '<br><span>' + AppCommon.formatTime(row.retrieved_at) + '</span></div>'; }).join('') || '<p class="text-muted">历史数据没有独立发现记录</p>') + '<h3 class="section-title">发布时间依据</h3><p>' + AppCommon.escapeHtml((item.publication_time_basis || {}).basis || '历史记录未保存依据') + '：' + AppCommon.escapeHtml((item.publication_time_basis || {}).evidence || '—') + '</p><h3 class="section-title">' + AppCommon.escapeHtml(item.title) + '</h3><div class="evidence-text">' + AppCommon.escapeHtml(item.snippet || '未返回正文摘要').replace(/\n/g, '<br>') + '</div><div class="source-url"><span>规范链接</span><a href="' + AppCommon.escapeHtml(item.original_url) + '" target="_blank" rel="noopener">打开原始来源</a></div>',
+      body: queryTrace + relationView + '<div class="detail-grid"><div><span>线索编号</span><strong class="mono">' + item.source_id + '</strong></div><div><span>来源平台</span><strong>' + AppCommon.escapeHtml(platformNames[item.source_platform] || item.source_platform) + '</strong></div><div><span>站点／账号</span><strong>' + AppCommon.escapeHtml(item.source_site_name || item.source_account || '未识别') + '</strong></div><div><span>发布时间</span><strong>' + AppCommon.formatTime(item.published_at, '时间不明') + '</strong></div><div><span>搜索获取时间</span><strong>' + AppCommon.formatTime(item.fetched_at, '—') + '</strong></div><div><span>发现工具</span><strong>' + AppCommon.escapeHtml((item.discovered_by || []).map(AppCommon.providerName).join('、') || AppCommon.providerName(item.retrieved_by)) + '</strong></div></div>' + '<h3 class="section-title">发布时间依据</h3><p>' + AppCommon.escapeHtml((item.publication_time_basis || {}).basis || '历史记录未保存依据') + '：' + AppCommon.escapeHtml((item.publication_time_basis || {}).evidence || '—') + '</p><h3 class="section-title">' + AppCommon.escapeHtml(item.title) + '</h3><div class="evidence-text">' + AppCommon.escapeHtml(item.snippet || '未返回正文摘要').replace(/\n/g, '<br>') + '</div><div class="source-url"><span>规范链接</span><a href="' + AppCommon.escapeHtml(item.original_url) + '" target="_blank" rel="noopener">打开原始来源</a></div>',
       footer: '<button class="btn" data-drawer-close>关闭</button>' + (item.event_id ? '<button class="btn btn-primary" data-open-event="' + item.event_id + '">查看关联事件</button>' : '')
     });
   }

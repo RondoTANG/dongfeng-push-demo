@@ -49,6 +49,8 @@ def list_sources(
     if status:
         conditions.append("source_status = ?")
         params.append(status)
+        if status == "valid":
+            conditions.append("json_extract(business_relation_json, '$.eligible') = 1")
     if platform:
         conditions.append("source_platform = ?")
         params.append(platform)
@@ -61,7 +63,7 @@ def list_sources(
     if published_to: conditions.append("published_at <= ?"); params.append(_inclusive_end(published_to))
     where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
     params.extend([limit, offset])
-    items = fetch_all(f"SELECT * FROM source_items {where} ORDER BY fetched_at DESC LIMIT ? OFFSET ?", tuple(params))
+    items = fetch_all(f"SELECT * FROM source_items {where} ORDER BY julianday(published_at) DESC, julianday(fetched_at) DESC, source_id ASC LIMIT ? OFFSET ?", tuple(params))
     for item in items:
         item["discoveries"] = fetch_all(
             "SELECT * FROM source_discoveries WHERE source_id=? ORDER BY retrieved_at", (item["source_id"],)
@@ -74,7 +76,10 @@ def count_sources(*, run_id: str | None = None, status: str | None = None, platf
     conditions: list[str] = []
     params: list[Any] = []
     if run_id: conditions.append("run_id = ?"); params.append(run_id)
-    if status: conditions.append("source_status = ?"); params.append(status)
+    if status:
+        conditions.append("source_status = ?"); params.append(status)
+        if status == "valid":
+            conditions.append("json_extract(business_relation_json, '$.eligible') = 1")
     if platform: conditions.append("source_platform = ?"); params.append(platform)
     if keyword: conditions.append("(title LIKE ? OR snippet LIKE ?)"); params.extend([f"%{keyword}%", f"%{keyword}%"])
     if fetched_from: conditions.append("fetched_at >= ?"); params.append(fetched_from)

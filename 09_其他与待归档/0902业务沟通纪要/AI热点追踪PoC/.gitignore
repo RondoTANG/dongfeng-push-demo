@@ -1,0 +1,7 @@
+# 本地缓存，不属于业务交付文件。
+__pycache__/
+*.py[cod]
+.DS_Store
+
+# 数据及运行快照由本地服务管理，不进入公开仓库。
+prototype/data/

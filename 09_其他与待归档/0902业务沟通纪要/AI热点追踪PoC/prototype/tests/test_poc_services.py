@@ -12,11 +12,12 @@ from service import database
 from service.database import connection, init_database, json_text, now_iso
 from service.drafts import review_event
 from service.evidence_requests import confirm_evidence_request, create_evidence_plan, execute_evidence_request
-from service.events import aggregate_run, get_event
+from service.events import aggregate_run, get_event, split_event
 from service.pipeline import execute_collection, run_cooldown
 from service.collector import search_codex_batch
 from service.source_time import resolve_publication_time, TZ
 from service.pipeline import _invalid_reason
+from service.business_relation import assess_business_relation
 from service.config_loader import risk_rules, risk_display_text
 from service.events import _risk_tags
 from service.repositories import count_sources, get_run, list_sources
@@ -36,6 +37,125 @@ def result_item(title: str, url: str, publish_time: str | None = None) -> dict[s
 
 
 class ServiceTestCase(unittest.TestCase):
+    def test_publication_sort_is_timezone_aware_and_stable(self) -> None:
+        self.test_source_list_uses_server_side_pagination_and_inclusive_date_end()
+        with connection() as db:
+            db.execute("UPDATE source_items SET published_at=NULL")
+            db.execute("UPDATE source_items SET published_at='2026-09-06T12:00:00+08:00', fetched_at='2026-09-06T13:00:00+08:00' WHERE source_id='SRC-PAGE-00'")
+            db.execute("UPDATE source_items SET published_at='2026-09-06T06:00:00+00:00', fetched_at='2026-09-06T12:00:00+08:00' WHERE source_id IN ('SRC-PAGE-01','SRC-PAGE-02')")
+        rows = list_sources(limit=3)
+        self.assertEqual([r["source_id"] for r in rows], ["SRC-PAGE-01", "SRC-PAGE-02", "SRC-PAGE-00"])
+        self.assertEqual(list_sources(limit=1, offset=1)[0]["source_id"], "SRC-PAGE-02")
+
+    def _seed_two_source_event(self) -> str:
+        event_id = self._seed_event()
+        with connection() as db:
+            db.execute("""INSERT INTO source_items (source_id,run_id,retrieved_by,query_ids_json,source_status,source_platform,
+                original_url,canonical_url,title,snippet,published_at,fetched_at,first_seen_at,domain)
+                VALUES ('SRC-SECOND','RUN-SEED','codex_web_search','[]','valid','industry_media',
+                'https://second.example/news','https://second.example/news','东风本田召回公告','东风本田公布召回范围。',?,?,?,'second.example')""",
+                (now_iso(), now_iso(), now_iso()))
+            db.execute("""INSERT INTO event_evidence (evidence_id,event_id,source_id,evidence_type,evidence_text,provided_by,created_at)
+                VALUES ('EVD-SECOND',?,'SRC-SECOND','source_excerpt','东风本田召回公告','source_pipeline',?)""", (event_id, now_iso()))
+        return event_id
+
+    def test_split_single_source_is_hidden_and_rejected(self) -> None:
+        event_id = self._seed_event()
+        self.assertFalse(get_event(event_id)["can_split"])
+        with self.assertRaisesRegex(ValueError, "不足两条"):
+            split_event(event_id, ["SRC-SEED"], "拆出的测试事件", "测试运营")
+        self.assertEqual(len(get_event(event_id)["sources"]), 1)
+
+    def test_split_requires_proper_subset_and_keeps_both_sides_consistent(self) -> None:
+        event_id = self._seed_two_source_event()
+        self.assertTrue(get_event(event_id)["can_split"])
+        for ids in ([], ["SRC-OTHER"], ["SRC-SEED", "SRC-SECOND"]):
+            with self.assertRaises(ValueError):
+                split_event(event_id, ids, "东风本田召回公告", "测试运营")
+        new = split_event(event_id, ["SRC-SECOND", "SRC-SECOND"], "东风本田召回公告", "测试运营")
+        old = get_event(event_id)
+        self.assertEqual(new["source_count"], 1)
+        self.assertEqual(old["source_count"], 1)
+        self.assertEqual(new["sources"][0]["source_id"], "SRC-SECOND")
+        self.assertEqual(old["sources"][0]["source_id"], "SRC-SEED")
+        self.assertEqual(new["source_platforms"], ["industry_media"])
+        self.assertIn("recall", new["risk_tags"])
+        self.assertNotIn("recall", old["risk_tags"])
+        self.assertFalse(new["can_split"])
+        self.assertFalse(old["can_split"])
+        self.assertTrue(all("本田" in r["brand_name"] for r in new["brand_relations"]))
+        self.assertEqual(new["work_items"][0]["input"]["source_ids"], ["SRC-SECOND"])
+
+    def test_split_does_not_change_reviewed_or_running_event(self) -> None:
+        event_id = self._seed_two_source_event()
+        with connection() as db:
+            db.execute("UPDATE events SET event_status='rejected' WHERE event_id=?", (event_id,))
+        self.assertFalse(get_event(event_id)["can_split"])
+        with self.assertRaisesRegex(ValueError, "已有审核"):
+            split_event(event_id, ["SRC-SECOND"], "东风本田召回公告", "测试运营")
+
+    def test_query_id_is_not_sent_as_search_text(self) -> None:
+        catalog = [{"query_id": "T07", "query_group": "topic", "query": "汽车技术 测评 耐久 最新动态"}]
+        with patch("service.pipeline.query_catalog", return_value=catalog), patch("service.pipeline.search_doubao", return_value={"items": [], "raw_response": {}}) as doubao, patch("service.pipeline.search_codex_batch", return_value={"T07": {"items": [], "raw_response": {}, "error": None}}) as codex:
+            run_id = execute_collection(mode="full", idempotency_key="query-text-only")
+        real_query = doubao.call_args.args[0]
+        self.assertNotIn("T07", real_query)
+        self.assertIn("汽车技术", real_query)
+        self.assertEqual(codex.call_args.args[0][0]["query"], real_query)
+        self.assertEqual(codex.call_args.args[0][0]["query_id"], "T07")
+        self.assertTrue(all(job["query_text"] == real_query for job in get_run(run_id)["query_jobs"]))
+
+    def test_competitor_topics_do_not_enter_workbench_or_events(self) -> None:
+        titles = ["吉利汽车8月销量超27万辆 海外出口连续三月破10万辆", "比亚迪海狮08正式上市 售价22.99万元起", "宝马（中国）汽车贸易有限公司、华晨宝马汽车有限公司召回部分进口及国产汽车", "上汽通用汽车销售有限公司召回部分进口凯迪拉克SRX汽车"]
+        items = [{**result_item(title, f"https://example.com/competitor/{i}"), "snippet": title + "。该品牌发布最新公告。"} for i, title in enumerate(titles)]
+        for item in items:
+            self.assertEqual(_invalid_reason(item, "topic", [])[0], "INV007")
+        with patch("service.pipeline.query_catalog", return_value=[{"query_id": "T06", "query_group": "topic", "query": "汽车召回 监管 投诉 最新动态"}]), patch("service.pipeline.search_doubao", return_value={"items": items, "raw_response": {}}), patch("service.pipeline.search_codex_batch", return_value={"T06": {"items": items, "raw_response": {}, "error": None}}):
+            run_id = execute_collection(mode="full", idempotency_key="competitor-regression")
+        self.assertEqual(count_sources(run_id=run_id, status="valid"), 0)
+        self.assertEqual(count_sources(run_id=run_id, status="invalid"), 4)
+        self.assertEqual(aggregate_run(run_id)["events_created"], 0)
+        with connection() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM source_discoveries WHERE run_id=?", (run_id,)).fetchone()[0], 8)
+
+    def test_relevance_requires_content_evidence_not_query_or_footer(self) -> None:
+        item = {"title": "比亚迪汽车新品上市", "snippet": "比亚迪公布配置。\n相关推荐：岚图汽车新动态", "query": "岚图汽车 最新"}
+        self.assertFalse(assess_business_relation(item)["eligible"])
+        item["snippet"] = "岚图汽车与比亚迪汽车共同参加此次技术讨论，公告列出了两家企业的参与内容。"
+        result = assess_business_relation(item)
+        self.assertTrue(result["eligible"])
+        self.assertIn("岚图", result["relations"][0]["evidence_excerpt"])
+        self.assertEqual(assess_business_relation({"title": "猛士新活动", "snippet": "同名含义尚不明确"})["status"], "pending_verification")
+        self.assertFalse(assess_business_relation({"title": "其他品牌销量", "snippet": "其他品牌消息", "domain": "dfmc.com.cn"})["eligible"])
+
+    def test_same_url_later_evidence_can_complete_relevance(self) -> None:
+        first = {**result_item("汽车技术活动", "https://example.com/shared"), "snippet": "近期举办汽车技术活动"}
+        second = {**first, "snippet": "岚图汽车参与汽车技术活动，并介绍具体验证方案。"}
+        with patch("service.pipeline.search_doubao", return_value={"items": [first], "raw_response": {}}), patch("service.pipeline.search_codex_batch", return_value={"B01": {"items": [second], "raw_response": {}, "error": None}}):
+            run_id = execute_collection(mode="quick", idempotency_key="relevance-upgrade")
+        self.assertEqual(count_sources(run_id=run_id, status="valid"), 1)
+        source = list_sources(run_id=run_id, status="valid")[0]
+        self.assertEqual(len(source["discoveries"]), 2)
+        self.assertIn("岚图", source["snippet"])
+        self.assertTrue(source["business_relation"]["eligible"])
+
+    def test_unverified_legacy_source_is_hidden_from_default_list(self) -> None:
+        self._seed_event()
+        self.assertEqual(count_sources(status="valid"), 0)
+
+    def test_brand_negative_event_is_not_discarded_for_sentiment(self) -> None:
+        item = {**result_item("东风本田公布召回公告", "https://example.com/recall"), "snippet": "东风本田公布产品召回范围及原因。"}
+        self.assertIsNone(_invalid_reason(item, "topic", []))
+
+    def test_approval_rechecks_source_business_relation(self) -> None:
+        event_id = self._seed_event()
+        with connection() as db:
+            db.execute("UPDATE source_items SET title='宝马公布召回公告', snippet='仅涉及宝马产品' WHERE source_id IN (SELECT source_id FROM event_evidence WHERE event_id=?)", (event_id,))
+        with self.assertRaisesRegex(ValueError, "目标品牌关联证据"):
+            review_event(event_id, review_result="approved", event_status="brand_content_opportunity", reviewer="测试运营", review_note=None, evidence_summary="事件事实确认", risk_summary="已核验", recommended_action="生成原创", action_paths=["original_growth"], boost_source_ids=[])
+        with connection() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM task_drafts").fetchone()[0], 0)
+
     def test_visible_old_publication_overrides_search_date(self) -> None:
         item = {"title": "汽车舆论事件", "url": "https://example.com/old", "publish_time": "2026-09-05T01:18:00+08:00", "snippet": "汽车舆论事件\n龙衍特种车工场\n35浏览 · 08-20 · 上海\n8 月 18 日，公安部发布消息。"}
         resolved = resolve_publication_time(item, datetime(2026, 9, 5, tzinfo=TZ))
@@ -54,6 +174,10 @@ class ServiceTestCase(unittest.TestCase):
         self.assertEqual(len(risk_rules()), 9)
 
     def test_company_listing_is_not_a_single_recent_event(self) -> None:
+        item = result_item("东风风神系列 了解更多有关东风风神系列的内容 09月06日更新", "https://example.com/s-tag")
+        self.assertEqual(_invalid_reason(item, "topic", [])[0], "INV006")
+        item = result_item("新车_汽车_中国网", "https://auto.china.com.cn/newcar/index.shtml")
+        self.assertEqual(_invalid_reason(item, "topic", [])[0], "INV006")
         item = result_item("领克汽车_黑猫投诉_新浪网", "https://tousu.sina.com.cn/company/view/?couid=123")
         self.assertEqual(_invalid_reason(item, "topic", [])[0], "INV006")
         item = result_item("猛士m817 - 聚合所有猛士m817相关热门新闻快讯", "https://example.com/tag")
@@ -211,12 +335,13 @@ class ServiceTestCase(unittest.TestCase):
                 db.execute(
                     """INSERT INTO source_items (
                         source_id,run_id,retrieved_by,query_ids_json,source_status,source_platform,
-                        original_url,canonical_url,title,snippet,published_at,fetched_at,first_seen_at
-                    ) VALUES (?,?,?,'[]','valid','general_web',?,?,?,?,?,?,?)""",
+                        original_url,canonical_url,title,snippet,published_at,fetched_at,first_seen_at,business_relation_json
+                    ) VALUES (?,?,?,'[]','valid','general_web',?,?,?,?,?,?,?,?)""",
                     (
                         f"SRC-PAGE-{index:02d}", "RUN-PAGE", "doubao_global_search",
                         f"https://example.com/page/{index}", f"https://example.com/page/{index}",
-                        f"分页线索 {index}", "分页验证", timestamp, timestamp, timestamp,
+                        f"岚图分页线索 {index}", "岚图汽车分页验证", timestamp, timestamp, timestamp,
+                        json_text(assess_business_relation({"title": "岚图汽车分页验证"})),
                     ),
                 )
         first_page = list_sources(run_id="RUN-PAGE", status="valid", fetched_to=timestamp[:10], limit=10, offset=0)
