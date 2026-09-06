@@ -4,7 +4,7 @@
 
 ## AI热点PoC维护入口
 
-执行分工说明：`09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/flowcharts/poc-flow.html`及正式PRD第3章。区分现行代码与必须接入但未实现的AI节点；只读回归为`prototype/tests/ui_ai_responsibility.py`。
+执行分工说明：`09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/flowcharts/poc-flow.html`及正式PRD第3章。现行代码已接通事件语义研判、补证回答核验和个性化作业蓝图生成；只读回归为`prototype/tests/ui_ai_responsibility.py`。
 
 以下文件均相对于`09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/`：
 
@@ -12,6 +12,7 @@
 - `service/business_relation.py`：工作台业务关联准入，保存目标品牌、命中词与证据；无关联或简称存疑不进入业务有效列表，聚合和审批再次校验。
 - `service/access_control.py`：管理员／只读访客密钥、会话、加盐哈希校验、服务器主密钥加密恢复与撤销失效；`service/app.py`负责所有API的角色拦截及管理员二次验证查看。
 - `service/automation.py`：1—168小时自动采集周期、启停与持久化调度；默认停止，首次执行在完整周期后，定时与手工运行共用运行锁和审计。
+- `service/ai_executor.py`：以受控Codex CLI对已入库事件证据执行结构化语义研判、补证回答核验及三类个性化作业蓝图生成；程序限制品牌、来源、风险、平台和动作枚举，失败不走模板兜底。
 - `service/config_admin.py`：品牌、查询目录、来源平台与域名识别规则的后台增删改及引用完整性校验；采集器读取同一份外置运行配置。
 - `js/auth.js`、`js/pages/access-keys.js`：登录、前端权限反馈、管理员密钥管理和访客菜单隔离；安全边界仍以服务端为准。
 - `tests/ui_access_control.py`：管理员二次验证查看密钥、访客403、撤销失效、390px手机抽屉导航，以及事件／草案列表与独立详情、底部安全区操作栏回归，不执行采集。
@@ -19,6 +20,7 @@
 - `tests/ui_relevance.py`：真实搜索关键词追溯与三尺寸分页只读验证。
 - `scripts/reset_local_data.py`：明确授权后备份并清空固定PoC数据库；拒绝清理运行中的批次。
 - `scripts/reprocess_local_run.py`：复用原始来源离线清洗与重新聚合，不调用搜索；已有审核、草案或补证时拒绝覆盖。
+- `scripts/reset_business_data.py`：服务器／本地共用的可恢复业务清理脚本；先做SQLite完整备份，再清空采集、事件、审核、草案和后效表，保留访问管理及配置审计。
 - `memory/verification-log.md`：真实批次、数据清理、服务与页面测试证据。运行数据库及备份均不入Git。
 
 ## 项目概览
@@ -42,7 +44,7 @@
 | 成长激励 | 积分/XP、段位、规则、大盘、智能体 | `04_成长与激励体系/` | 作业、审核、用户、组织数据 | 原型一致性检查；当前业务暂停 |
 | 内容运营 | 公众号编辑器、学院体验 | `05_内容与社区运营/` | 前端编辑器 | 静态页面/构建检查 |
 | 产品原型 | 历史重构分析、跨平台数据映射和演示 | `08_产品原型与UI交互/` | TikHub/MaxHub 等外部能力 | 原型人工检查 |
-| AI热点业务与线索PoC | 公开线索发现、来源清洗、事件聚合、品牌关联、热点数据准入、人工研判；三类作业草案；原创发布后效；管理员／只读访客受控访问与H5后台 | `09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/README.md`、`config/`、`prd/AI热点业务规划与现阶段线索PoC解决方案_PRD_v0.2.md`、`prd/AI热点发现与护卫军作业联动_PRD_v0.2.html`、`prototype/README.md`、`prototype/index.html`、`prototype/deployment/README.md` | 当前：豆包Global Search、Codex公开搜索、FastAPI、SQLite、现有采集/业务推送/人工后效凭证；自动采集支持1—168小时周期且默认停止；品牌、查询、平台、域名可由管理员维护。公网服务已通过独立Cloudflare Tunnel部署，服务器Codex CLI已完成设备授权与最小调用验证；真实热点阶段依赖专业平台数据源 | 配置校验；39项服务／布局测试；公网健康、角色权限、Codex最小调用及发布脚本验证；`tests/ui_access_control.py`验证权限、H5分屏与底部操作；浏览器验证三类草案、原创发布登记、快照增量与审批 |
+| AI热点业务与线索PoC | 公开线索发现、来源清洗、事件聚合、品牌关联、AI语义研判、补证核验、人工审核；三类个性化作业草案；原创发布后效；管理员／只读访客受控访问与H5后台 | `09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/README.md`、`config/`、`prd/AI热点业务规划与现阶段线索PoC解决方案_PRD_v0.2.md`、`prd/AI热点发现与护卫军作业联动_PRD_v0.2.html`、`prototype/README.md`、`prototype/index.html`、`prototype/deployment/README.md` | 当前：豆包Global Search、Codex公开搜索、服务器Codex语义研判与草案生成、FastAPI、SQLite、现有采集/业务推送/人工后效凭证；自动采集支持1—168小时周期且默认停止；品牌、查询、平台、域名可由管理员维护。公网服务通过独立Cloudflare Tunnel部署；真实热点阶段仍依赖专业平台数据源 | 配置校验；41项服务测试；实际Codex结构契约；公网健康、角色权限、Codex登录、业务数据清理及发布脚本验证；浏览器验证AI状态、三类草案、原创发布登记、快照增量与审批 |
 
 ## 跨模块关系
 
