@@ -5,7 +5,7 @@
 ## 当前边界
 
 - 采集端使用Codex公开网页搜索，只作为PoC线索发现和证据核验手段。
-- 叠加豆包Global Search进行公开网页广召回；调用参数与结果解析复用`03_审核与AI中台/AI评论与直播话术生成/`的现有实现。
+- 叠加豆包Global Search进行公开网页广召回；调用参数和结果解析已收敛到本项目，服务器发布包不再依赖其他业务目录。
 - 现行总控唯一入口为`config/热点总控配置.yaml`，其他业务规则同在`config/`。旧v0.1规则只保存在`archive/config/`，不参与运行。
 - 本地原型运行记录写入`prototype/data/ai_hotspot_poc.db`；`运行结果/`保留早期实测文件，不与运行数据库混用。
 - PoC阶段不接护卫军系统、不自动下发、不自动加热。
@@ -29,7 +29,7 @@
 
 根目录保留README、配置校验、豆包独立调试与密钥配置入口，避免修改现有调用链。Python缓存和系统临时文件不是业务资料，不纳入版本管理；不为清爽而移动服务依赖的运行文件。
 
-启动原型：在prototype目录执行 `./scripts/start_local.command`，访问 http://127.0.0.1:8765/ 。启动不会自动搜索；自动每3小时采集保持暂停。主动点击运行中心并确认执行，才调用搜索服务。
+启动原型：在prototype目录执行 `./scripts/start_local.command`，访问 http://127.0.0.1:8765/ 。自动采集默认停止；管理员可在运行中心设置1—168小时周期并启停，也可确认后手工执行。首次本地启动生成的管理员密钥保存在 `prototype/data/admin_access.key`，服务器部署时应通过环境变量 `AI_HOTSPOT_ADMIN_KEY` 注入。服务器目录、systemd、Cloudflare Tunnel、Codex登录及数据迁移见 `prototype/deployment/README.md`。
 
 ## 解决方案与配置
 

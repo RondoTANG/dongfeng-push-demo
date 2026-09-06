@@ -51,6 +51,41 @@ assert(common.renderTaskBrief('普通文字').includes('普通文字'));
         result = subprocess.run(["node", "-e", script, str(common)], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_access_control_and_configurable_automation_are_wired(self):
+        prototype = POC_ROOT / "prototype"
+        automation = json.loads((prototype / "config/automation.json").read_text(encoding="utf-8"))
+        nav = json.loads((prototype / "config/nav.json").read_text(encoding="utf-8"))
+        self.assertFalse(automation["enabled"])
+        self.assertEqual(automation["interval_hours"], 3)
+        self.assertIn("管理员开启", automation["schedule"])
+        access_item = next(item for section in nav["menu"] for item in section["children"] if item["key"] == "access-keys")
+        self.assertTrue(access_item["adminOnly"])
+        css = (prototype / "assets/css/app.css").read_text(encoding="utf-8")
+        self.assertIn("body.nav-open .app-sidebar", css)
+        self.assertNotIn("min-width: 720px", css)
+        app_source = (prototype / "service/app.py").read_text(encoding="utf-8")
+        self.assertIn('pattern="^manual$"', app_source)
+        self.assertIn('/api/automation/config', app_source)
+        self.assertIn('/api/config/queries', app_source)
+
+    def test_server_delivery_is_self_contained_and_persistent(self):
+        prototype = POC_ROOT / "prototype"
+        for name in ("README.md", "runtime.env.example", "ai-hotspot-poc.service", "cloudflared-ingress.example.yml", "deploy.env.example", "deploy_from_mac.sh"):
+            self.assertTrue((prototype / "deployment" / name).is_file())
+        settings_source = (prototype / "service/settings.py").read_text(encoding="utf-8")
+        self.assertIn("AI_HOTSPOT_DATA_DIR", settings_source)
+        self.assertIn("AI_HOTSPOT_CONFIG_DIR", settings_source)
+        search_source = (POC_ROOT / "run_doubao_search.py").read_text(encoding="utf-8")
+        self.assertIn("prototype\" / \"service\" / \"doubao_result_processor.py", search_source)
+        self.assertNotIn("03_审核与AI中台", search_source)
+        self.assertTrue((prototype / "service/doubao_result_processor.py").is_file())
+        effects_source = (prototype / "js/pages/effects.js").read_text(encoding="utf-8")
+        self.assertIn("data-mobile-effect-back", effects_source)
+        self.assertIn("effect-workspace", effects_source)
+        css = (prototype / "assets/css/app.css").read_text(encoding="utf-8")
+        self.assertIn(".event-detail-head > .page-head__actions:not(:empty)", css)
+        self.assertIn("env(safe-area-inset-bottom)", css)
+
 
 if __name__ == "__main__":
     unittest.main()

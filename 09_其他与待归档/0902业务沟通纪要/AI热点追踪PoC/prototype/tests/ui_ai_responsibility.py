@@ -16,6 +16,11 @@ def main():
         page = browser.new_page()
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
+        admin_secret = (root / 'data/admin_access.key').read_text(encoding='utf-8').strip()
+        page.goto('http://127.0.0.1:8765', wait_until='networkidle')
+        page.locator('#access-key').fill(admin_secret)
+        page.locator('[data-login-form] button[type=submit]').click()
+        page.wait_for_selector('#app-shell:not([hidden])')
         for name, url in targets:
             for width in (1440, 1280, 768):
                 page.set_viewport_size({'width': width, 'height': 1000})
@@ -24,7 +29,7 @@ def main():
                 assert '尚未接通' in page.locator('.responsibility-table').inner_text()
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), (name, width)
                 if name == 'flow':
-                    assert page.locator('.flow .step').count() == 8
+                    assert page.locator('.flow .step').count() == 9
                     assert page.locator('.flow .missing').count() == 2
                 else:
                     page.locator('#module-3').scroll_into_view_if_needed()

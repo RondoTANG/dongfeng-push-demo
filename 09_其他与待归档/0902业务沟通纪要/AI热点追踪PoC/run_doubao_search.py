@@ -56,17 +56,8 @@ def load_api_key() -> str:
 
 
 def _load_processor():
-    project_root = Path(__file__).resolve().parents[3]
-    processor_path = (
-        project_root
-        / "03_审核与AI中台"
-        / "AI评论与直播话术生成"
-        / "code"
-        / "doubao_search_result_processor.py"
-    )
-    spec = importlib.util.spec_from_file_location(
-        "doubao_search_result_processor", processor_path
-    )
+    processor_path = Path(__file__).resolve().parent / "prototype" / "service" / "doubao_result_processor.py"
+    spec = importlib.util.spec_from_file_location("ai_hotspot_doubao_result_processor", processor_path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"无法加载结果解析器：{processor_path}")
     module = importlib.util.module_from_spec(spec)

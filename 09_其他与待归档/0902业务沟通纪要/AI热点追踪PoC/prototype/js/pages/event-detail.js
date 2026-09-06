@@ -1,7 +1,10 @@
 (function () {
   'use strict';
 
-  var state = { events: [], selected: null, loading: true, error: null, status: '', page: 1, pageSize: 20, total: 0 };
+  var state = { events: [], selected: null, loading: true, error: null, status: '', page: 1, pageSize: 20, total: 0, mobileView: 'list', mobileListScrollTop: 0 };
+
+  function isMobile() { return window.matchMedia('(max-width: 760px)').matches; }
+  function scrollRoot() { return document.getElementById('app'); }
 
   function brandTags(relations) {
     if (!relations || !relations.length) return '<span class="mini-tag">品牌关系待核验</span>';
@@ -15,7 +18,7 @@
     return '<aside class="event-queue"><div class="event-queue__head"><strong>事件队列</strong><select class="form-control" data-event-status-filter><option value="">全部结论</option>' +
       [['pending_review','待审核'],['brand_content_opportunity','品牌内容机会'],['relevant_event_clue','事件事实成立'],['rejected','已驳回']].map(function (item) { return '<option value="' + item[0] + '"' + (state.status === item[0] ? ' selected' : '') + '>' + item[1] + '</option>'; }).join('') + '</select></div><div class="event-queue__list">' +
       (items.length ? items.map(function (item) {
-        return '<button class="event-queue__item' + (state.selected && state.selected.event_id === item.event_id ? ' is-active' : '') + '" data-select-event="' + item.event_id + '"><span class="event-queue__title">' + AppCommon.escapeHtml(item.event_title) + '</span><span class="event-queue__meta">' + AppCommon.escapeHtml(item.event_date || '时间不明') + AppCommon.statusTag(item.event_status) + '</span><span class="event-queue__heat">热点：不可判定</span></button>';
+        return '<button class="event-queue__item' + (state.selected && state.selected.event_id === item.event_id ? ' is-active' : '') + '" data-select-event="' + item.event_id + '"><span class="event-queue__title">' + AppCommon.escapeHtml(item.event_title) + '</span><span class="event-queue__meta">' + AppCommon.escapeHtml(item.event_date || '时间不明') + AppCommon.statusTag(item.event_status) + '</span><span class="event-queue__heat">热点：不可判定</span><span class="event-queue__chevron" aria-hidden="true">›</span></button>';
       }).join('') : '<div class="empty-state compact"><span>当前筛选下暂无事件</span></div>') + '</div>' + DataTable.pagination(state.page, state.pageSize, state.total, 'data-event-page') + '</aside>';
   }
 
@@ -24,6 +27,7 @@
     if (!event) return '<section class="event-detail-panel"><div class="empty-state"><strong>请选择事件</strong><span>从左侧事件队列查看证据与审核状态</span></div></section>';
     var canReview = event.event_status !== 'rejected';
     return '<section class="event-detail-panel" data-anno="event-evidence-review">' +
+      '<div class="mobile-event-detail-nav"><button class="btn btn-text" type="button" data-mobile-event-back><span aria-hidden="true">←</span> 返回事件列表</button><span>事件详情</span></div>' +
       '<header class="event-detail-head"><div><div class="event-kicker"><span class="mono">' + event.event_id + '</span>' + AppCommon.statusTag(event.event_status) + '</div><h2>' + AppCommon.escapeHtml(event.event_title) + '</h2><div class="tag-row">' + brandTags(event.brand_relations) + '</div></div><div class="page-head__actions">' + (event.can_split ? '<button class="btn" title="将部分来源移到新事件，原事件至少保留一条来源" data-split-event>拆分</button>' : '') + '<button class="btn" title="多条事件实际描述同一事实时合并" data-merge-event>合并</button>' + (canReview ? '<button class="btn" data-evidence-plan>发起补证</button><button class="btn btn-primary" data-review-event>审核事件</button>' : '') + '</div></header>' +
       '<div class="fact-grid"><div><span>事件时间</span><strong>' + AppCommon.escapeHtml(event.event_date || '时间不明') + '</strong></div><div><span>来源／独立来源</span><strong>' + event.source_count + ' / ' + event.independent_source_count + '</strong></div><div><span>覆盖平台</span><strong>' + AppCommon.escapeHtml((event.source_platforms || []).map(AppCommon.platformName).join('、') || '待识别') + '</strong></div><div><span>当前处理</span>' + AppCommon.statusTag(event.event_status) + '</div></div>' +
       '<div class="heat-gate"><div class="heat-gate__title"><span>数据准入未满足</span><strong>热点不可判定</strong></div><p>当前事件由公开搜索线索形成，可支持事实研判，但不能证明哪个平台正在快速发酵。</p><ul>' + (event.hotspot_unavailable_reason || []).map(function (reason) { return '<li>' + AppCommon.escapeHtml(reason) + '</li>'; }).join('') + '</ul></div>' +
@@ -39,7 +43,7 @@
   function renderContent() {
     if (state.loading) return '<div class="page-loading"><span class="spinner"></span>正在加载事件和证据</div>';
     if (state.error) return UI.errorState(state.error, true);
-    return '<div class="event-workspace">' + renderQueue() + renderDetail() + '</div>';
+    return '<div class="event-workspace' + (state.mobileView === 'detail' ? ' is-mobile-detail' : ' is-mobile-list') + '">' + renderQueue() + renderDetail() + '</div>';
   }
 
   function render() {
@@ -52,19 +56,40 @@
       var query = '/api/events?page=' + state.page + '&page_size=' + state.pageSize + (state.status ? '&status=' + encodeURIComponent(state.status) : '');
       var result = await AppCommon.api(query);
       state.events = result.items; state.total = result.total || 0;
-      var eventId = preferredId || (window.AppContext && window.AppContext.eventId) || (state.events[0] && state.events[0].event_id);
+      var contextId = window.AppContext && window.AppContext.eventId;
+      var eventId = preferredId || contextId || (state.events[0] && state.events[0].event_id);
       state.selected = eventId ? await AppCommon.api('/api/events/' + eventId) : null;
+      if (isMobile() && (preferredId || contextId)) state.mobileView = 'detail';
       window.AppContext = null;
     } catch (error) { state.error = error.message; }
     state.loading = false; update();
+    if (isMobile() && state.mobileView === 'detail') requestAnimationFrame(function () { var root = scrollRoot(); if (root) root.scrollTop = 0; });
   }
 
   async function selectEvent(eventId) {
-    try { state.selected = await AppCommon.api('/api/events/' + eventId); update(); }
+    try {
+      var root = scrollRoot();
+      if (isMobile() && root) state.mobileListScrollTop = root.scrollTop;
+      state.selected = await AppCommon.api('/api/events/' + eventId);
+      if (isMobile()) state.mobileView = 'detail';
+      update();
+      if (isMobile()) requestAnimationFrame(function () { var target = scrollRoot(); if (target) target.scrollTop = 0; });
+    }
     catch (error) { AppCommon.showToast(error.message, 'error'); }
   }
 
-  function update() { var root = document.getElementById('event-detail-content'); if (root) root.innerHTML = renderContent(); }
+  function showMobileList() {
+    state.mobileView = 'list';
+    update();
+    requestAnimationFrame(function () { var root = scrollRoot(); if (root) root.scrollTop = state.mobileListScrollTop; });
+  }
+
+  function update() {
+    var root = document.getElementById('event-detail-content');
+    if (root) root.innerHTML = renderContent();
+    var page = document.querySelector('.event-review-page');
+    if (page) page.classList.toggle('is-showing-mobile-detail', isMobile() && state.mobileView === 'detail');
+  }
 
   function openSplit() {
     var selected = state.selected;
@@ -148,16 +173,17 @@
     page.onclick = function (event) {
       var selectButton = event.target.closest('[data-select-event]');
       if (selectButton) return selectEvent(selectButton.dataset.selectEvent);
+      if (event.target.closest('[data-mobile-event-back]')) return showMobileList();
       if (event.target.closest('[data-review-event]')) return openReview();
       if (event.target.closest('[data-evidence-plan]')) return openEvidencePlan();
       if (event.target.closest('[data-retry-action]')) return load();
       if (event.target.closest('[data-merge-event]')) return AppCommon.showToast('合并接口已就绪；请先在后续批量选择交互中选择至少两个事件');
       if (event.target.closest('[data-split-event]')) return openSplit();
       var pageButton = event.target.closest('[data-event-page]');
-      if (pageButton) { state.page += pageButton.dataset.eventPage === 'next' ? 1 : -1; return load(); }
+      if (pageButton) { state.page += pageButton.dataset.eventPage === 'next' ? 1 : -1; state.mobileView = 'list'; return load(); }
     };
-    page.onchange = function (event) { if (event.target.matches('[data-event-status-filter]')) { state.status = event.target.value; state.page = 1; load(); } };
+    page.onchange = function (event) { if (event.target.matches('[data-event-status-filter]')) { state.status = event.target.value; state.page = 1; state.mobileView = 'list'; load(); } };
   }
 
-  window.Pages['event-detail'] = { render: render, init: function () { bind(); load(); } };
+  window.Pages['event-detail'] = { render: render, init: function () { state.mobileView = 'list'; state.mobileListScrollTop = 0; bind(); load(); } };
 })();

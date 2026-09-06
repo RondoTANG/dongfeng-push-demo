@@ -1674,7 +1674,7 @@
       <div class="toc-title"><span>目录</span><span>7个模块</span></div>
       <nav>
         <a href="#module-1" class="active"><span class="toc-num">01</span><span>执行摘要<br />问题、两阶段、SMART</span></a>
-        <a href="#module-2"><span class="toc-num">02</span><span>用户体验与功能<br />角色、流程、F01—F18</span></a>
+        <a href="#module-2"><span class="toc-num">02</span><span>用户体验与功能<br />角色、流程、F01—F20</span></a>
         <a href="#module-3"><span class="toc-num">03</span><span>AI系统要求<br />职责、契约、评估</span></a>
         <a href="#module-4"><span class="toc-num">04</span><span>技术规格<br />架构、时序、数据、接口</span></a>
         <a href="#module-5"><span class="toc-num">05</span><span>风险与路线图<br />四阶段与依赖</span></a>
@@ -1760,10 +1760,10 @@
         <div class="section-label">阶段目标（SMART）</div>
         <div class="smart-grid">
           <article class="smart-item"><b>S</b><strong>具体</strong><p>完成公开线索研判和原创增长草案；对已发布原创登记链接、接收快照、计算增量并按需生成追加加热草案；事件有可执行关联内容时，另行生成直接加热草案。</p></article>
-          <article class="smart-item"><b>M</b><strong>可衡量</strong><p>每次17条基础查询、34个双路任务；记录覆盖率、草案质量、原创链接回填率、快照完整率、增量可计算率和人工时长。</p></article>
+          <article class="smart-item"><b>M</b><strong>可衡量</strong><p>当前默认配置为17条基础查询、34个双路任务；配置调整后按当次启用查询数动态计算，并记录覆盖率、草案质量、原创链接回填率、快照完整率、增量可计算率和人工时长。</p></article>
           <article class="smart-item"><b>A</b><strong>可实现</strong><p>使用现有豆包、Codex、规则处理和人工审核；后效数据来自现有采集、业务推送或人工凭证。</p></article>
           <article class="smart-item"><b>R</b><strong>相关</strong><p>验证“哪些热点值得发原创”“原创发布后是否追加加热”的主闭环，并补充验证“热点关联内容是否值得直接加热”。</p></article>
-          <article class="smart-item"><b>T</b><strong>有时限</strong><p>10个工作日：配置冻结1天、按测试计划手工触发双路运行并连续观察7天、汇总2天；自动每3小时采集暂不启用。</p></article>
+          <article class="smart-item"><b>T</b><strong>有时限</strong><p>10个工作日：配置确认1天、由管理员按测试计划手工触发或临时开启周期采集并连续观察7天、汇总2天。自动采集默认停止，避免未经确认产生搜索调用。</p></article>
         </div>
 
         <div class="section-label">成功标准</div>
@@ -1792,21 +1792,23 @@
           <tbody>
             <tr><td><strong>运营审核人</strong></td><td>查看线索、证据、品牌关系、风险与AI建议</td><td>事件只提交通过／驳回；通过后选择事实结论和行动方向；分别审批草案</td></tr>
             <tr><td><strong>内容运营</strong></td><td>补充官方事实、素材与允许表达</td><td>选择作业方向、目标平台与禁用表述</td></tr>
-            <tr><td><strong>产品管理员</strong></td><td>维护品牌、来源、查询和业务规则</td><td>发布、停用、回溯配置版本</td></tr>
+            <tr><td><strong>系统管理员</strong></td><td>管理受控访问并执行采集、审核和配置操作</td><td>生成／撤销访客密钥；完整写权限；管理员密钥不在页面回显</td></tr>
+            <tr><td><strong>只读访客</strong></td><td>通过受控地址查看PoC数据和流程</td><td>仅查看；看不到访问密钥管理，服务端拒绝全部写请求</td></tr>
+            <tr><td><strong>产品管理员</strong></td><td>维护品牌、来源、查询和业务规则</td><td>由系统管理员身份执行发布、停用和回溯配置版本</td></tr>
             <tr><td><strong>研发运维</strong></td><td>维护适配器、规则、存储和业务接口</td><td>失败重试、监控、审计和告警</td></tr>
             <tr><td><strong>护卫军用户</strong></td><td>后续执行与自身擅长平台匹配的原创增长或源内容加热作业</td><td>本轮PoC不进入正式任务触达与执行</td></tr>
           </tbody>
         </table>
 
         <div class="section-label">功能需求</div>
-        <div class="req-toolbar"><p>按业务处理链路分为4组，点击条目查看完整规则</p></div>
+        <div class="req-toolbar"><p>按业务处理链路分为5组，点击条目查看完整规则</p></div>
         <div class="requirement-list" id="requirements">
           <section class="requirement-group" aria-labelledby="req-group-input">
             <header class="requirement-group-head"><span>01</span><div><h3 id="req-group-input">采集与标准化</h3><p>配置业务范围，生成采集任务，并把不同来源整理为统一数据。</p></div></header>
             <div class="requirement-grid">
-          <details class="requirement searchable"><summary><span class="req-id">F01</span><span class="req-title">配置管理</span><span class="chev"></span></summary><div class="req-body"><p>统一管理品牌与别名、来源平台/域名/官方账号、查询目录、过滤去重与聚合、事件实体/品牌关系/风险分类、热点数据准入与分平台模型、原创增长主链、关联内容加热支路、原创后效指标映射、快照窗口和互动动作枚举。</p><p><strong>版本要求：</strong>所有配置必须具备版本号、生效时间、修改人、修改原因及草稿/已发布/已停用状态。新运行使用最新已发布版本，历史运行保留原版本，禁止修改已被引用的版本。</p></div></details>
-          <details class="requirement searchable"><summary><span class="req-id">F02</span><span class="req-title">查询任务生成</span><span class="chev"></span></summary><div class="req-body"><ul><li>完整运行生成9条品牌查询＋8条行业主题查询；每条由豆包、Codex分别执行，共34个基础任务。</li><li>运行前生成覆盖清单；运行后区分成功、失败、无结果、未执行，未执行不得解释为无结果。</li><li>全部搜索结果在进入工作台前，以标题和正文核对9个启用品牌。纯其他品牌资讯无东风关联证据时排除；品牌简称存疑单独留因，不自动追加全品牌收费补采。</li></ul></div></details>
-          <details class="requirement searchable"><summary><span class="req-id">F03</span><span class="req-title">公开搜索接入</span><span class="chev"></span></summary><div class="req-body"><p>豆包与Codex都执行同一份查询目录：完整运行17条×2个工具＝34项，快速验证1条×2＝2项。Codex使用本机登录态，豆包按已配置凭证调用。</p><p>两路分别记录请求状态、搜索时间、查询词、结果顺序和原始响应引用；一路失败时批次为部分成功。完整运行3小时、快速验证10分钟内服务端拒绝重复启动。自动每3小时采集当前暂停，启动服务不会自动产生豆包调用。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F01</span><span class="req-title">配置管理</span><span class="chev"></span></summary><div class="req-body"><p>管理员可在页面维护品牌与别名、查询目录、来源平台与域名识别规则，并可配置自动采集周期和启停状态；采集服务读取同一份生效配置，不以页面展示值代替执行配置。过滤去重与聚合、风险分类、热点数据准入、作业规则等复杂规则仍由受控配置文件维护。</p><p><strong>引用关系：</strong>启用的品牌查询必须引用启用品牌；被查询或识别规则引用的品牌、平台不得直接删除。来源平台字典保留完整平台及供应商能力，页面把常用的平台定义、域名规则与只读的供应商能力分开呈现。</p><p><strong>追溯要求：</strong>每次变更记录操作人、时间、对象和前后值；新运行读取最新生效配置，历史运行保留当次配置快照。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F02</span><span class="req-title">查询任务生成</span><span class="chev"></span></summary><div class="req-body"><ul><li>当前默认配置为9条品牌查询＋8条行业主题查询；完整运行按启用查询动态生成任务，每条由豆包、Codex分别执行。新增、修改、停用查询均从下一批运行生效。</li><li>运行前生成覆盖清单；运行后区分成功、失败、无结果、未执行，未执行不得解释为无结果。</li><li>全部搜索结果在进入工作台前，以标题和正文核对当前启用品牌。纯其他品牌资讯无东风关联证据时排除；品牌简称存疑单独留因，不自动追加全品牌收费补采。</li></ul></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F03</span><span class="req-title">公开搜索接入</span><span class="chev"></span></summary><div class="req-body"><p>豆包与Codex执行同一份启用查询目录。当前默认完整运行17条×2个工具＝34项，快速验证1条×2＝2项；目录变化后按实时启用数计算。Codex使用本机登录态，豆包按已配置凭证调用。</p><p>两路分别记录请求状态、搜索时间、查询词、结果顺序和原始响应引用；一路失败时批次为部分成功。完整运行3小时、快速验证10分钟内服务端拒绝重复启动。管理员可选择仅手工运行，或开启1—168小时的周期采集；默认停止，开启或修改周期后的首次执行在一个完整周期后发生。</p></div></details>
           <details class="requirement searchable"><summary><span class="req-id">F04</span><span class="req-title">来源标准化</span><span class="chev"></span></summary><div class="req-body"><p>工作台独立展示来源平台、搜索来源（豆包／Codex，多路命中全部显示）、三行正文／搜索摘要、发布时间和搜索获取时间；详情展示完整返回内容、日期依据、原始链接及逐条搜索发现记录。摘要不冒充完整原文。</p><p>同一批次内同一URL保留一个来源对象，每个工具、查询词和搜索时间分别留痕；支持按发布时间和搜索获取时间分别筛选。平台或账号无法识别时保持未知。</p><p>以采集时刻前72小时作为有效发布时间窗口，优先近24小时。正文头部发布元信息优先于供应商日期并保留冲突；不把正文叙事日期、索引更新或搜索时间当成发布时间。</p></div></details>
             </div>
           </section>
@@ -1839,6 +1841,13 @@
           <details class="requirement searchable"><summary><span class="req-id">F18</span><span class="req-title">原创后二次加热判断与草案</span><span class="chev"></span></summary><div class="req-body"><p>页面展示快照与增量，运营选择“生成二次加热草案”“继续观察”“无需加热”或“人工核验”，并填写原因。只有第一种结论生成 <code>original_post_boost</code> 草案。</p><p>草案绑定 <code>target_submission_id</code> 和触发判断，独立审批；不与热点源内容加热共用目标字段，不自动执行点赞、评论等互动。</p></div></details>
             </div>
           </section>
+          <section class="requirement-group" aria-labelledby="req-group-access">
+            <header class="requirement-group-head"><span>05</span><div><h3 id="req-group-access">访问与响应式体验</h3><p>通过访问密钥控制共享地址的使用范围，并保证手机端可完整浏览。</p></div></header>
+            <div class="requirement-grid">
+          <details class="requirement searchable"><summary><span class="req-id">F19</span><span class="req-title">服务端分页与查询</span><span class="chev"></span></summary><div class="req-body"><p>运行、线索、事件、草案、原创发布、无效和审计列表统一使用服务端分页；筛选变化回到第1页，单页上限100条。移动端宽表在表格容器内横向滚动，不导致整个页面溢出。</p></div></details>
+          <details class="requirement searchable"><summary><span class="req-id">F20</span><span class="req-title">访问密钥与权限</span><span class="chev"></span></summary><div class="req-body"><p>管理员可生成带名称和可选有效期的访客密钥；生成后可直接复制，也可稍后再次验证管理员密钥后查看。服务端保存登录校验用的加盐哈希和服务器主密钥加密后的密文，不保存可直接读取的明文；重新查看写入审计，撤销后相关会话立即失效。</p><p>访客只读且不显示密钥管理；服务端同时拒绝密钥管理及任何写接口，避免通过共享地址触发搜索或修改数据。手机端使用抽屉导航；事件审核采用事件列表与独立详情分屏，详情使用页面自然滚动，不保留双栏压缩和嵌套滚动。</p></div></details>
+            </div>
+          </section>
         </div>
 
         <div class="section-label">用户故事</div>
@@ -1852,12 +1861,14 @@
             <tr><td>US05</td><td>运营审核源内容加热草案</td><td>展示目标标题、URL、平台、动作、目标人群、时间窗和风控说明</td></tr>
             <tr><td>US06</td><td>运营登记原创发布结果并观察后效</td><td>只允许关联已审批原创；展示同一内容的快照、来源、指标口径和增量</td></tr>
             <tr><td>US07</td><td>运营决定是否加热已发布原创</td><td>选择后效结论并留痕；仅“生成二次加热草案”创建独立待审批草案</td></tr>
+            <tr><td>US08</td><td>管理员安全共享PoC地址给访客</td><td>访客密钥可在管理员二次验证后再次查看；访客只读且看不到密钥管理；越权接口返回403；手机端事件列表和详情分屏且可完整滚动</td></tr>
           </tbody>
         </table>
 
         <div class="section-label">产品页面</div>
         <div class="config-list">
-          <div class="config-item"><h3>运行中心</h3><p>34项双路任务、每个工具状态、成功/失败/未执行、手工确认、冷却时间和暂停的自动采集状态。</p></div>
+          <div class="config-item"><h3>运行中心</h3><p>34项双路任务、每个工具状态、成功/失败/未执行、管理员手工确认和冷却时间；不提供定时采集。</p></div>
+          <div class="config-item"><h3>访问密钥管理</h3><p>仅管理员可见，支持生成访客密钥、二次验证后再次查看／复制、查看使用状态与撤销访问。</p></div>
           <div class="config-item"><h3>信息线索工作台</h3><p>清洗后的有效线索、内容发布时间、搜索获取时间、来源平台与站点、豆包／Codex发现记录、关联事件和服务端分页。</p></div>
           <div class="config-item"><h3>事件详情</h3><p>来源证据、平台账号、时间、品牌关系、实体不确定项、风险和审核记录。</p></div>
           <div class="config-item"><h3>配置管理</h3><p>品牌、来源、查询、过滤、聚合、风险、热点准入、原创增长主链、关联内容加热支路、后效快照和互动动作规则。</p></div>
@@ -2038,7 +2049,7 @@
 
         <div class="section-label">路线图</div>
         <div class="timeline">
-          <article class="timeline-item"><span>阶段一｜10个工作日</span><h3>公开信息线索与作业联动PoC</h3><p>自动采集保持暂停，按测试计划手工触发17条查询及双路搜索；运营形成原创增长草案；已审批原创实际发布后登记链接、接收至少两个同口径快照并按需生成追加加热草案；如有可执行关联内容，另行生成直接加热草案。</p><p><strong>完成标准：</strong>形成线索、原创增长、原创后效与追加加热主链，以及可选的关联内容直加支路基线；不输出热点识别准确率，不自动执行互动。</p></article>
+          <article class="timeline-item"><span>阶段一｜10个工作日</span><h3>公开信息线索与作业联动PoC</h3><p>由管理员按测试计划手工触发双路搜索；需要连续观察时可临时开启可配置周期采集，默认保持停止。运营形成原创增长草案；已审批原创实际发布后登记链接、接收至少两个同口径快照并按需生成追加加热草案；如有可执行关联内容，另行生成直接加热草案。</p><p><strong>完成标准：</strong>形成线索、原创增长、原创后效与追加加热主链，以及可选的关联内容直加支路基线；不输出热点识别准确率，不自动执行互动。</p></article>
           <article class="timeline-item"><span>阶段二｜数据源验证</span><h3>生产数据源与真实热点PoC</h3><p>选择一个业务优先平台和候选数据源，验证平台内容ID、原生互动、独立作者/UGC、连续快照和覆盖说明；计算1/3/24小时增量与速度，并与运营判断对照。</p><p><strong>完成标准：</strong>数据源通过热点数据准入，形成该平台热度模型、覆盖边界和SLA；未通过不进入自动热点阶段。</p></article>
           <article class="timeline-item"><span>阶段三｜人机协同</span><h3>护卫军半自动联动</h3><p>在标准数据/事件推送与受控MCP工具调用之间完成选型；读取平台能力标签并生成目标人群快照；由护卫军按业务规则创建三类正式作业。</p></article>
           <article class="timeline-item"><span>阶段四｜运营反馈</span><h3>作业执行与效果反馈</h3><p>回收原创增长、热点源内容加热和原创后二次加热三类作业执行结果，反向优化行动选择、人数、时间窗、频控和奖励规则。</p></article>
@@ -2073,13 +2084,14 @@
         <header class="module-head"><div class="module-no">06</div><div><h2>配置项业务说明</h2><p>配置不是“把所有规则都交给运营随时改”，而是版本化业务口径：明确影响、确认人、技术校验与发布权限。</p></div></header>
 
         <div class="config-list">
-          <div class="config-item searchable"><h3>6.1 品牌与别名</h3><div><p>范围固定为东风汽车、东风风神、岚图、猛士、东风奕派、东风日产、东风本田、东风标致、东风雪铁龙9品牌。精确别名可匹配；“东风”“猛士”等弱别名需汽车上下文。新增/停用会改变基础查询与行业关联任务数量，只对新运行生效。</p></div></div>
-          <div class="config-item searchable"><h3>6.2 来源平台、网站与账号</h3><div><p>用于识别平台、网站、发布账号和官方身份。只有业务确认域名/账号可标官方；供应商权威等级不能替代官方身份。无法识别保持未知并说明原因；规则变化会影响平台统计、官方判断和风险优先级。</p></div></div>
-          <div class="config-item searchable"><h3>6.3 查询目录</h3><div><p>9品牌＋8行业主题全部执行，不轮换、不抽样；豆包与Codex共用基础目录。行业查询扩大召回，但不放宽目标品牌关联条件。无关联资讯不进入业务有效列表；搜索词、推荐区及同属汽车行业不能代替关联证据。新增、停用或修改记录版本与原因。</p></div></div>
-          <div class="config-item searchable"><h3>6.4 过滤、去重与事件聚合</h3><div><p>自动过滤只处理证据明确的技术无效数据，不处理业务价值否决。同URL、同正文、同源转载分层处理，避免重复与虚增独立来源；事件聚合保留全部原始来源，支持人工拆分/合并。</p></div></div>
-          <div class="config-item searchable"><h3>6.5 热点判定数据准入</h3><div><p>决定系统是否有资格输出真实热点状态。必填能力包括平台内容ID、原生指标、连续快照、独立作者/UGC标识和覆盖审计。未通过输出 unknown 及逐项原因，仍可作为线索；不得临时修改为“搜索结果也可判热点”。</p></div></div>
-          <div class="config-item searchable"><h3>6.6 风险与候选分类</h3><div><p>配置管理的“风险标签”页展示中文名称、触发关键词、核验要求和启用状态；配置来源为清洗聚合与判定规则中的 <code>risk_gate.rules</code>，修改配置文件后重新加载。事件与草案使用同一中文映射。</p><p>标签包括销量与交付数据、价格与优惠、事故与安全、产品召回、监管与政策、竞品对比、智能驾驶能力表述、争议或负面线索、事实冲突。关键词命中只提示核验，不直接判断真假或正负面；事实冲突由证据核验或人工确认触发。</p><p>事件统一使用待审核、品牌内容机会、事件事实成立、已驳回；补证进度独立记录。旧的人工研判、待补证与观察状态归入待审核，筛选条件和列表标签保持一致。</p></div></div>
-          <div class="config-item searchable"><h3>6.7 作业路径、发布后效与互动动作</h3><div><p>原创增长配置创作类型、表达方向和建议平台；热点源内容加热绑定事件来源ID；原创后二次加热绑定实际发布记录和触发判断。后效只比较同一内容、同口径时序快照，至少两个快照后由运营判断。三类草案分别审批，均不自动发布或执行互动。</p></div></div>
+          <div class="config-item searchable"><h3>6.1 品牌与别名</h3><div><p>当前种子配置为东风汽车、东风风神、岚图、猛士、东风奕派、东风日产、东风本田、东风标致、东风雪铁龙9品牌。管理员可新增、编辑和停用；精确别名可匹配，“东风”“猛士”等弱别名需汽车上下文。停用会改变基础查询与行业关联任务数量，只对新运行生效；仍被启用查询引用时禁止删除。</p></div></div>
+          <div class="config-item searchable"><h3>6.2 来源平台、网站与账号</h3><div><p>管理员可维护来源平台定义及域名识别规则，用于识别平台、网站、发布账号和官方身份。来源平台字典中的17个平台及豆包/Codex能力描述是完整种子与能力清单，不要求全部铺成同一张编辑表：常用平台、显示名称和状态可编辑，域名规则单独维护，供应商能力只读展示。只有业务确认域名/账号可标官方；无法识别保持未知并说明原因。</p></div></div>
+          <div class="config-item searchable"><h3>6.3 查询目录</h3><div><p>当前种子配置为9条品牌查询＋8条行业主题查询，豆包与Codex共用启用目录。管理员可新增、编辑、启停和删除未被运行引用的查询；品牌查询必须引用启用品牌。行业查询扩大召回，但不放宽目标品牌关联条件；无关联资讯不进入业务有效列表。</p></div></div>
+          <div class="config-item searchable"><h3>6.4 自动采集计划</h3><div><p>管理员可设置1—168小时的周期并开启或停止自动采集。默认停止；服务启动不会自动产生搜索调用。开启或修改周期后，首次执行安排在一个完整周期之后；停止后清空下次执行时间。定时任务与手工完整运行共用运行锁、3小时冷却、审计和动态查询目录；周期短于3小时时顺延至下一允许时间，避免重复批次。</p></div></div>
+          <div class="config-item searchable"><h3>6.5 过滤、去重与事件聚合</h3><div><p>自动过滤只处理证据明确的技术无效数据，不处理业务价值否决。同URL、同正文、同源转载分层处理，避免重复与虚增独立来源；事件聚合保留全部原始来源，支持人工拆分/合并。</p></div></div>
+          <div class="config-item searchable"><h3>6.6 热点判定数据准入</h3><div><p>决定系统是否有资格输出真实热点状态。必填能力包括平台内容ID、原生指标、连续快照、独立作者/UGC标识和覆盖审计。未通过输出 unknown 及逐项原因，仍可作为线索；不得临时修改为“搜索结果也可判热点”。</p></div></div>
+          <div class="config-item searchable"><h3>6.7 风险与候选分类</h3><div><p>配置管理的“风险标签”页展示中文名称、触发关键词、核验要求和启用状态；配置来源为清洗聚合与判定规则中的 <code>risk_gate.rules</code>，修改配置文件后重新加载。事件与草案使用同一中文映射。</p><p>标签包括销量与交付数据、价格与优惠、事故与安全、产品召回、监管与政策、竞品对比、智能驾驶能力表述、争议或负面线索、事实冲突。关键词命中只提示核验，不直接判断真假或正负面；事实冲突由证据核验或人工确认触发。</p><p>事件统一使用待审核、品牌内容机会、事件事实成立、已驳回；补证进度独立记录。旧的人工研判、待补证与观察状态归入待审核，筛选条件和列表标签保持一致。</p></div></div>
+          <div class="config-item searchable"><h3>6.8 作业路径、发布后效与互动动作</h3><div><p>原创增长配置创作类型、表达方向和建议平台；热点源内容加热绑定事件来源ID；原创后二次加热绑定实际发布记录和触发判断。后效只比较同一内容、同口径时序快照，至少两个快照后由运营判断。三类草案分别审批，均不自动发布或执行互动。</p></div></div>
         </div>
 
         <div class="section-label">配置责任矩阵</div>
@@ -2104,7 +2116,7 @@
       <section class="module searchable" id="module-7" data-title="验收测试场景">
         <header class="module-head"><div class="module-no">07</div><div><h2>验收测试场景</h2><p>验收覆盖查询完整性、证据与实体边界、热点结论约束、三类草案、原创后效与配置追溯。</p></div></header>
         <div class="acceptance-grid" id="acceptanceList">
-          <details class="acceptance searchable" open><summary><span class="req-id">AT01</span><strong>查询覆盖</strong><span class="chev"></span></summary><div class="req-body">9品牌＋8主题必须生成17条基础查询、34个双路任务；任一未执行任务单独显示。</div></details>
+          <details class="acceptance searchable" open><summary><span class="req-id">AT01</span><strong>查询覆盖</strong><span class="chev"></span></summary><div class="req-body">当前默认9品牌＋8主题生成17条基础查询、34个双路任务；配置变化后必须按当次启用查询动态生成双路任务，任一未执行任务单独显示。</div></details>
           <details class="acceptance searchable" open><summary><span class="req-id">AT02</span><strong>搜索结果不得判为热点</strong><span class="chev"></span></summary><div class="req-body">仅有公开搜索标题、摘要和URL时，必须为 <code>hotspot_status=unknown</code>，并列出缺少原生指标、连续快照或覆盖信息。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT03</span><strong>存疑车型随事件审核</strong><span class="chev"></span></summary><div class="req-body">疑似新车型无法确认时，保留原文和证据、写明原因、事件进人工复核；不得新增全局车型主数据。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT04</span><strong>弱别名误匹配</strong><span class="chev"></span></summary><div class="req-body">普通语义“东风”且无汽车上下文时，不得匹配东风汽车品牌。</div></details>
@@ -2122,12 +2134,13 @@
           <details class="acceptance searchable"><summary><span class="req-id">AT16</span><strong>原创发布登记前置校验</strong><span class="chev"></span></summary><div class="req-body">只有已审批原创增长草案可登记实际发布结果；URL有效且不重复，并保留平台、内容ID、发布时间和登记来源。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT17</span><strong>原创后效增量可追溯</strong><span class="chev"></span></summary><div class="req-body">至少两个同一内容、同口径快照后才允许判断；展示首个、最新快照和逐指标增量，异常数据不得自动生成加热草案。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT18</span><strong>原创后二次加热独立审批</strong><span class="chev"></span></summary><div class="req-body">草案使用 <code>draft_purpose=original_post_boost</code>，绑定实际发布记录与触发判断；不得与热点源内容加热共用目标字段，未经审批不得创建正式作业。</div></details>
-          <details class="acceptance searchable"><summary><span class="req-id">AT19</span><strong>双工具实际执行</strong><span class="chev"></span></summary><div class="req-body">完整运行生成34个任务，快速验证生成2个任务；豆包或Codex任一路失败时批次显示部分成功并保留另一工具结果。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT19</span><strong>双工具实际执行</strong><span class="chev"></span></summary><div class="req-body">完整运行按启用查询数生成双路任务，当前默认34个；快速验证生成2个任务。豆包或Codex任一路失败时批次显示部分成功并保留另一工具结果。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT20</span><strong>搜索来源与时间可追溯</strong><span class="chev"></span></summary><div class="req-body">同一URL只建一个来源对象，但豆包／Codex、查询词、搜索获取时间和返回顺序均保留；工作台支持按搜索时间和发布时间筛选。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT21</span><strong>定向补证先确认</strong><span class="chev"></span></summary><div class="req-body">方案预览展示待解决问题、搜索词、工具与预计调用数；未确认不执行搜索，执行完成后事件回到待审核。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT22</span><strong>审核结果与行动解耦</strong><span class="chev"></span></summary><div class="req-body">事件最终审核只有通过／驳回；通过后选择事实结论和至少一个行动方向，事实结论本身不得自动生成草案。</div></details>
           <details class="acceptance searchable"><summary><span class="req-id">AT23</span><strong>完整作业要求草案</strong><span class="chev"></span></summary><div class="req-body">原创草案包含作业详情、话题、核心命题、证据、分平台指引、创作方向和规则边界；无法核验的话题不得臆造。</div></details>
-          <details class="acceptance searchable"><summary><span class="req-id">AT24</span><strong>冷却、暂停与分页</strong><span class="chev"></span></summary><div class="req-body">自动采集保持暂停；完整运行3小时、快速验证10分钟内重复触发由服务端拒绝；所有业务列表按服务端分页。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT24</span><strong>运行计划、冷却与分页</strong><span class="chev"></span></summary><div class="req-body">自动采集默认停止；仅管理员可设置1—168小时周期并启停，配置持久化且服务重启后有效。手工运行与定时运行共用运行锁；完整运行3小时、快速验证10分钟内重复触发由服务端拒绝；所有业务列表按服务端分页。</div></details>
+          <details class="acceptance searchable"><summary><span class="req-id">AT25</span><strong>访问密钥与手机端</strong><span class="chev"></span></summary><div class="req-body">访客密钥可由管理员二次验证后再次查看和复制，数据库保存加盐哈希及服务器主密钥加密密文，不保存可直接读取的明文；访客看不到密钥管理且所有写接口返回403，撤销后会话失效。390px手机视口可通过抽屉导航访问页面；事件列表点击后进入独立详情，详情可自然滚动到底并返回列表，无页面级横向溢出或嵌套滚动。</div></details>
         </div>
       </section>
 

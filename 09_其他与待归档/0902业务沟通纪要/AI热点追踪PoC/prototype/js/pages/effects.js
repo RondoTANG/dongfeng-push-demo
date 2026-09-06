@@ -1,11 +1,14 @@
 (function () {
   'use strict';
 
-  var state = { publications: [], approvedDrafts: [], selected: null, loading: true, error: null, status: '', page: 1, pageSize: 20, total: 0 };
+  var state = { publications: [], approvedDrafts: [], selected: null, loading: true, error: null, status: '', page: 1, pageSize: 20, total: 0, mobileView: 'list', mobileListScrollTop: 0 };
   var platformNames = { weibo: '微博', douyin: '抖音', wechat_official_account: '公众号', wechat_channels: '视频号', toutiao: '今日头条', xiaohongshu: '小红书', bilibili: 'B站', autohome: '汽车之家', dongchedi: '懂车帝' };
   var metricNames = { view_count: '播放／阅读', like_count: '点赞', comment_count: '评论', share_count: '转发', favorite_count: '收藏' };
   var decisionNames = { create_followup_boost: '生成二次加热草案', watch: '继续观察', no_boost: '无需加热', manual_review: '数据人工核验' };
   var statusNames = { tracking: '追踪中', manual_review: '待核验', boost_draft_created: '已生成加热草案', closed: '已结束' };
+
+  function isMobile() { return window.matchMedia('(max-width: 760px)').matches; }
+  function scrollRoot() { return document.getElementById('app'); }
 
   function renderSummary() {
     var count = function (status) { return state.publications.filter(function (item) { return item.tracking_status === status; }).length; };
@@ -26,7 +29,7 @@
         return '<button class="effect-list__item' + (state.selected && state.selected.publication_id === item.publication_id ? ' is-active' : '') + '" data-select-publication="' + item.publication_id + '">' +
           '<span class="event-queue__title">' + AppCommon.escapeHtml(item.content_title || (item.original_draft || {}).task_title || '未命名原创内容') + '</span>' +
           '<span class="event-queue__meta"><span>' + AppCommon.escapeHtml(platformNames[item.platform] || item.platform) + '</span>' + AppCommon.statusTag(item.tracking_status) + '</span>' +
-          '<span class="event-queue__heat">' + (item.snapshots || []).length + ' 个指标快照 · ' + AppCommon.escapeHtml(item.latest_evaluation ? decisionNames[item.latest_evaluation.decision] : '尚未判断') + '</span></button>';
+          '<span class="event-queue__heat">' + (item.snapshots || []).length + ' 个指标快照 · ' + AppCommon.escapeHtml(item.latest_evaluation ? decisionNames[item.latest_evaluation.decision] : '尚未判断') + '</span><span class="effect-list__chevron" aria-hidden="true">›</span></button>';
       }).join('') : '<div class="empty-state compact"><span>当前筛选下暂无原创发布记录</span></div>') + '</div>' + DataTable.pagination(state.page, state.pageSize, state.total, 'data-effect-page') + '</aside>';
   }
 
@@ -61,7 +64,7 @@
     if (!publication) return '<section class="effect-detail"><div class="empty-state"><strong>登记原创发布结果</strong><span>从已审批原创增长草案回填实际发布链接，开始后效数据追踪。</span><button class="btn btn-primary" data-create-publication>登记发布结果</button></div></section>';
     var draft = publication.original_draft || {};
     var event = publication.event || {};
-    return '<section class="effect-detail" data-anno="original-effect-loop"><header class="event-detail-head"><div><div class="event-kicker"><span class="mono">' + publication.publication_id + '</span>' + AppCommon.statusTag(publication.tracking_status) + '</div><h2>' + AppCommon.escapeHtml(publication.content_title || draft.task_title || '未命名原创内容') + '</h2><div class="tag-row"><span class="mini-tag">' + AppCommon.escapeHtml(platformNames[publication.platform] || publication.platform) + '</span><span class="mini-tag">发布：' + AppCommon.formatTime(publication.published_at) + '</span></div></div><div class="page-head__actions"><button class="btn" data-create-publication>登记另一条</button><button class="btn" data-add-snapshot>录入指标快照</button><button class="btn btn-primary" data-evaluate-publication>后效判断</button></div></header>' +
+    return '<section class="effect-detail" data-anno="original-effect-loop"><div class="mobile-effect-detail-nav"><button class="btn btn-text" type="button" data-mobile-effect-back><span aria-hidden="true">←</span> 返回发布列表</button><span>后效详情</span></div><header class="event-detail-head"><div><div class="event-kicker"><span class="mono">' + publication.publication_id + '</span>' + AppCommon.statusTag(publication.tracking_status) + '</div><h2>' + AppCommon.escapeHtml(publication.content_title || draft.task_title || '未命名原创内容') + '</h2><div class="tag-row"><span class="mini-tag">' + AppCommon.escapeHtml(platformNames[publication.platform] || publication.platform) + '</span><span class="mini-tag">发布：' + AppCommon.formatTime(publication.published_at) + '</span></div></div><div class="page-head__actions"><button class="btn" data-create-publication>登记另一条</button><button class="btn" data-add-snapshot>录入指标快照</button><button class="btn btn-primary" data-evaluate-publication>后效判断</button></div></header>' +
       '<div class="effect-origin"><div><span>关联事件</span><strong>' + AppCommon.escapeHtml(event.event_title || publication.event_id) + '</strong></div><div><span>来源原创草案</span><strong>' + AppCommon.escapeHtml(draft.task_title || publication.original_draft_id) + '</strong></div><div><span>原创链接</span><a href="' + AppCommon.escapeHtml(publication.content_url) + '" target="_blank" rel="noopener">' + AppCommon.escapeHtml(publication.content_url) + '</a></div></div>' +
       '<div class="effect-boundary"><strong>这是原创增长的主闭环：只追踪已发布原创内容</strong><span>热点关联内容直接加热是额外支路，绑定事件中的外部文章或视频；两者目标内容、触发条件和草案类型互不替代。</span></div>' +
       '<section class="detail-section"><h3>后效指标快照</h3>' + renderSnapshots(publication) + '</section>' +
@@ -71,14 +74,18 @@
   function renderContent() {
     if (state.loading) return '<div class="page-loading"><span class="spinner"></span>正在加载原创后效记录</div>';
     if (state.error) return UI.errorState(state.error, true);
-    return renderSummary() + '<div class="effect-workspace">' + renderList() + renderDetail() + '</div>';
+    return '<div class="effect-summary-shell">' + renderSummary() + '</div><div class="effect-workspace' + (state.mobileView === 'detail' ? ' is-mobile-detail' : ' is-mobile-list') + '">' + renderList() + renderDetail() + '</div>';
   }
 
   function render() {
-    return '<section class="page page-wide">' + Layout.pageHead('原创后效追踪', '原创增长主闭环：发布后回收链接与指标快照，判断是否需要追加加热', '<button class="btn btn-primary" data-create-publication>登记原创发布结果</button>') + '<div id="effects-content">' + renderContent() + '</div></section>';
+    return '<section class="page page-wide effect-review-page">' + Layout.pageHead('原创后效追踪', '原创增长主闭环：发布后回收链接与指标快照，判断是否需要追加加热', '<button class="btn btn-primary" data-create-publication>登记原创发布结果</button>') + '<div id="effects-content">' + renderContent() + '</div></section>';
   }
 
-  function update() { var root = document.getElementById('effects-content'); if (root) root.innerHTML = renderContent(); }
+  function update() {
+    var root = document.getElementById('effects-content'); if (root) root.innerHTML = renderContent();
+    var page = document.querySelector('.effect-review-page');
+    if (page) page.classList.toggle('is-showing-mobile-detail', isMobile() && state.mobileView === 'detail');
+  }
 
   async function load(preferredId) {
     state.loading = true; state.error = null; update();
@@ -88,13 +95,28 @@
       state.publications = results[0].items; state.total = results[0].total || 0; state.approvedDrafts = results[1].items;
       var id = preferredId || (state.publications[0] && state.publications[0].publication_id);
       state.selected = id ? await AppCommon.api('/api/publications/' + id) : null;
+      if (isMobile() && preferredId) state.mobileView = 'detail';
     } catch (error) { state.error = error.message; }
     state.loading = false; update();
+    if (isMobile() && state.mobileView === 'detail') requestAnimationFrame(function () { var root = scrollRoot(); if (root) root.scrollTop = 0; });
   }
 
   async function selectPublication(id) {
-    try { state.selected = await AppCommon.api('/api/publications/' + id); update(); }
+    try {
+      var root = scrollRoot();
+      if (isMobile() && root) state.mobileListScrollTop = root.scrollTop;
+      state.selected = await AppCommon.api('/api/publications/' + id);
+      if (isMobile()) state.mobileView = 'detail';
+      update();
+      if (isMobile()) requestAnimationFrame(function () { var target = scrollRoot(); if (target) target.scrollTop = 0; });
+    }
     catch (error) { AppCommon.showToast(error.message, 'error'); }
+  }
+
+  function showMobileList() {
+    state.mobileView = 'list';
+    update();
+    requestAnimationFrame(function () { var root = scrollRoot(); if (root) root.scrollTop = state.mobileListScrollTop; });
   }
 
   function localDateTimeValue(date) {
@@ -155,15 +177,16 @@
     var page = document.getElementById('app');
     page.onclick = function (event) {
       var item = event.target.closest('[data-select-publication]'); if (item) return selectPublication(item.dataset.selectPublication);
+      if (event.target.closest('[data-mobile-effect-back]')) return showMobileList();
       if (event.target.closest('[data-create-publication]')) return openCreatePublication();
       if (event.target.closest('[data-add-snapshot]')) return openSnapshot();
       if (event.target.closest('[data-evaluate-publication]')) return openEvaluation();
       if (event.target.closest('[data-retry-action]')) return load();
       var draftButton = event.target.closest('[data-open-followup-draft]'); if (draftButton) { window.AppContext = { draftId: draftButton.dataset.openFollowupDraft }; return App.navigate('drafts'); }
-      var pageButton = event.target.closest('[data-effect-page]'); if (pageButton) { state.page += pageButton.dataset.effectPage === 'next' ? 1 : -1; return load(); }
+      var pageButton = event.target.closest('[data-effect-page]'); if (pageButton) { state.page += pageButton.dataset.effectPage === 'next' ? 1 : -1; state.mobileView = 'list'; return load(); }
     };
-    page.onchange = function (event) { if (event.target.matches('[data-effect-status-filter]')) { state.status = event.target.value; state.page = 1; load(); } };
+    page.onchange = function (event) { if (event.target.matches('[data-effect-status-filter]')) { state.status = event.target.value; state.page = 1; state.mobileView = 'list'; load(); } };
   }
 
-  window.Pages.effects = { render: render, init: function () { bind(); load(); } };
+  window.Pages.effects = { render: render, init: function () { state.mobileView = 'list'; state.mobileListScrollTop = 0; bind(); load(); } };
 })();

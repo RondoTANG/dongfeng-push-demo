@@ -34,7 +34,7 @@ python3 scripts/run_collection.py --mode full --trigger-type manual
 
 - Codex 使用本机已登录 CLI，不需要在项目中配置 API Key。
 - 豆包与 Codex 都是公开搜索手段，只能形成线索和补证，不直接判定真实热点。
-- 自动每3小时采集默认暂停；启动 FastAPI 不会产生搜索调用。
+- 不配置定时采集；启动 FastAPI 和访客浏览不会产生搜索调用，只有管理员可手工确认执行。
 - MCP 是未来与业务系统联动的一种可选方案；当前本地 PoC 直接通过 SQLite／HTTP 契约交换数据，不依赖 MCP。
 
 ## 语法与服务校验

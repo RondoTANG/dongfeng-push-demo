@@ -1,10 +1,16 @@
 # 验证记录
 
+- 2026-09-06 H5对象操作与服务器发布准备：34项单测通过，包含内置豆包解析器、外置数据目录、Fernet主密钥迁移及部署文件检查；`ui_access_control.py`在390×844浏览器验证事件和草案列表／详情分屏、详情完整滚动、底部安全区操作栏及访问权限；`ui_smoke.py`逐页检查8个手机端菜单无整页横向溢出，并实测运行确认、线索详情、配置版本和访问密钥4类抽屉的提交／关闭区位于底部。AI职责只读回归、配置校验、JavaScript语法、健康检查和`git diff --check`通过。原创后效页同步使用列表／独立详情及同一底部操作规则。未执行搜索、未修改业务审批数据、未部署服务器。
+
+- 2026-09-06密钥可恢复与H5事件分屏：31项服务单测通过；`python3 tests/ui_access_control.py`在390×844真实浏览器验证访客密钥生成、管理员二次验证后重新查看、访客权限隔离、事件列表与独立详情切换、详情自然滚动到底和返回列表；`ui_smoke.py`、`ui_ai_responsibility.py`通过。未调用豆包／Codex，未改变采集和业务审核数据。
+
 > 记录每步验证和全局验证结果。失败项必须能追溯到具体步骤或需求。
 
 ## 最新状态
 
-- 2026-09-06执行分工文档：python3 tests/ui_ai_responsibility.py通过，流程图与PRD各1440／1280／768宽度无整页横滚，11行分工及8节点存在，未接通AI标识清晰；搜索、桌面折叠和打印样式通过，0脚本错误、0业务写入。截图位于tests/screenshots/ai-responsibility/。首次窄屏点击隐藏桌面按钮导致测试超时，调整至桌面尺寸后复测通过。仅验证文档，不代表AI服务实现已完成。
+- 2026-09-06访问控制与手机端：配置校验通过；`python3 -m unittest tests.test_project_layout tests.test_poc_services -q`共31项通过；4个新增／修改JavaScript文件语法检查通过；`python3 tests/ui_access_control.py`真实验证管理员生成访客密钥、访客菜单隔离、访客运行接口403、密钥管理接口403、撤销后会话401及390×844手机抽屉导航。页面宽度无整页横向溢出。管理员本地密钥文件权限为0600；测试访客密钥及对应审计记录已清理。未调用豆包／Codex、未审批、未改变业务批次、未发布线上。
+
+- 2026-09-06执行分工文档：python3 tests/ui_ai_responsibility.py通过，流程图与PRD各1440／1280／768宽度无整页横滚，11行分工及9节点存在；新增访问鉴权节点，未接通AI标识清晰；搜索、桌面折叠和打印样式通过，0脚本错误、0业务写入。截图位于tests/screenshots/ai-responsibility/。仅验证文档，不代表AI服务实现已完成。
 
 - 2026-09-06关联证据去重展示、草案文字层级及目录整理：29项服务／结构测试通过；真实线索同段证据归为一组，保留两个关联品牌；现有1份真实草案四章节分层、编辑原文不变。配置校验在任意工作目录通过，重启服务后7页加载正常。没有清库、采集、审批或改写用户草案。
 
@@ -324,3 +330,15 @@ Evidence: `service/source_time.py`识别08-20正文头部日期并优先于供�
 Failed: 初次截图回归发现滚动仍触发空标注按钮，已在render入口增加保护并重测通过。首次流程测试因SPA异步加载及测试未关闭抽屉失败，改为等待实际控件并关闭抽屉后通过。
 Result: pass
 Next Action: 自动采集维持PAUSED，等待用户审核新线索与事件；不自动审批或下发。本地PRD已同步时间过滤与中文风险配置，本轮未发布线上PRD。
+Date: 2026-09-06T18:20:00+08:00
+Step: configurable-collection-and-admin-config
+Scope: service-ui-config-deployment
+Local URL / File: http://127.0.0.1:8765/#page=config 、 http://127.0.0.1:8765/#page=run-center
+Tool: unittest＋配置校验＋FastAPI API回归＋JavaScript/Python语法检查
+Command / Check: 管理员修改1—168小时周期并启停；验证服务重启不立即运行；品牌、查询、来源平台和域名规则增删改及重复ID／引用保护；动态查询数；发布包自包含检查
+Passed: 自动采集默认停止，开启／修改后首次执行在完整周期后，停止清空下次运行时间；运行配置持久化；定时与手工完整运行共用3小时冷却，短周期到期时顺延；四类配置CRUD写回同一份生效YAML并重新加载；启用品牌查询必须引用启用品牌，被引用品牌／平台禁止删除；39项单测、validate_config、Python编译及业务JavaScript语法检查通过
+Failed: 服务器部署未完成；本机SSH私钥`~/.ssh/id_ed25519`当前未加载，目标服务器返回publickey拒绝。阿里云控制台需要重新登录，未绕过登录或扩大访问方式
+Evidence: `service/automation.py`、`service/config_admin.py`、`tests/test_config_management.py`、`deployment/deploy_from_mac.sh`；`/api/automation/config`与`/api/config/{brands,queries,platforms,domains}`
+Result: partial_pass
+Consecutive Failures: 1
+Next Action: 用户回到Mac后解锁SSH私钥，随后执行自动发布脚本，配置服务器Codex登录与Cloudflare Tunnel，并验证公网登录、权限和手机端页面

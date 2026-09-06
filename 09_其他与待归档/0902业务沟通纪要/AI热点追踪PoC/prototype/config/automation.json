@@ -1,9 +1,11 @@
 {
   "enabled": false,
-  "schedule": "已暂停；如恢复则每3小时",
+  "interval_hours": 3,
+  "schedule": "自动采集可由管理员开启；当前为停止状态",
   "mode": "full",
   "automation_id": "poc",
-  "actor_id": "codex-local-automation",
-  "scope": "当前仅允许人工发起双路采集；定向补证必须预览方案并确认后执行",
-  "updated_at": "2026-09-05T10:15:00+08:00"
+  "actor_id": "server-scheduler",
+  "scope": "管理员可配置1—168小时采集周期并随时停止；手工运行和定向补证仍保留独立确认",
+  "next_run_at": null,
+  "updated_at": "2026-09-06T18:00:00+08:00"
 }

@@ -55,7 +55,7 @@
 按以下覆盖项生成，不得增加范围外页面：
 
 1. 运行中心数据概览：`[data-anno="run-center-metrics"]`；引用 SRC-003、SRC-004、SRC-009、SRC-010，FLD-001—FLD-010。
-2. 本地三小时自动化：`[data-anno="local-automation"]`；引用 SRC-001、SRC-009、SRC-013，FLD-002、FLD-005、FLD-007。必须说明不依赖MCP，且不自动生成／审批草案。
+2. 管理员手工采集：`[data-anno="local-automation"]`；引用 SRC-001、SRC-009、SRC-013，FLD-002、FLD-005、FLD-007。必须说明不启用定时采集、不依赖MCP，且不自动生成／审批草案。
 3. 运行批次列表：`[data-anno="run-center-batches"]`；引用 SRC-003、SRC-009，FLD-001—FLD-010。
 4. 信息线索工作台：`[data-anno="clues-workbench"]`；引用 SRC-003、SRC-006、SRC-007、SRC-010，FLD-011—FLD-021。
 5. 事件证据与审核：`[data-anno="event-evidence-review"]`；引用 SRC-003、SRC-005、SRC-007、SRC-013，FLD-022—FLD-039。必须说明 `hotspot_status=unknown` 的具体原因和新实体存疑处理。

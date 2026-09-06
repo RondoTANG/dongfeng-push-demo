@@ -6,8 +6,13 @@ execution:
   full_coverage_each_run: true
   cost_limit_enabled: false
   manual_trigger_enabled: true
-  scheduled_trigger_enabled: false
-  scheduled_cron: null
+  scheduled_trigger_supported: true
+  scheduled_trigger_default_enabled: false
+  scheduled_interval_hours:
+    default: 3
+    min: 1
+    max: 168
+  scheduled_runtime_config_ref: "prototype/data/automation.json（服务器部署后位于外置数据目录）"
   lookback_hours: 24
   late_signal_hours: 72
   base_providers:
@@ -21,13 +26,10 @@ execution:
   provider_failure_policy: "记录失败并继续其他采集器；不得把未执行视为无结果"
   provider_job_counts:
     full:
-      query_count: 17
-      provider_count: 2
-      planned_job_count: 34
+      calculation: "当前启用查询数 × 当前启用采集器数"
     quick:
       query_count: 1
-      provider_count: 2
-      planned_job_count: 2
+      calculation: "1 × 当前启用采集器数"
   manual_cooldown:
     full_seconds: 10800
     quick_seconds: 600
@@ -40,8 +42,7 @@ execution:
       - provider_count
       - planned_job_count
       - providers
-  schedule_state: paused
-  schedule_note: "自动采集暂停；仅保留手工完整运行、快速验证和确认后的定向补证"
+  schedule_note: "默认停止；管理员可在运行中心设置1—168小时周期并启停。首次开启后等待一个完整周期再执行，不在服务启动时立即收费调用"
 
 brand_queries:
   - query_id: B01
@@ -117,7 +118,7 @@ topic_queries:
 
 industry_brand_relation:
   enabled: true
-  trigger: "所有结果通过基础清洗后，使用标题与正文核对9个启用品牌，再进入业务工作台"
+  trigger: "所有结果通过基础清洗后，使用标题与正文核对当前全部启用品牌，再进入业务工作台"
   execution_mode: local_evidence_first
   automatic_paid_expansion: false
   expansion_requirement: "仅明确存疑问题并人工确认时定向补证，不默认执行全品牌收费查询"

@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI 热点线索与作业草案｜东风护卫军</title>
   <link rel="stylesheet" href="assets/css/global.css?v=20260905-fix2">
-  <link rel="stylesheet" href="assets/css/app.css?v=20260905-fix2">
+  <link rel="stylesheet" href="assets/css/app.css?v=20260906-config1">
   <link rel="stylesheet" href="annotations/annotation.css?v=20260905-fix2">
 </head>
 <body>
-  <div class="app-layout">
+  <div id="auth-gate" hidden></div>
+  <div id="app-shell" class="app-layout" hidden>
     <aside class="app-sidebar" data-anno="shell-nav">
       <div class="brand-block">
         <span class="brand-mark">DF</span>
@@ -30,6 +31,7 @@
 
     <section class="app-workspace">
       <header class="app-topbar">
+        <button class="mobile-nav-toggle" type="button" aria-label="打开导航" data-mobile-nav-toggle><span></span><span></span><span></span></button>
         <div id="breadcrumbs" class="breadcrumbs">
           <span>AI 热点线索</span><i>／</i><strong>运行中心</strong>
         </div>
@@ -39,10 +41,11 @@
             <span class="service-status__text">正在检查本地服务</span>
           </div>
           <span class="topbar-divider"></span>
-          <div class="operator-chip" title="当前 PoC 为本地单用户">
+          <div class="operator-chip">
             <span class="operator-avatar">运</span>
-            <div><strong>运营审核</strong><span>本地 PoC</span></div>
+            <div><strong data-operator-name>运营审核</strong><span data-operator-role>系统管理员</span></div>
           </div>
+          <button class="btn btn-sm logout-button" type="button" data-logout>退出</button>
         </div>
       </header>
 
@@ -51,12 +54,14 @@
       </main>
     </section>
   </div>
+  <button id="mobile-nav-backdrop" class="mobile-nav-backdrop" type="button" aria-label="关闭导航"></button>
 
   <div id="toast-root" class="toast-root" aria-live="assertive"></div>
   <div id="overlay-root"></div>
 
   <script src="mock/data.js?v=20260905-fix2"></script>
   <script src="js/common.js?v=20260905-fix2"></script>
+  <script src="js/auth.js?v=20260906-config1"></script>
   <script src="js/components/layout.js?v=20260905-fix2"></script>
   <script src="js/components/ui.js?v=20260905-fix2"></script>
   <script src="js/components/filters.js?v=20260905-fix2"></script>
@@ -64,13 +69,14 @@
   <script src="js/components/evidence-timeline.js?v=20260905-fix2"></script>
   <script src="js/components/review-drawer.js?v=20260905-fix2"></script>
   <script src="js/app.js?v=20260905-fix2"></script>
-  <script src="js/pages/run-center.js?v=20260905-fix2"></script>
+  <script src="js/pages/run-center.js?v=20260906-config1"></script>
   <script src="js/pages/clues.js?v=20260905-fix2"></script>
-  <script src="js/pages/event-detail.js?v=20260905-fix2"></script>
-  <script src="js/pages/drafts.js?v=20260905-fix2"></script>
-  <script src="js/pages/effects.js?v=20260905-fix2"></script>
-  <script src="js/pages/config.js?v=20260905-fix2"></script>
+  <script src="js/pages/event-detail.js?v=20260906-h5key1"></script>
+  <script src="js/pages/drafts.js?v=20260906-h5actions1"></script>
+  <script src="js/pages/effects.js?v=20260906-h5actions1"></script>
+  <script src="js/pages/config.js?v=20260906-config1"></script>
   <script src="js/pages/audit.js?v=20260905-fix2"></script>
+  <script src="js/pages/access-keys.js?v=20260906-h5key1"></script>
   <script src="js/nav.js?v=20260905-fix2"></script>
   <script>
     window.AnnotationConfig = {

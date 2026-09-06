@@ -69,8 +69,8 @@ def main() -> int:
     brand_ids = [item.get("brand_id") for item in brands]
     ensure_unique(brand_ids, "brand_id", errors)
     ensure_unique([item.get("canonical_name") for item in brands], "品牌标准名", errors)
-    if len(active_brands) != 9:
-        errors.append(f"active品牌必须为9个，实际为{len(active_brands)}个")
+    if not active_brands:
+        errors.append("至少需要一个active品牌")
 
     alias_owners: dict[str, set[str]] = {}
     for brand in active_brands:
@@ -82,18 +82,13 @@ def main() -> int:
 
     brand_queries = [item for item in query.get("brand_queries", []) if item.get("enabled")]
     query_brand_ids = {item.get("brand_id") for item in brand_queries}
-    if query_brand_ids != active_brand_ids:
-        errors.append(
-            "品牌查询未完整覆盖active品牌: "
-            f"缺失={sorted(active_brand_ids - query_brand_ids)}, "
-            f"多余={sorted(query_brand_ids - active_brand_ids)}"
-        )
-    if len(brand_queries) != 9:
-        errors.append(f"启用品牌查询必须为9条，实际为{len(brand_queries)}条")
+    unknown_query_brands = query_brand_ids - active_brand_ids
+    if unknown_query_brands:
+        errors.append(f"启用品牌查询引用了未启用或不存在的品牌: {sorted(unknown_query_brands)}")
 
     topic_queries = [item for item in query.get("topic_queries", []) if item.get("enabled")]
-    if len(topic_queries) != 8:
-        errors.append(f"启用行业主题查询必须为8条，实际为{len(topic_queries)}条")
+    if not brand_queries and not topic_queries:
+        errors.append("至少需要一条启用的采集查询")
 
     all_query_ids = [item.get("query_id") for item in brand_queries + topic_queries]
     ensure_unique(all_query_ids, "query_id", errors)

@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var state = { drafts: [], selected: null, loading: true, error: null, status: '', purpose: '', page: 1, pageSize: 20, total: 0 };
+  var state = { drafts: [], selected: null, loading: true, error: null, status: '', purpose: '', page: 1, pageSize: 20, total: 0, mobileView: 'list', mobileListScrollTop: 0 };
   var platformNames = { weibo: '微博', douyin: '抖音', wechat_official_account: '公众号', wechat_channels: '视频号', toutiao: '今日头条', xiaohongshu: '小红书', bilibili: 'B站', autohome: '汽车之家', dongchedi: '懂车帝' };
   var purposeNames = { original_growth: '原创增长', original_post_boost: '原创发布后追加加热', source_content_boost: '热点关联内容直接加热' };
   var actionNames = { like: '点赞', positive_comment: '正向评论', repost: '转发', favorite: '收藏' };
@@ -12,12 +12,15 @@
     bilibili: ['like', 'positive_comment'], autohome: ['like', 'positive_comment'], dongchedi: ['like', 'positive_comment']
   };
 
+  function isMobile() { return window.matchMedia('(max-width: 760px)').matches; }
+  function scrollRoot() { return document.getElementById('app'); }
+
   function renderList() {
     var items = state.drafts.filter(function (item) {
       return (!state.status || item.task_status === state.status) && (!state.purpose || item.draft_purpose === state.purpose);
     });
     return '<aside class="draft-list"><div class="event-queue__head draft-queue-head"><strong>作业草案</strong><select class="form-control" data-draft-purpose-filter><option value="">全部方向</option><option value="original_growth">原创增长</option><option value="original_post_boost">原创发布后追加加热</option><option value="source_content_boost">热点关联内容直接加热</option></select><select class="form-control" data-draft-status-filter><option value="">全部状态</option><option value="draft_pending_review">待审批</option><option value="approved">已通过</option><option value="rejected">已驳回</option></select></div><div class="event-queue__list">' +
-      (items.length ? items.map(function (draft) { return '<button class="draft-list__item' + (state.selected && state.selected.task_draft_id === draft.task_draft_id ? ' is-active' : '') + '" data-select-draft="' + draft.task_draft_id + '"><span class="event-queue__title">' + AppCommon.escapeHtml(draft.task_title) + '</span><span class="event-queue__meta"><span class="draft-purpose">' + AppCommon.escapeHtml(purposeNames[draft.draft_purpose] || draft.draft_purpose) + '</span>' + AppCommon.statusTag(draft.task_status) + '</span><span class="event-queue__heat">' + AppCommon.escapeHtml((draft.recommended_platforms || []).map(function (item) { return platformNames[item] || item; }).join('、') || '平台待运营确认') + '</span></button>'; }).join('') : '<div class="empty-state compact"><span>当前筛选下暂无草案</span></div>') + '</div>' + DataTable.pagination(state.page, state.pageSize, state.total, 'data-draft-page') + '</aside>';
+      (items.length ? items.map(function (draft) { return '<button class="draft-list__item' + (state.selected && state.selected.task_draft_id === draft.task_draft_id ? ' is-active' : '') + '" data-select-draft="' + draft.task_draft_id + '"><span class="event-queue__title">' + AppCommon.escapeHtml(draft.task_title) + '</span><span class="event-queue__meta"><span class="draft-purpose">' + AppCommon.escapeHtml(purposeNames[draft.draft_purpose] || draft.draft_purpose) + '</span>' + AppCommon.statusTag(draft.task_status) + '</span><span class="event-queue__heat">建议平台：' + AppCommon.escapeHtml((draft.recommended_platforms || []).map(function (item) { return platformNames[item] || item; }).join('、') || '待运营确认') + '</span><span class="draft-list__chevron" aria-hidden="true">›</span></button>'; }).join('') : '<div class="empty-state compact"><span>当前筛选下暂无草案</span></div>') + '</div>' + DataTable.pagination(state.page, state.pageSize, state.total, 'data-draft-page') + '</aside>';
   }
 
   function listBlock(title, items, emptyText) {
@@ -32,7 +35,9 @@
     var isBoost = draft.draft_purpose === 'source_content_boost' || draft.draft_purpose === 'original_post_boost';
     var targetLabel = draft.draft_purpose === 'original_post_boost' ? '已发布原创内容' : '热点源文章／视频';
     var targetContent = isBoost ? '<div class="target-content"><span>' + targetLabel + '</span><strong>' + AppCommon.escapeHtml(draft.target_content_title || '未命名内容') + '</strong><a href="' + AppCommon.escapeHtml(draft.target_url || '#') + '" target="_blank" rel="noopener">' + AppCommon.escapeHtml(draft.target_url || '缺少目标链接') + '</a></div>' : '';
-    return '<section class="draft-detail" data-anno="draft-approval-workbench"><header class="event-detail-head"><div><div class="event-kicker"><span class="mono">' + draft.task_draft_id + '</span><span class="draft-purpose">' + AppCommon.escapeHtml(purposeNames[draft.draft_purpose] || draft.draft_purpose) + '</span>' + AppCommon.statusTag(draft.task_status) + '</div><h2>' + AppCommon.escapeHtml(draft.task_title) + '</h2><div class="tag-row">' + (draft.recommended_platforms || []).map(function (item) { return '<span class="mini-tag">' + AppCommon.escapeHtml(platformNames[item] || item) + '</span>'; }).join('') + '</div></div><div class="page-head__actions">' + (canEdit ? '<button class="btn" data-edit-draft>编辑草案</button><button class="btn btn-primary" data-review-draft>审批草案</button>' : '') + '</div></header>' +
+    return '<section class="draft-detail" data-anno="draft-approval-workbench">' +
+      '<div class="mobile-draft-detail-nav"><button class="btn btn-text" type="button" data-mobile-draft-back><span aria-hidden="true">←</span> 返回草案列表</button><span>草案详情</span></div>' +
+      '<header class="event-detail-head"><div><div class="event-kicker"><span class="mono">' + draft.task_draft_id + '</span><span class="draft-purpose">' + AppCommon.escapeHtml(purposeNames[draft.draft_purpose] || draft.draft_purpose) + '</span>' + AppCommon.statusTag(draft.task_status) + '</div><h2>' + AppCommon.escapeHtml(draft.task_title) + '</h2><div class="tag-row">' + (draft.recommended_platforms || []).map(function (item) { return '<span class="mini-tag">' + AppCommon.escapeHtml(platformNames[item] || item) + '</span>'; }).join('') + '</div></div><div class="page-head__actions">' + (canEdit ? '<button class="btn" data-edit-draft>编辑草案</button><button class="btn btn-primary" data-review-draft>审批草案</button>' : '') + '</div></header>' +
       '<div class="draft-scope"><strong>草案通过 ≠ 自动执行</strong><span>原创增长通过后可登记实际发布链接并进入后效追踪；任何加热草案仍需单独审批，系统不自动执行点赞或评论。</span></div>' +
       '<div class="draft-content"><section>' + targetContent + '<h3>任务简述</h3><div class="draft-brief">' + AppCommon.renderTaskBrief(draft.task_brief) + '</div><h3>事件依据</h3><div class="event-reference"><strong>' + AppCommon.escapeHtml(event.event_title || draft.event_id) + '</strong><span>热点状态：不可判定</span><button class="btn btn-text btn-sm" data-open-draft-event="' + draft.event_id + '">查看事件证据</button></div></section><aside>' +
       (isBoost ? listBlock('互动动作', (draft.engagement_actions || []).map(function (item) { return actionNames[item] || item; }), '待运营选择') : '') +
@@ -47,11 +52,11 @@
   function renderContent() {
     if (state.loading) return '<div class="page-loading"><span class="spinner"></span>正在加载作业草案</div>';
     if (state.error) return UI.errorState(state.error, true);
-    return '<div class="draft-workspace">' + renderList() + renderDetail() + '</div>';
+    return '<div class="draft-workspace' + (state.mobileView === 'detail' ? ' is-mobile-detail' : ' is-mobile-list') + '">' + renderList() + renderDetail() + '</div>';
   }
 
   function render() {
-    return '<section class="page page-wide">' + Layout.pageHead('作业草案与审批', '先管理原创增长及其发布后追加加热主链；热点关联内容直接加热作为补充支路') + '<div id="drafts-content">' + renderContent() + '</div></section>';
+    return '<section class="page page-wide draft-review-page">' + Layout.pageHead('作业草案与审批', '先管理原创增长及其发布后追加加热主链；热点关联内容直接加热作为补充支路') + '<div id="drafts-content">' + renderContent() + '</div></section>';
   }
 
   async function load(preferredId) {
@@ -60,15 +65,39 @@
       var params = new URLSearchParams({ page: state.page, page_size: state.pageSize });
       if (state.status) params.set('status', state.status); if (state.purpose) params.set('purpose', state.purpose);
       var result = await AppCommon.api('/api/drafts?' + params.toString()); state.drafts = result.items; state.total = result.total || 0;
-      var draftId = preferredId || (window.AppContext && window.AppContext.draftId) || (state.drafts[0] && state.drafts[0].task_draft_id);
+      var contextId = window.AppContext && window.AppContext.draftId;
+      var draftId = preferredId || contextId || (state.drafts[0] && state.drafts[0].task_draft_id);
       state.selected = draftId ? await AppCommon.api('/api/drafts/' + draftId) : null;
+      if (isMobile() && (preferredId || contextId)) state.mobileView = 'detail';
       window.AppContext = null;
     } catch (error) { state.error = error.message; }
     state.loading = false; update();
+    if (isMobile() && state.mobileView === 'detail') requestAnimationFrame(function () { var root = scrollRoot(); if (root) root.scrollTop = 0; });
   }
 
-  async function selectDraft(id) { try { state.selected = await AppCommon.api('/api/drafts/' + id); update(); } catch (error) { AppCommon.showToast(error.message, 'error'); } }
-  function update() { var root = document.getElementById('drafts-content'); if (root) root.innerHTML = renderContent(); }
+  async function selectDraft(id) {
+    try {
+      var root = scrollRoot();
+      if (isMobile() && root) state.mobileListScrollTop = root.scrollTop;
+      state.selected = await AppCommon.api('/api/drafts/' + id);
+      if (isMobile()) state.mobileView = 'detail';
+      update();
+      if (isMobile()) requestAnimationFrame(function () { var target = scrollRoot(); if (target) target.scrollTop = 0; });
+    } catch (error) { AppCommon.showToast(error.message, 'error'); }
+  }
+
+  function showMobileList() {
+    state.mobileView = 'list';
+    update();
+    requestAnimationFrame(function () { var root = scrollRoot(); if (root) root.scrollTop = state.mobileListScrollTop; });
+  }
+
+  function update() {
+    var root = document.getElementById('drafts-content');
+    if (root) root.innerHTML = renderContent();
+    var page = document.querySelector('.draft-review-page');
+    if (page) page.classList.toggle('is-showing-mobile-detail', isMobile() && state.mobileView === 'detail');
+  }
 
   function openEdit() {
     var draft = state.selected;
@@ -111,17 +140,18 @@
     var page = document.getElementById('app');
     page.onclick = function (event) {
       var selectButton = event.target.closest('[data-select-draft]'); if (selectButton) return selectDraft(selectButton.dataset.selectDraft);
+      if (event.target.closest('[data-mobile-draft-back]')) return showMobileList();
       if (event.target.closest('[data-edit-draft]')) return openEdit();
       if (event.target.closest('[data-review-draft]')) return openReview();
       if (event.target.closest('[data-retry-action]')) return load();
       var eventButton = event.target.closest('[data-open-draft-event]'); if (eventButton) { window.AppContext = { eventId: eventButton.dataset.openDraftEvent }; App.navigate('event-detail'); }
-      var pageButton = event.target.closest('[data-draft-page]'); if (pageButton) { state.page += pageButton.dataset.draftPage === 'next' ? 1 : -1; return load(); }
+      var pageButton = event.target.closest('[data-draft-page]'); if (pageButton) { state.page += pageButton.dataset.draftPage === 'next' ? 1 : -1; state.mobileView = 'list'; return load(); }
     };
     page.onchange = function (event) {
-      if (event.target.matches('[data-draft-status-filter]')) { state.status = event.target.value; state.page = 1; load(); }
-      if (event.target.matches('[data-draft-purpose-filter]')) { state.purpose = event.target.value; state.page = 1; load(); }
+      if (event.target.matches('[data-draft-status-filter]')) { state.status = event.target.value; state.page = 1; state.mobileView = 'list'; load(); }
+      if (event.target.matches('[data-draft-purpose-filter]')) { state.purpose = event.target.value; state.page = 1; state.mobileView = 'list'; load(); }
     };
   }
 
-  window.Pages.drafts = { render: render, init: function () { bind(); load(); } };
+  window.Pages.drafts = { render: render, init: function () { state.mobileView = 'list'; state.mobileListScrollTop = 0; bind(); load(); } };
 })();

@@ -113,8 +113,9 @@ def _credential_configured() -> bool:
 def business_config_summary() -> dict[str, Any]:
     configs = load_configs()
     versions = config_versions()
-    brands = active_brands()
-    brand_names = {item.get("brand_id"): item.get("canonical_name") for item in brands}
+    all_brands = configs["brands"].get("brands", [])
+    brands = [item for item in all_brands if item.get("status") == "active"]
+    brand_names = {item.get("brand_id"): item.get("canonical_name") for item in all_brands}
     queries = configs["queries"]
     source_config = configs["sources"]
     processing = configs["processing"]
@@ -137,8 +138,11 @@ def business_config_summary() -> dict[str, Any]:
         for item in queries.get(group_key, []):
             query_items.append({
                 "query_id": item.get("query_id"),
+                "query_group": "brand" if group_key == "brand_queries" else "topic",
                 "group_name": group_name,
                 "query": item.get("query"),
+                "brand_id": item.get("brand_id"),
+                "topic_id": item.get("topic_id"),
                 "brand_name": brand_names.get(item.get("brand_id")),
                 "enabled": item.get("enabled", True),
             })
@@ -177,6 +181,9 @@ def business_config_summary() -> dict[str, Any]:
             "domain": item.get("domain"),
             "site_name": item.get("source_site_name"),
             "platform": item.get("source_platform"),
+            "source_platform": item.get("source_platform"),
+            "publisher_type": item.get("publisher_type"),
+            "related_brand_ids": item.get("related_brand_ids", []),
             "related_brands": [brand_names.get(brand_id, brand_id) for brand_id in item.get("related_brand_ids", [])],
             "status": item.get("status"),
         }
@@ -207,7 +214,7 @@ def business_config_summary() -> dict[str, Any]:
             "deferred": ["正式系统自动下发", "自动执行互动", "生产级全量采集"],
         },
         "brands": {
-            "items": brands,
+            "items": all_brands,
             "rules": [
                 "只有 active 品牌和别名参与确定性匹配",
                 "新车型、人物、活动和机构在事件内动态识别，不要求先建完整主数据",
@@ -221,7 +228,7 @@ def business_config_summary() -> dict[str, Any]:
                 "lookback_hours": queries.get("execution", {}).get("lookback_hours"),
                 "late_signal_hours": queries.get("execution", {}).get("late_signal_hours"),
                 "provider_failure_policy": queries.get("execution", {}).get("provider_failure_policy"),
-                "industry_brand_relation": "所有查询结果先用标题与正文核对9个启用品牌；无关联不进入工作台，存疑单独留因，不自动执行收费补采",
+                "industry_brand_relation": "所有查询结果先用标题与正文核对当前全部启用品牌；无关联不进入工作台，存疑单独留因，不自动执行收费补采",
             },
         },
         "sources": {"providers": providers, "platforms": platforms, "domains": domains},

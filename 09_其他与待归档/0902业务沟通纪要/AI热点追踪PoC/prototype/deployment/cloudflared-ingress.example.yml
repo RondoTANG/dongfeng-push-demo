@@ -1,0 +1,6 @@
+# 把以下 hostname 规则追加到服务器现有 /etc/cloudflared/config.yml 的
+# ingress 列表中，并放在最后一条 http_status:404 之前。
+# tunnel 与 credentials-file 沿用服务器现有值，不复制进本项目。
+
+- hostname: hotspot.dbuddy.uk
+  service: http://127.0.0.1:8765

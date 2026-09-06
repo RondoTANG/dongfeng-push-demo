@@ -15,7 +15,7 @@
     var sourceSummary = latest.step_summary && latest.step_summary.source_processing || {};
     var metrics = '<div class="metrics-grid" data-anno="run-center-metrics">' +
       metric('最近运行', latest.status ? (AppCommon.statusMeta[latest.status] || [latest.status])[0] : '暂无运行', latest.run_id || '等待首次执行', latest.status === 'failed' ? 'tone-red' : '') +
-      metric('双路任务覆盖', String(coverage.executed_job_count || coverage.executed || 0) + ' / ' + String(coverage.planned_job_count || coverage.planned || 0), latest.mode === 'full' ? '17条查询 × 2个搜索工具' : '快速双路验证') +
+      metric('双路任务覆盖', String(coverage.executed_job_count || coverage.executed || 0) + ' / ' + String(coverage.planned_job_count || coverage.planned || 0), latest.mode === 'full' ? String(Math.ceil((coverage.planned_job_count || 0) / 2)) + '条查询 × 2个搜索工具' : '快速双路验证') +
       metric('有效线索', String(sourceSummary.valid || 0), '自动无效 ' + String(sourceSummary.invalid || 0) + ' 条') +
       metric('待处理事件', String(state.events.filter(function (item) { return item.event_status === 'pending_review'; }).length), '搜索事件热点均不可判定') +
       '</div>';
@@ -29,14 +29,15 @@
     ];
     var automation = state.automation || {};
     var automationConfig = automation.config || {};
-    var lastScheduled = automation.last_scheduled_run || {};
-    var automationPanel = '<section class="automation-strip" data-anno="local-automation"><div><span>自动采集</span><strong>' + (automationConfig.enabled ? '已启用 · 每3小时' : '已暂停 · 仅手工运行') + '</strong></div><div><span>最近定时批次</span><strong>' + AppCommon.escapeHtml(lastScheduled.run_id || '暂无') + '</strong></div><div><span>完整运行频控</span><strong>3小时一次</strong></div><div class="automation-strip__note"><strong>双路执行</strong><span>完整运行同时执行豆包17项与Codex 17项；任一来源未执行时不得显示完整成功。</span></div></section>';
+    var lastManual = automation.last_manual_run || {}, lastScheduled = automation.last_scheduled_run || {};
+    var enabledQueries = automation.enabled_query_count || 0;
+    var automationPanel = '<section class="automation-control card" data-anno="local-automation"><div class="automation-control__summary"><div><span>自动采集</span><strong class="' + (automationConfig.enabled ? 'text-positive' : 'text-muted') + '">' + (automationConfig.enabled ? '运行中' : '已停止') + '</strong></div><div><span>采集周期</span><strong>每 ' + (automationConfig.interval_hours || 3) + ' 小时</strong></div><div><span>下次执行</span><strong>' + (automationConfig.next_run_at ? AppCommon.formatTime(automationConfig.next_run_at) : '未安排') + '</strong></div><div><span>最近自动批次</span><strong>' + AppCommon.escapeHtml(lastScheduled.run_id || '暂无') + '</strong></div></div><div class="automation-control__actions"><label>周期（小时）<input class="form-control" type="number" min="1" max="168" value="' + (automationConfig.interval_hours || 3) + '" data-auto-interval></label><button class="btn ' + (automationConfig.enabled ? 'btn-danger' : 'btn-primary') + '" data-toggle-automation="' + (automationConfig.enabled ? 'false' : 'true') + '">' + (automationConfig.enabled ? '停止自动采集' : '开启自动采集') + '</button></div><p>开启后首次执行安排在一个完整周期后；每次执行当前启用的 ' + enabledQueries + ' 条查询，并分别调用豆包和 Codex。修改周期会重新计算下次执行时间；定时与手工完整运行共用3小时冷却，周期短于3小时时会顺延；访客浏览不会触发搜索。</p></section>';
     return metrics + automationPanel + '<section class="card table-card" data-anno="run-center-batches"><div class="card-header"><div><h2>运行批次</h2><span>实际执行记录，不以配置条数代替</span></div><button class="btn btn-sm" data-refresh-runs>刷新</button></div>' +
       DataTable.render(columns, state.runs, { emptyTitle: '还没有运行批次', emptyText: '可发起一次双路快速验证或完整搜索' }) + DataTable.pagination(state.page, state.pageSize, state.total, 'data-run-page') + '</section>';
   }
 
   function render() {
-    var actions = '<button class="btn" data-run-mode="full">完整双路运行（34项）</button>' +
+    var actions = '<button class="btn" data-run-mode="full">完整双路运行</button>' +
       '<button class="btn btn-primary" data-run-mode="quick">快速双路验证（2项）</button>';
     return '<section class="page">' + Layout.pageHead('运行中心', '每个批次记录实际查询、来源处理、失败与配置快照', actions) +
       '<div class="boundary-banner"><strong>公开信息线索 PoC</strong><span>豆包与 Codex 用于发现和补证；没有平台原生指标与连续快照时，不输出真实热点结论。</span></div>' +
@@ -69,7 +70,8 @@
     try {
       await AppCommon.api('/api/runs', { method: 'POST', body: JSON.stringify({ mode: mode, trigger_type: 'manual', idempotency_key: 'ui-' + mode + '-' + Date.now() }) });
       if (drawer) drawer.close();
-      AppCommon.showToast(mode === 'full' ? '完整双路运行已开始：豆包17项＋Codex 17项' : '快速双路验证已开始：豆包1项＋Codex 1项', 'success');
+      var count = state.automation.enabled_query_count || 0;
+      AppCommon.showToast(mode === 'full' ? '完整双路运行已开始：' + count + '条查询 × 2个工具' : '快速双路验证已开始：豆包1项＋Codex 1项', 'success');
       window.setTimeout(load, 1200);
     } catch (error) { AppCommon.showToast(error.message, 'error'); }
     window.setTimeout(function () { button.disabled = false; button.textContent = original; }, 1600);
@@ -81,9 +83,10 @@
       return AppCommon.showToast('仍在冷却期，剩余约 ' + Math.ceil((cooldown.remaining_seconds || 0) / 60) + ' 分钟', 'error');
     }
     var full = mode === 'full';
+    var queryCount = state.automation.enabled_query_count || 0;
     var drawer = UI.openDrawer({
       title: full ? '确认完整双路运行' : '确认快速双路验证',
-      body: '<div class="review-summary"><strong>' + (full ? '17条查询 × 豆包、Codex = 34项' : '1条查询 × 豆包、Codex = 2项') + '</strong><p>豆包为计费搜索；Codex使用本机登录态执行公开网页搜索。本次结果仅作为信息线索，不输出真实热点结论。</p></div><div class="detail-grid"><div><span>豆包预计调用</span><strong>' + (full ? '17次' : '1次') + '</strong></div><div><span>Codex查询任务</span><strong>' + (full ? '17项' : '1项') + '</strong></div><div><span>内容时间范围</span><strong>主要24小时，最迟72小时</strong></div><div><span>再次运行限制</span><strong>' + (full ? '3小时' : '10分钟') + '</strong></div></div>',
+      body: '<div class="review-summary"><strong>' + (full ? queryCount + '条启用查询 × 豆包、Codex = ' + (queryCount * 2) + '项' : '1条查询 × 豆包、Codex = 2项') + '</strong><p>豆包为计费搜索；Codex使用服务运行环境中的登录态执行公开网页搜索。本次结果仅作为信息线索，不输出真实热点结论。</p></div><div class="detail-grid"><div><span>豆包预计调用</span><strong>' + (full ? queryCount + '次' : '1次') + '</strong></div><div><span>Codex查询任务</span><strong>' + (full ? queryCount + '项' : '1项') + '</strong></div><div><span>内容时间范围</span><strong>主要24小时，最迟72小时</strong></div><div><span>再次运行限制</span><strong>' + (full ? '3小时' : '10分钟') + '</strong></div></div>',
       footer: '<button class="btn" data-drawer-close>取消</button><button class="btn btn-primary" data-confirm-run>确认并开始</button>'
     });
     drawer.element.querySelector('[data-confirm-run]').onclick = function (event) { executeRun(mode, event.currentTarget, drawer); };
@@ -114,6 +117,15 @@
       var detailButton = event.target.closest('[data-run-detail]');
       if (detailButton) return showRun(detailButton.dataset.runDetail);
       if (event.target.closest('[data-refresh-runs]') || event.target.closest('[data-retry-action]')) return load();
+      var automationButton = event.target.closest('[data-toggle-automation]');
+      if (automationButton) {
+        var interval = Number(document.querySelector('[data-auto-interval]').value);
+        if (!Number.isInteger(interval) || interval < 1 || interval > 168) return AppCommon.showToast('采集周期需为1—168小时整数', 'error');
+        automationButton.disabled = true;
+        try { var changed = await AppCommon.api('/api/automation/config', { method: 'PATCH', body: JSON.stringify({ enabled: automationButton.dataset.toggleAutomation === 'true', interval_hours: interval }) }); AppCommon.showToast(changed.message, 'success'); await load(); }
+        catch (error) { AppCommon.showToast(error.message, 'error'); automationButton.disabled = false; }
+        return;
+      }
       var pageButton = event.target.closest('[data-run-page]');
       if (pageButton) { state.page += pageButton.dataset.runPage === 'next' ? 1 : -1; return load(); }
       var aggregateButton = event.target.closest('[data-aggregate-run]');

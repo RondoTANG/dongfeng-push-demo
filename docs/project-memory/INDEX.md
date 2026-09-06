@@ -1,6 +1,6 @@
 # 项目索引
 
-> 本文件用于定位，不替代源代码。最后核实：2026-09-04。
+> 本文件用于定位，不替代源代码。最后核实：2026-09-06。
 
 ## AI热点PoC维护入口
 
@@ -10,6 +10,12 @@
 
 - `service/source_time.py`：发布时间解析与依据，区分头部发布元信息和正文叙事日期。
 - `service/business_relation.py`：工作台业务关联准入，保存目标品牌、命中词与证据；无关联或简称存疑不进入业务有效列表，聚合和审批再次校验。
+- `service/access_control.py`：管理员／只读访客密钥、会话、加盐哈希校验、服务器主密钥加密恢复与撤销失效；`service/app.py`负责所有API的角色拦截及管理员二次验证查看。
+- `service/automation.py`：1—168小时自动采集周期、启停与持久化调度；默认停止，首次执行在完整周期后，定时与手工运行共用运行锁和审计。
+- `service/config_admin.py`：品牌、查询目录、来源平台与域名识别规则的后台增删改及引用完整性校验；采集器读取同一份外置运行配置。
+- `js/auth.js`、`js/pages/access-keys.js`：登录、前端权限反馈、管理员密钥管理和访客菜单隔离；安全边界仍以服务端为准。
+- `tests/ui_access_control.py`：管理员二次验证查看密钥、访客403、撤销失效、390px手机抽屉导航，以及事件／草案列表与独立详情、底部安全区操作栏回归，不执行采集。
+- `deployment/`：服务器发布说明、自动发布脚本、systemd、运行环境和Cloudflare Tunnel模板；代码发布与SQLite／配置／密钥／Codex登录态分离。
 - `tests/ui_relevance.py`：真实搜索关键词追溯与三尺寸分页只读验证。
 - `scripts/reset_local_data.py`：明确授权后备份并清空固定PoC数据库；拒绝清理运行中的批次。
 - `scripts/reprocess_local_run.py`：复用原始来源离线清洗与重新聚合，不调用搜索；已有审核、草案或补证时拒绝覆盖。
@@ -36,7 +42,7 @@
 | 成长激励 | 积分/XP、段位、规则、大盘、智能体 | `04_成长与激励体系/` | 作业、审核、用户、组织数据 | 原型一致性检查；当前业务暂停 |
 | 内容运营 | 公众号编辑器、学院体验 | `05_内容与社区运营/` | 前端编辑器 | 静态页面/构建检查 |
 | 产品原型 | 历史重构分析、跨平台数据映射和演示 | `08_产品原型与UI交互/` | TikHub/MaxHub 等外部能力 | 原型人工检查 |
-| AI热点业务与线索PoC | 公开线索发现、来源清洗、事件聚合、品牌关联、热点数据准入、人工研判；“原创增长”“热点源内容加热”两类初始草案；原创发布后效快照与“原创后二次加热”草案 | `09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/README.md`、`config/`、`prd/AI热点业务规划与现阶段线索PoC解决方案_PRD_v0.2.md`、`prd/AI热点发现与护卫军作业联动_PRD_v0.2.html`、`prototype/README.md`、`prototype/index.html` | 当前：豆包Global Search、Codex公开搜索、FastAPI、SQLite、现有采集/业务推送/人工后效凭证和Codex三小时心跳；真实热点阶段：专业平台数据源；后续依赖护卫军标签与正式作业接口 | `python3 09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/validate_config.py`；`curl http://127.0.0.1:8765/api/health`；原型终检`python3 tools/loop_run.py check . --preflight-stage final`；浏览器验证三类草案、原创发布登记、快照增量与审批 |
+| AI热点业务与线索PoC | 公开线索发现、来源清洗、事件聚合、品牌关联、热点数据准入、人工研判；三类作业草案；原创发布后效；管理员／只读访客受控访问与H5后台 | `09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/README.md`、`config/`、`prd/AI热点业务规划与现阶段线索PoC解决方案_PRD_v0.2.md`、`prd/AI热点发现与护卫军作业联动_PRD_v0.2.html`、`prototype/README.md`、`prototype/index.html`、`prototype/deployment/README.md` | 当前：豆包Global Search、Codex公开搜索、FastAPI、SQLite、现有采集/业务推送/人工后效凭证；自动采集支持1—168小时周期且默认停止；品牌、查询、平台、域名可由管理员维护。服务器推荐直接运行Codex CLI；真实热点阶段依赖专业平台数据源 | 配置校验；39项服务／布局测试；`tests/ui_access_control.py`验证权限、H5分屏与底部操作；浏览器验证三类草案、原创发布登记、快照增量与审批 |
 
 ## 跨模块关系
 

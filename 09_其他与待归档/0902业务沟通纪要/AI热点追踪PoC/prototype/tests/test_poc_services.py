@@ -21,6 +21,8 @@ from service.business_relation import assess_business_relation
 from service.config_loader import risk_rules, risk_display_text
 from service.events import _risk_tags
 from service.repositories import count_sources, get_run, list_sources
+from service import access_control
+from service.doubao_result_processor import handler as process_doubao_result
 from scripts.reprocess_local_run import reprocess
 
 
@@ -37,6 +39,69 @@ def result_item(title: str, url: str, publish_time: str | None = None) -> dict[s
 
 
 class ServiceTestCase(unittest.TestCase):
+    def test_direct_fernet_key_can_be_used_for_server_migration(self) -> None:
+        from cryptography.fernet import Fernet
+
+        key = Fernet.generate_key()
+        with patch.dict(os.environ, {"AI_HOTSPOT_KEY_ENCRYPTION_SECRET": key.decode("ascii")}):
+            self.assertEqual(access_control._encryption_key(), key)
+
+    def test_bundled_doubao_processor_parses_provider_envelope(self) -> None:
+        payload = {
+            "search_results": [{
+                "status_code": 200,
+                "body": {
+                    "ResponseMetadata": {"RequestId": "REQ-1"},
+                    "Result": {
+                        "ErrorCode": 0,
+                        "Documents": [{
+                            "Rank": 1,
+                            "Title": "岚图汽车发布公开信息",
+                            "Url": "https://example.com/news#fragment",
+                            "DocumentInfo": {"PublishTime": "2026-09-06T10:00:00+08:00"},
+                            "Snippet": [{"Type": "text", "Text": "岚图汽车发布公开信息。"}],
+                        }],
+                    },
+                },
+            }]
+        }
+        result = process_doubao_result(payload)
+        self.assertTrue(result["success"])
+        items = json.loads(result["web_search_items_json"])
+        self.assertEqual(items[0]["url"], "https://example.com/news")
+        self.assertEqual(items[0]["provider_request_id"], "REQ-1")
+
+    def test_access_keys_are_hashed_role_scoped_and_revocable(self) -> None:
+        original_admin_file = access_control.ADMIN_KEY_FILE
+        original_encryption_file = access_control.ACCESS_KEY_ENCRYPTION_FILE
+        access_control.ADMIN_KEY_FILE = Path(self.temp_dir.name) / "admin_access.key"
+        access_control.ACCESS_KEY_ENCRYPTION_FILE = Path(self.temp_dir.name) / "access_key_encryption.key"
+        try:
+            with patch.dict(os.environ, {"AI_HOTSPOT_ADMIN_KEY": "ADM-test-admin-secret"}):
+                access_control.init_access_control()
+                admin = access_control.authenticate_key("ADM-test-admin-secret")
+                self.assertEqual(admin["role"], "admin")
+                created = access_control.create_viewer_key("业务评审组", 30, "测试管理员")
+                self.assertTrue(created["access_key"].startswith("VIS-"))
+                with connection() as db:
+                    stored = db.execute("SELECT secret_hash, salt, encrypted_secret FROM access_keys WHERE access_key_id=?", (created["access_key_id"],)).fetchone()
+                    self.assertNotIn(created["access_key"], tuple(stored))
+                with self.assertRaisesRegex(PermissionError, "管理员密钥验证失败"):
+                    access_control.reveal_viewer_key(created["access_key_id"], "ADM-wrong-secret")
+                revealed = access_control.reveal_viewer_key(created["access_key_id"], "ADM-test-admin-secret")
+                self.assertEqual(revealed["access_key"], created["access_key"])
+                self.assertTrue(access_control.list_access_keys()[0]["can_reveal"])
+                viewer = access_control.authenticate_key(created["access_key"])
+                self.assertEqual(viewer["role"], "viewer")
+                token, _ = access_control.create_session(viewer)
+                self.assertEqual(access_control.get_session(token)["role"], "viewer")
+                self.assertTrue(access_control.revoke_access_key(created["access_key_id"]))
+                self.assertIsNone(access_control.get_session(token))
+                self.assertIsNone(access_control.authenticate_key(created["access_key"]))
+        finally:
+            access_control.ADMIN_KEY_FILE = original_admin_file
+            access_control.ACCESS_KEY_ENCRYPTION_FILE = original_encryption_file
+
     def test_publication_sort_is_timezone_aware_and_stable(self) -> None:
         self.test_source_list_uses_server_side_pagination_and_inclusive_date_end()
         with connection() as db:

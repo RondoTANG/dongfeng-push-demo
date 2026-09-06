@@ -1,15 +1,21 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+import asyncio
 import json
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Query, Request, Response
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from .database import add_audit, init_database
-from .config_loader import business_config_summary, reload_configs
+from .config_loader import business_config_summary, query_catalog, reload_configs
+from .config_admin import (
+    delete_brand, delete_domain, delete_platform, delete_query,
+    upsert_brand, upsert_domain, upsert_platform, upsert_query,
+)
+from .automation import automation_status_payload, scheduler_loop, update_automation_config
 from .drafts import count_drafts, get_draft, list_drafts, review_draft, review_event, update_draft
 from .evidence_requests import (
     confirm_evidence_request, create_evidence_plan, execute_evidence_request,
@@ -22,37 +28,194 @@ from .repositories import (
     count_audit, count_invalid, count_runs, count_sources, get_run,
     list_audit, list_invalid, list_runs, list_sources,
 )
-from .settings import DATABASE_PATH, PROJECT_ROOT
+from .settings import AUTH_COOKIE_SECURE, AUTH_SESSION_HOURS, DATABASE_PATH, PROJECT_ROOT
 from .work_items import claim_work_item, complete_work_item, fail_work_item, get_work_item, list_work_items
+from .access_control import (
+    authenticate_key, create_session, create_viewer_key, delete_session, get_session,
+    init_access_control, list_access_keys, reveal_viewer_key, revoke_access_key,
+)
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_database()
-    yield
+    init_access_control()
+    stop_event = asyncio.Event()
+    scheduler_task = asyncio.create_task(scheduler_loop(stop_event))
+    try:
+        yield
+    finally:
+        stop_event.set()
+        await scheduler_task
 
 
 app = FastAPI(
     title="东风护卫军 AI 热点线索 PoC",
     version="0.1.0",
     docs_url="/api/docs",
+    openapi_url="/api/openapi.json",
     redoc_url=None,
     lifespan=lifespan,
 )
 
 
 @app.middleware("http")
-async def disable_local_cache(request, call_next):
+async def access_control(request: Request, call_next):
+    path = request.url.path
+    public_api = {"/api/health", "/api/auth/login", "/api/auth/status"}
+    protected_documents = path.startswith(("/docs/", "/flowcharts/"))
+    if protected_documents and not get_session(request.cookies.get("ai_hotspot_session")):
+        return RedirectResponse(url="/", status_code=303)
+    if path.startswith("/api/") and path not in public_api:
+        session = get_session(request.cookies.get("ai_hotspot_session"))
+        if not session:
+            return JSONResponse(status_code=401, content={"detail": "请先输入有效访问密钥"})
+        request.state.identity = session
+        if path.startswith("/api/access-keys") and session["role"] != "admin":
+            return JSONResponse(status_code=403, content={"detail": "当前访问密钥无权管理其他密钥"})
+        if request.method not in {"GET", "HEAD", "OPTIONS"} and session["role"] != "admin" and path != "/api/auth/logout":
+            return JSONResponse(status_code=403, content={"detail": "当前为只读访问，不能执行采集、审核或修改操作"})
     response = await call_next(request)
     response.headers["Cache-Control"] = "no-store"
     return response
 
 
+class LoginRequest(BaseModel):
+    access_key: str = Field(min_length=8, max_length=200)
+
+
+class AccessKeyCreateRequest(BaseModel):
+    label: str = Field(min_length=2, max_length=80)
+    expires_in_days: int | None = Field(default=30, ge=1, le=365)
+
+
+class AccessKeyRevealRequest(BaseModel):
+    admin_key: str = Field(min_length=8, max_length=200)
+
+
+@app.get("/api/auth/status")
+def auth_status(request: Request) -> dict[str, object]:
+    session = get_session(request.cookies.get("ai_hotspot_session"))
+    if not session:
+        return {"authenticated": False, "auth_required": True}
+    return {
+        "authenticated": True,
+        "role": session["role"],
+        "display_name": session["display_name"],
+        "permissions": {"can_write": session["role"] == "admin", "can_manage_keys": session["role"] == "admin"},
+        "expires_at": session["expires_at"],
+    }
+
+
+@app.post("/api/auth/login")
+def login(payload: LoginRequest, request: Request, response: Response) -> dict[str, object]:
+    identity = authenticate_key(payload.access_key)
+    if not identity:
+        raise HTTPException(status_code=401, detail="访问密钥无效、已停用或已过期")
+    token, session = create_session(identity)
+    response.set_cookie(
+        "ai_hotspot_session", token, max_age=AUTH_SESSION_HOURS * 60 * 60, httponly=True,
+        secure=AUTH_COOKIE_SECURE or request.url.scheme == "https", samesite="strict", path="/",
+    )
+    return {"authenticated": True, "role": session["role"], "display_name": session["display_name"],
+            "permissions": {"can_write": session["role"] == "admin", "can_manage_keys": session["role"] == "admin"}}
+
+
+@app.post("/api/auth/logout")
+def logout(request: Request, response: Response) -> dict[str, object]:
+    delete_session(request.cookies.get("ai_hotspot_session"))
+    response.delete_cookie("ai_hotspot_session", path="/")
+    return {"logged_out": True}
+
+
+@app.get("/api/access-keys")
+def access_keys() -> dict[str, object]:
+    return {"items": list_access_keys()}
+
+
+@app.post("/api/access-keys", status_code=201)
+def create_access_key(payload: AccessKeyCreateRequest, request: Request) -> dict[str, object]:
+    identity = request.state.identity
+    result = create_viewer_key(payload.label, payload.expires_in_days, identity["display_name"])
+    add_audit("create_access_key", "access_key", result["access_key_id"], actor_type="admin", actor_id=identity["display_name"], after={"label": payload.label, "expires_at": result["expires_at"]})
+    return result
+
+
+@app.post("/api/access-keys/{access_key_id}/revoke")
+def revoke_key(access_key_id: str, request: Request) -> dict[str, object]:
+    if not revoke_access_key(access_key_id):
+        raise HTTPException(status_code=404, detail="访问密钥不存在")
+    identity = request.state.identity
+    add_audit("revoke_access_key", "access_key", access_key_id, actor_type="admin", actor_id=identity["display_name"])
+    return {"revoked": True, "access_key_id": access_key_id}
+
+
+@app.post("/api/access-keys/{access_key_id}/reveal")
+def reveal_access_key(access_key_id: str, payload: AccessKeyRevealRequest, request: Request) -> dict[str, object]:
+    identity = request.state.identity
+    try:
+        result = reveal_viewer_key(access_key_id, payload.admin_key)
+    except PermissionError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    add_audit(
+        "reveal_access_key", "access_key", access_key_id,
+        actor_type="admin", actor_id=identity["display_name"],
+        after={"label": result["label"], "reason": "管理员二次验证后查看"},
+    )
+    return result
+
+
 class RunRequest(BaseModel):
     mode: str = Field(default="quick", pattern="^(quick|full)$")
-    trigger_type: str = Field(default="manual", pattern="^(manual|schedule)$")
+    trigger_type: str = Field(default="manual", pattern="^manual$")
     idempotency_key: str | None = Field(default=None, max_length=120)
     timeout: int = Field(default=30, ge=5, le=120)
+
+
+class AutomationConfigRequest(BaseModel):
+    enabled: bool
+    interval_hours: int = Field(ge=1, le=168)
+
+
+class BrandConfigRequest(BaseModel):
+    brand_id: str = Field(min_length=2, max_length=80)
+    canonical_name: str = Field(min_length=1, max_length=80)
+    entity_type: str = Field(default="brand", max_length=40)
+    status: str = Field(default="active", pattern="^(active|inactive)$")
+    exact_aliases: list[str] = Field(default_factory=list, max_length=30)
+    weak_aliases: list[str] = Field(default_factory=list, max_length=30)
+    weak_alias_context_terms: list[str] = Field(default_factory=list, max_length=30)
+    official_domains: list[str] = Field(default_factory=list, max_length=30)
+    official_accounts: list[str] = Field(default_factory=list, max_length=50)
+
+
+class QueryConfigRequest(BaseModel):
+    query_id: str = Field(min_length=2, max_length=80)
+    query_group: str = Field(pattern="^(brand|topic)$")
+    query: str = Field(min_length=2, max_length=100)
+    brand_id: str | None = Field(default=None, max_length=80)
+    topic_id: str | None = Field(default=None, max_length=80)
+    enabled: bool = True
+
+
+class PlatformConfigRequest(BaseModel):
+    platform_id: str = Field(min_length=2, max_length=80)
+    display_name: str = Field(min_length=1, max_length=80)
+    account_fields_supported: bool = False
+    poc_coverage: str = Field(default="public_web", max_length=80)
+
+
+class DomainConfigRequest(BaseModel):
+    domain: str = Field(min_length=3, max_length=200)
+    source_platform: str = Field(min_length=2, max_length=80)
+    source_site_name: str = Field(min_length=1, max_length=100)
+    publisher_type: str = Field(default="media", max_length=80)
+    related_brand_ids: list[str] = Field(default_factory=list, max_length=30)
+    status: str = Field(default="active", pattern="^(active|inactive)$")
 
 
 class WorkItemActor(BaseModel):
@@ -204,11 +367,12 @@ def create_run(payload: RunRequest, background_tasks: BackgroundTasks) -> dict[s
         idempotency_key=payload.idempotency_key,
         timeout=payload.timeout,
     )
+    planned_query_count = len(query_catalog()) if payload.mode == "full" else 1
     return {
         "accepted": True,
         "run_id": run_id,
-        "planned_query_count": 17 if payload.mode == "full" else 1,
-        "planned_job_count": 34 if payload.mode == "full" else 2,
+        "planned_query_count": planned_query_count,
+        "planned_job_count": planned_query_count * 2,
         "providers": ["doubao_global_search", "codex_web_search"],
         "message": "双路运行已进入本地执行队列",
     }
@@ -288,20 +452,30 @@ def config_summary() -> dict[str, object]:
 
 @app.get("/api/automation/status")
 def automation_status() -> dict[str, object]:
-    path = PROJECT_ROOT / "config" / "automation.json"
-    config = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"enabled": False}
-    scheduled_runs = [item for item in list_runs(200) if item.get("trigger_type") == "schedule"]
+    runtime = automation_status_payload()
+    config = runtime["config"]
+    manual_runs = [item for item in list_runs(200) if item.get("trigger_type") == "manual"]
     pending = list_work_items("pending", 500)
     in_progress = list_work_items("in_progress", 500)
     return {
         "config": config,
-        "last_scheduled_run": scheduled_runs[0] if scheduled_runs else None,
+        "last_manual_run": manual_runs[0] if manual_runs else None,
+        "last_scheduled_run": runtime["last_scheduled_run"],
         "pending_work_item_count": len(pending),
         "in_progress_work_item_count": len(in_progress),
-        "runner_command": "python3 scripts/run_collection.py --mode full --trigger-type schedule",
+        "runner_command": "python3 scripts/run_collection.py --mode full --trigger-type manual",
+        "trigger_policy": "admin_configurable_schedule",
         "work_item_command": "python3 scripts/process_codex_work_items.py --claim-next --actor-id codex-local-automation",
         "mcp_required": False,
+        "enabled_query_count": len(query_catalog()),
     }
+
+
+@app.patch("/api/automation/config")
+def automation_config_update(payload: AutomationConfigRequest, request: Request) -> dict[str, object]:
+    identity = request.state.identity
+    config = update_automation_config(enabled=payload.enabled, interval_hours=payload.interval_hours, actor_id=identity["display_name"])
+    return {"ok": True, "config": config, "message": "自动采集已开启" if config["enabled"] else "自动采集已停止"}
 
 
 @app.post("/api/config/reload")
@@ -319,6 +493,123 @@ def config_reload() -> dict[str, object]:
         after=after.get("meta", []),
     )
     return {"ok": True, "message": "已重新读取本地 YAML 配置", "config": after}
+
+
+def _config_result(action: str, object_type: str, object_id: str, actor: str, result: object | None = None) -> dict[str, object]:
+    add_audit(action, object_type, object_id, actor_type="admin", actor_id=actor, after=result)
+    return {"ok": True, "item": result, "config": config_summary()}
+
+
+@app.post("/api/config/brands")
+def config_brand_create(payload: BrandConfigRequest, request: Request) -> dict[str, object]:
+    try:
+        result = upsert_brand(payload.model_dump(), create_only=True)
+        return _config_result("create", "brand_config", result["brand_id"], request.state.identity["display_name"], result)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.put("/api/config/brands/{brand_id}")
+def config_brand_update(brand_id: str, payload: BrandConfigRequest, request: Request) -> dict[str, object]:
+    try:
+        result = upsert_brand(payload.model_dump(), original_id=brand_id)
+        return _config_result("update", "brand_config", brand_id, request.state.identity["display_name"], result)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.delete("/api/config/brands/{brand_id}")
+def config_brand_delete(brand_id: str, request: Request) -> dict[str, object]:
+    try:
+        delete_brand(brand_id)
+        return _config_result("delete", "brand_config", brand_id, request.state.identity["display_name"])
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.post("/api/config/queries")
+def config_query_create(payload: QueryConfigRequest, request: Request) -> dict[str, object]:
+    try:
+        result = upsert_query(payload.model_dump(), create_only=True)
+        return _config_result("create", "query_config", result["query_id"], request.state.identity["display_name"], result)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.put("/api/config/queries/{query_id}")
+def config_query_update(query_id: str, payload: QueryConfigRequest, request: Request) -> dict[str, object]:
+    try:
+        result = upsert_query(payload.model_dump(), original_id=query_id)
+        return _config_result("update", "query_config", query_id, request.state.identity["display_name"], result)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.delete("/api/config/queries/{query_id}")
+def config_query_delete(query_id: str, request: Request) -> dict[str, object]:
+    try:
+        delete_query(query_id)
+        return _config_result("delete", "query_config", query_id, request.state.identity["display_name"])
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/api/config/platforms")
+def config_platform_create(payload: PlatformConfigRequest, request: Request) -> dict[str, object]:
+    try:
+        result = upsert_platform(payload.model_dump(), create_only=True)
+        return _config_result("create", "platform_config", result["platform_id"], request.state.identity["display_name"], result)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.put("/api/config/platforms/{platform_id}")
+def config_platform_update(platform_id: str, payload: PlatformConfigRequest, request: Request) -> dict[str, object]:
+    try:
+        result = upsert_platform(payload.model_dump(), original_id=platform_id)
+        return _config_result("update", "platform_config", platform_id, request.state.identity["display_name"], result)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.delete("/api/config/platforms/{platform_id}")
+def config_platform_delete(platform_id: str, request: Request) -> dict[str, object]:
+    try:
+        delete_platform(platform_id)
+        return _config_result("delete", "platform_config", platform_id, request.state.identity["display_name"])
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.post("/api/config/domains")
+def config_domain_create(payload: DomainConfigRequest, request: Request) -> dict[str, object]:
+    try:
+        result = upsert_domain(payload.model_dump(), create_only=True)
+        return _config_result("create", "domain_config", result["domain"], request.state.identity["display_name"], result)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.put("/api/config/domains/{domain:path}")
+def config_domain_update(domain: str, payload: DomainConfigRequest, request: Request) -> dict[str, object]:
+    try:
+        result = upsert_domain(payload.model_dump(), original_domain=domain)
+        return _config_result("update", "domain_config", domain, request.state.identity["display_name"], result)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.delete("/api/config/domains/{domain:path}")
+def config_domain_delete(domain: str, request: Request) -> dict[str, object]:
+    try:
+        delete_domain(domain)
+        return _config_result("delete", "domain_config", domain, request.state.identity["display_name"])
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @app.post("/api/runs/{run_id}/aggregate")

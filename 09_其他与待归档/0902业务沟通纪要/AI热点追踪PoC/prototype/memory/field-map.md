@@ -11,7 +11,7 @@
 | Field ID | Source ID | Page / Area | API / Data Field | Display Name | Display Format | Enum / Mapping | Empty / Error Rule | Annotation Point | Used In |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | FLD-001 | SRC-003 | 运行中心 | `run_id` | 运行编号 | `RUN-YYYYMMDD-HHMMSS` | 唯一值 | 不可为空 | 批次追溯入口 | 运行列表、详情 |
-| FLD-002 | SRC-003 | 运行中心 | `trigger_type` | 触发方式 | 中文标签 | `manual`手动、`schedule`定时、`import`导入 | 不可为空 | 区分手动与三小时自动化 | 运行列表 |
+| FLD-002 | SRC-003 | 运行中心 | `trigger_type` | 触发方式 | 中文标签 | 当前仅允许 `manual` 手动 | 不可为空 | 只允许管理员手工触发；拒绝定时与导入触发 | 运行列表 |
 | FLD-003 | SRC-001 | 运行中心 | `run_status` | 运行状态 | 状态标签 | pending/running/partial_success/success/failed | 异常状态展示原因 | 状态机 | 运行列表、进度 |
 | FLD-004 | SRC-003 | 运行中心 | `started_at`、`finished_at` | 开始／结束时间 | `YYYY-MM-DD HH:mm:ss` | 本地时区 | 未结束显示“执行中” | 耗时计算 | 运行列表 |
 | FLD-005 | SRC-003 | 运行中心 | `config_versions` | 配置快照 | 版本标签组 | 品牌／查询／来源／处理／草案规则 | 缺失则阻止执行 | 可追溯规则 | 运行详情 |

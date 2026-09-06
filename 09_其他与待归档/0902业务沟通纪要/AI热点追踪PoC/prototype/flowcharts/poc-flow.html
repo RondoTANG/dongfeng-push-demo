@@ -22,8 +22,9 @@ ul{padding-left:22px;margin-bottom:0}a{color:#2563eb}a:focus-visible{outline:2px
 <div class="notice"><strong>当前AI实际参与：</strong>Codex公开检索与确认后的Codex定向搜索。<br><strong>必须补齐但尚未接通：</strong>事件语义研判、补证回答核验、平台适配与个性化作业内容生成。当前规则与模板不能作为这些AI任务已完成的依据。</div>
 <section class="section"><h2>业务与系统流程</h2>
 <div class="legend"><span>程序规则</span><span class="ai">AI Agent已接通</span><span class="human">人工决策</span><span class="missing">AI必须接入／尚未接通</span></div>
-<p class="flow-note">规定主流程按01—08顺序执行。虚线节点是当前缺失的AI环节；现有服务使用规则与模板继续流转，不代表已完成该AI能力。</p>
-<ol class="flow"><li class="step human"><span class="owner">01 · 人工＋规则</span><h3>确认运行</h3><p>运营确认调用范围；服务检查冷却与幂等。自动采集暂停。</p></li>
+<p class="flow-note">规定主流程按00—08顺序执行。虚线节点是当前缺失的AI环节；现有服务使用规则与模板继续流转，不代表已完成该AI能力。</p>
+<ol class="flow"><li class="step"><span class="owner">00 · 程序规则</span><h3>访问鉴权</h3><p>管理员或访客密钥换取会话；访客只读且不可访问密钥管理或任何写接口。</p></li>
+<li class="step human"><span class="owner">01 · 人工＋规则</span><h3>确认运行</h3><p>仅管理员手工确认调用范围；服务检查冷却与幂等，不启用定时采集。</p></li>
 <li class="step ai"><span class="owner">02 · Agent＋接口</span><h3>双路公开搜索</h3><p>Codex：Agent检索与结构化整理，已接通。豆包：程序直调搜索API。</p></li>
 <li class="step "><span class="owner">03 · 程序规则</span><h3>来源清洗与基础归组</h3><p>时间、URL、品牌别名、正文语境词、标题归组；当前没有AI清洗调用。</p></li>
 <li class="step missing"><span class="owner">04 · AI分析 · 尚未接通</span><h3>事件语义研判</h3><p>必须分析事件归组、实体关系、事实冲突、风险语境及作业价值。当前仅有规则结果和待分析接口。</p></li>

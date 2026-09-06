@@ -9,7 +9,8 @@
     drafts: ['作业草案与审批', '处理原创增长、原创发布后追加加热与热点关联内容直接加热草案'],
     effects: ['原创后效追踪', '主闭环：回收原创链接与指标快照，判断是否需要追加加热'],
     config: ['配置管理', '查看品牌、查询、来源和处理规则'],
-    audit: ['无效与审计记录', '追溯自动过滤、人工审核和配置操作']
+    audit: ['无效与审计记录', '追溯自动过滤、人工审核和配置操作'],
+    'access-keys': ['访问密钥管理', '生成、查看状态和停用访客密钥']
   };
 
   Object.keys(PAGE_META).forEach(function (key) {
@@ -27,11 +28,13 @@
   }
 
   function renderPage(pageKey, options) {
+    if (pageKey === 'access-keys' && (!window.Auth || !Auth.isAdmin())) pageKey = 'run-center';
     var page = pages[pageKey] || pages['run-center'];
     var app = document.getElementById('app');
     if (!app) return;
     app.innerHTML = page.render();
     if (typeof page.init === 'function') page.init(options || {});
+    if (window.Auth) Auth.enforcePermissions(app);
     var meta = PAGE_META[pageKey] || PAGE_META['run-center'];
     var breadcrumb = document.getElementById('breadcrumbs');
     if (breadcrumb) breadcrumb.innerHTML = '<span>AI 热点线索</span><i>／</i><strong>' + AppCommon.escapeHtml(meta[0]) + '</strong>';
@@ -58,7 +61,13 @@
     }
   }
 
-  window.App = { navigate: navigate, renderPage: renderPage, pageMeta: PAGE_META, checkService: checkService };
+  function start() { checkService(); renderPage(pageFromHash(), { keepHash: true }); }
+  window.App = { navigate: navigate, renderPage: renderPage, pageMeta: PAGE_META, checkService: checkService, start: start };
   window.addEventListener('popstate', function () { renderPage(pageFromHash()); });
-  document.addEventListener('DOMContentLoaded', function () { checkService(); renderPage(pageFromHash(), { keepHash: true }); });
+  document.addEventListener('DOMContentLoaded', async function () {
+    document.querySelector('[data-logout]').onclick = function () { Auth.logout(); };
+    document.querySelector('[data-mobile-nav-toggle]').onclick = function () { document.body.classList.toggle('nav-open'); };
+    document.getElementById('mobile-nav-backdrop').onclick = function () { document.body.classList.remove('nav-open'); };
+    if (await Auth.bootstrap()) { await Nav.init(); start(); }
+  });
 })();

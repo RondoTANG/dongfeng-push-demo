@@ -40,8 +40,15 @@
       var error = new Error(detail);
       error.status = response.status;
       error.payload = payload;
+      if (response.status === 401 && window.Auth && path !== '/api/auth/login' && path !== '/api/auth/status') {
+        window.setTimeout(function () { Auth.requireLogin('登录已失效，请重新输入访问密钥'); }, 0);
+      }
       throw error;
     }
+    if (window.Auth) window.setTimeout(function () {
+      Auth.enforcePermissions(document.getElementById('app'));
+      Auth.enforcePermissions(document.getElementById('overlay-root'));
+    }, 0);
     return payload;
   }
 

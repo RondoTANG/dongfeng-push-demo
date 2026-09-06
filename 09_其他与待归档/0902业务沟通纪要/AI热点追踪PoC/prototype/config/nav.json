@@ -20,7 +20,8 @@
       "label": "规则与追溯",
       "children": [
         { "key": "config", "label": "配置管理", "icon": "sliders" },
-        { "key": "audit", "label": "无效与审计记录", "icon": "history" }
+        { "key": "audit", "label": "无效与审计记录", "icon": "history" },
+        { "key": "access-keys", "label": "访问密钥管理", "icon": "key", "adminOnly": true }
       ]
     }
   ]

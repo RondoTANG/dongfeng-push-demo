@@ -9,6 +9,13 @@
 !01_用户与账户体系/
 !01_用户与账户体系/**
 
+# AI评论与直播话术生成设计及确定性代码节点
+!03_审核与AI中台/
+!03_审核与AI中台/AI评论与直播话术生成/
+!03_审核与AI中台/AI评论与直播话术生成/**
+03_审核与AI中台/AI评论与直播话术生成/code/__pycache__/
+03_审核与AI中台/AI评论与直播话术生成/code/*.pyc
+
 # Project-level Agent context and maintainable memory
 !AGENTS.md
 !.agents/
@@ -19,3 +26,24 @@
 !docs/project-memory/INDEX.md
 !docs/project-memory/CURRENT.md
 !docs/project-memory/CHANGELOG.md
+
+# AI热点PoC新增访问控制与服务器发布文件（运行库、管理员密钥和截图仍保持忽略）
+!09_其他与待归档/
+!09_其他与待归档/0902业务沟通纪要/
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/service/
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/service/access_control.py
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/service/doubao_result_processor.py
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/service/automation.py
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/service/config_admin.py
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/js/
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/js/auth.js
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/js/pages/
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/js/pages/access-keys.js
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/tests/
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/tests/ui_access_control.py
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/tests/test_config_management.py
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/deployment/
+!09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/deployment/**
+09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/prototype/deployment/deploy.env
