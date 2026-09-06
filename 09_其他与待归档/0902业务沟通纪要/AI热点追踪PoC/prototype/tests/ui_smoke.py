@@ -60,6 +60,20 @@ def main() -> None:
             page.wait_for_load_state("networkidle")
             page.wait_for_selector("#app .page")
             assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1"), page_key
+            assert page.locator(".app-topbar").is_visible(), page_key
+            assert page.locator("[data-mobile-nav-toggle]").is_visible(), page_key
+            assert page.evaluate("document.documentElement.scrollHeight <= window.innerHeight + 1"), page_key
+
+        page.goto(f"{BASE_URL}/?mobile-smoke=navigation#page=run-center", wait_until="networkidle")
+        page.locator("[data-mobile-nav-toggle]").click()
+        page.wait_for_selector("body.nav-open")
+        assert page.locator(".app-sidebar").is_visible()
+        assert page.locator("[data-mobile-nav-close]").is_visible()
+        page.locator('[data-page="clues"]').click()
+        page.wait_for_selector("#app h1")
+        assert page.locator("#app h1").first.inner_text() == "信息线索工作台"
+        assert page.locator("body.nav-open").count() == 0
+        assert "page=clues" in page.url
 
         def assert_drawer_footer(selector: str) -> None:
             page.locator(selector).first.click()

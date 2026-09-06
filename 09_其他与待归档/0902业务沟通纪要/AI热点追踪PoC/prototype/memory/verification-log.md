@@ -344,3 +344,16 @@ Evidence: `service/automation.py`、`service/config_admin.py`、`tests/test_conf
 Result: partial_pass
 Consecutive Failures: 1
 Next Action: 用户回到Mac后解锁SSH私钥，随后执行自动发布脚本，配置服务器Codex登录与Cloudflare Tunnel，并验证公网登录、权限和手机端页面
+
+Date: 2026-09-06T21:30:00+08:00
+Step: public-h5-business-navigation
+Scope: ui-deployment
+Local URL / File: http://127.0.0.1:8765/ 、 https://hotspot.dbuddy.uk/
+Tool: Playwright Chromium手机视口＋unittest＋配置校验＋版本发布脚本
+Command / Check: 在390×844视口检查交付导航、业务顶栏、正文滚动和业务抽屉；展开8个业务入口并切换到作业草案；校验外层页面高度与视口一致
+Passed: 业务顶栏固定出现在交付导航下方；菜单按钮可见；抽屉从48px以下展开且包含8个入口；选择“作业草案与审批”后页面更新、抽屉收起；documentElement高度844与视口一致
+Failed: None
+Evidence: `tests/screenshots/h5-nav-20260906/`；公网服务器发布版本`20260906-133030`
+Result: pass
+Consecutive Failures: 0
+Next Action: 请用户在手机Safari刷新后点击业务菜单验收；自动采集仍保持停止

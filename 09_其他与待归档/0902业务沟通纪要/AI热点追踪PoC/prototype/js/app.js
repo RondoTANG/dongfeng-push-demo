@@ -65,9 +65,26 @@
   window.App = { navigate: navigate, renderPage: renderPage, pageMeta: PAGE_META, checkService: checkService, start: start };
   window.addEventListener('popstate', function () { renderPage(pageFromHash()); });
   document.addEventListener('DOMContentLoaded', async function () {
+    var mobileNavToggle = document.querySelector('[data-mobile-nav-toggle]');
+    var mobileNavClose = document.querySelector('[data-mobile-nav-close]');
+    var mobileNavBackdrop = document.getElementById('mobile-nav-backdrop');
+
+    function setMobileNav(open) {
+      document.body.classList.toggle('nav-open', open);
+      mobileNavToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      mobileNavBackdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
+      if (!open && document.activeElement === mobileNavClose) mobileNavToggle.focus();
+    }
+
     document.querySelector('[data-logout]').onclick = function () { Auth.logout(); };
-    document.querySelector('[data-mobile-nav-toggle]').onclick = function () { document.body.classList.toggle('nav-open'); };
-    document.getElementById('mobile-nav-backdrop').onclick = function () { document.body.classList.remove('nav-open'); };
+    mobileNavToggle.setAttribute('aria-expanded', 'false');
+    mobileNavBackdrop.setAttribute('aria-hidden', 'true');
+    mobileNavToggle.onclick = function () { setMobileNav(!document.body.classList.contains('nav-open')); };
+    mobileNavClose.onclick = function () { setMobileNav(false); };
+    mobileNavBackdrop.onclick = function () { setMobileNav(false); };
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && document.body.classList.contains('nav-open')) setMobileNav(false);
+    });
     if (await Auth.bootstrap()) { await Nav.init(); start(); }
   });
 })();
