@@ -5,13 +5,13 @@
 ```text
 手机／电脑浏览器
   → https://hotspot.dbuddy.uk
-  → 现有 Cloudflare Tunnel
+  → AI 热点独立 Cloudflare Tunnel
   → 127.0.0.1:8765
   → FastAPI（页面＋API）
   → /var/lib/ai-hotspot-poc/data/ai_hotspot_poc.db
 ```
 
-本原型的页面和 API 由同一个 FastAPI 进程提供，不需要再建设一套前端 Nginx 站点。复用现有服务器 Cloudflare Tunnel，新增一个域名入口即可。应用自身的管理员／访客密钥仍是业务访问门禁；Cloudflare Access 可作为额外的外围门禁，但不是当前必需项。
+本原型的页面和 API 由同一个 FastAPI 进程提供，不需要再建设一套前端 Nginx 站点。生产体验环境推荐使用独立 Cloudflare Tunnel，避免与本机或其他服务共用多副本 Tunnel 时，请求被分配到没有同步 ingress 规则的副本而出现间歇性 404。应用自身的管理员／访客密钥仍是业务访问门禁；Cloudflare Access 可作为额外的外围门禁，但不是当前必需项。
 
 ## 一、服务器目录与账号
 
@@ -136,7 +136,24 @@ sudo systemctl status ai-hotspot-poc --no-pager
 curl -fsS http://127.0.0.1:8765/api/health
 ```
 
-## 五、接入现有 Cloudflare Tunnel
+## 五、接入 Cloudflare Tunnel
+
+### 推荐：使用独立 Tunnel
+
+1. 创建仅由热点服务器运行的 Tunnel，并将 `hotspot.dbuddy.uk` 路由到该 Tunnel。
+2. 将 `cloudflared-ai-hotspot.example.yml` 复制为服务器 `/etc/cloudflared/ai-hotspot-poc.yml`，填入 Tunnel ID 和凭据路径。
+3. 安装 `cloudflared-ai-hotspot.service`，校验后启动。
+
+```bash
+sudo cloudflared --config /etc/cloudflared/ai-hotspot-poc.yml tunnel ingress validate
+sudo cp /opt/ai-hotspot-poc/current/prototype/deployment/cloudflared-ai-hotspot.service \
+  /etc/systemd/system/cloudflared-ai-hotspot.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now cloudflared-ai-hotspot
+curl -I https://hotspot.dbuddy.uk/
+```
+
+### 可选：复用已有 Tunnel
 
 1. 将 `cloudflared-ingress.example.yml` 中的规则追加到现有 `/etc/cloudflared/config.yml`，放在兜底 `http_status:404` 前。
 2. 为同一个 Tunnel 建立 `hotspot.dbuddy.uk` 的 DNS 路由。
@@ -154,6 +171,8 @@ curl -I https://hotspot.dbuddy.uk/
 ```bash
 sudo cloudflared tunnel route dns 你的Tunnel名称或ID hotspot.dbuddy.uk
 ```
+
+若同一 Tunnel 有多个副本，每个副本必须使用相同的 `hotspot.dbuddy.uk` ingress 规则，且每个副本都必须能访问它所配置的本地源站；否则应改用独立 Tunnel。
 
 ## 六、首次验收
 

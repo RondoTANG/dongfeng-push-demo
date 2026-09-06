@@ -1,0 +1,13 @@
+[Unit]
+Description=Cloudflare Tunnel for AI Hotspot PoC
+After=network-online.target ai-hotspot-poc.service
+Wants=network-online.target
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/cloudflared --no-autoupdate --config /etc/cloudflared/ai-hotspot-poc.yml tunnel run
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

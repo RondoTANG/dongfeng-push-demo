@@ -42,6 +42,7 @@ trap 'rm -rf -- "$STAGE_DIR"' EXIT
 cd "$POC_DIR"
 python3 validate_config.py >/dev/null
 tar \
+  --no-xattrs \
   --exclude='prototype/data' \
   --exclude='prototype/tests/screenshots' \
   --exclude='prototype/deployment/deploy.env' \
@@ -82,7 +83,7 @@ fi
 
 # 只在首次部署补齐配置；后台已经编辑的运行配置不被发布包覆盖。
 find "$release_dir/config" -maxdepth 1 -type f -name '*.yaml' -exec \
-  sh -c 'for source_file do target="/var/lib/ai-hotspot-poc/config/$(basename "$source_file")"; [[ -e "$target" ]] || install -o ai-hotspot -g ai-hotspot -m 0640 "$source_file" "$target"; done' sh {} +
+  sh -c 'for source_file do target="/var/lib/ai-hotspot-poc/config/$(basename "$source_file")"; [ -e "$target" ] || install -o ai-hotspot -g ai-hotspot -m 0640 "$source_file" "$target"; done' sh {} +
 
 ln -sfn "$release_dir" /opt/ai-hotspot-poc/current
 install -o root -g root -m 0644 \
@@ -91,7 +92,19 @@ install -o root -g root -m 0644 \
 systemctl daemon-reload
 systemctl enable --now ai-hotspot-poc
 systemctl restart ai-hotspot-poc
-curl --fail --silent --show-error --retry 10 --retry-delay 2 http://127.0.0.1:8765/api/health >/dev/null
+health_ready=false
+for health_attempt in {1..10}; do
+  if curl --fail --silent http://127.0.0.1:8765/api/health >/dev/null 2>&1; then
+    health_ready=true
+    break
+  fi
+  sleep 2
+done
+if [[ "$health_ready" != true ]]; then
+  systemctl status ai-hotspot-poc --no-pager -l >&2 || true
+  journalctl -u ai-hotspot-poc -n 80 --no-pager >&2 || true
+  exit 1
+fi
 
 mapfile -t old_releases < <(find "$release_root" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -rn | awk '{print $2}')
 if (( ${#old_releases[@]} > keep_releases )); then

@@ -1,0 +1,11 @@
+# 复制到服务器 /etc/cloudflared/ai-hotspot-poc.yml 后填写。
+# Tunnel 凭据 JSON 必须通过受控通道上传，不得提交 Git。
+
+tunnel: 请填写独立Tunnel-ID
+credentials-file: /etc/cloudflared/请填写独立Tunnel-ID.json
+protocol: http2
+
+ingress:
+  - hostname: hotspot.dbuddy.uk
+    service: http://127.0.0.1:8765
+  - service: http_status:404
