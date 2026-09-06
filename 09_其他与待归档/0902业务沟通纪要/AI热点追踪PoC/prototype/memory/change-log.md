@@ -4,7 +4,7 @@
 
 - FastAPI和现有SQLite／运行配置已部署到`https://hotspot.dbuddy.uk/`；应用与独立Cloudflare Tunnel由systemd托管，自动采集保持停止。
 - 修复共用多副本Tunnel入口规则不同引发的间歇性404；热点服务改用独立Tunnel。发布脚本增加无扩展属性打包、POSIX兼容配置复制和可靠健康等待。
-- 公网管理员／访客登录、HttpOnly安全Cookie、访客只读权限和健康检查通过；服务器Codex CLI已安装，待完成一次性设备授权。本次未触发搜索。
+- 公网管理员／访客登录、HttpOnly安全Cookie、访客只读权限和健康检查通过；服务器Codex CLI已完成ChatGPT设备授权，并以只读临时调用返回固定测试文本。本次未触发搜索任务。
 
 ## 2026-09-06：AI执行分工说明
 

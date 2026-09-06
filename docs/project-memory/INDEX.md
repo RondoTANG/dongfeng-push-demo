@@ -42,7 +42,7 @@
 | 成长激励 | 积分/XP、段位、规则、大盘、智能体 | `04_成长与激励体系/` | 作业、审核、用户、组织数据 | 原型一致性检查；当前业务暂停 |
 | 内容运营 | 公众号编辑器、学院体验 | `05_内容与社区运营/` | 前端编辑器 | 静态页面/构建检查 |
 | 产品原型 | 历史重构分析、跨平台数据映射和演示 | `08_产品原型与UI交互/` | TikHub/MaxHub 等外部能力 | 原型人工检查 |
-| AI热点业务与线索PoC | 公开线索发现、来源清洗、事件聚合、品牌关联、热点数据准入、人工研判；三类作业草案；原创发布后效；管理员／只读访客受控访问与H5后台 | `09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/README.md`、`config/`、`prd/AI热点业务规划与现阶段线索PoC解决方案_PRD_v0.2.md`、`prd/AI热点发现与护卫军作业联动_PRD_v0.2.html`、`prototype/README.md`、`prototype/index.html`、`prototype/deployment/README.md` | 当前：豆包Global Search、Codex公开搜索、FastAPI、SQLite、现有采集/业务推送/人工后效凭证；自动采集支持1—168小时周期且默认停止；品牌、查询、平台、域名可由管理员维护。公网服务已通过独立Cloudflare Tunnel部署，服务器Codex CLI待一次性设备授权；真实热点阶段依赖专业平台数据源 | 配置校验；39项服务／布局测试；公网健康、角色权限及发布脚本验证；`tests/ui_access_control.py`验证权限、H5分屏与底部操作；浏览器验证三类草案、原创发布登记、快照增量与审批 |
+| AI热点业务与线索PoC | 公开线索发现、来源清洗、事件聚合、品牌关联、热点数据准入、人工研判；三类作业草案；原创发布后效；管理员／只读访客受控访问与H5后台 | `09_其他与待归档/0902业务沟通纪要/AI热点追踪PoC/README.md`、`config/`、`prd/AI热点业务规划与现阶段线索PoC解决方案_PRD_v0.2.md`、`prd/AI热点发现与护卫军作业联动_PRD_v0.2.html`、`prototype/README.md`、`prototype/index.html`、`prototype/deployment/README.md` | 当前：豆包Global Search、Codex公开搜索、FastAPI、SQLite、现有采集/业务推送/人工后效凭证；自动采集支持1—168小时周期且默认停止；品牌、查询、平台、域名可由管理员维护。公网服务已通过独立Cloudflare Tunnel部署，服务器Codex CLI已完成设备授权与最小调用验证；真实热点阶段依赖专业平台数据源 | 配置校验；39项服务／布局测试；公网健康、角色权限、Codex最小调用及发布脚本验证；`tests/ui_access_control.py`验证权限、H5分屏与底部操作；浏览器验证三类草案、原创发布登记、快照增量与审批 |
 
 ## 跨模块关系
 
