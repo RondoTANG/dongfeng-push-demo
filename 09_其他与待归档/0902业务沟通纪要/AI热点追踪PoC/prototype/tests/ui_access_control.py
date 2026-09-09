@@ -29,6 +29,13 @@ def main() -> None:
         anonymous_page.goto(BASE_URL + "/flowcharts/poc-flow.html", wait_until="networkidle")
         assert anonymous_page.url.rstrip("/") == BASE_URL
         assert anonymous_page.locator("#access-key").count() == 1
+        assert anonymous_page.locator("#poc-conclusion-title").is_visible()
+        assert "不能判断真实热点" in anonymous_page.locator("#poc-conclusion-title").inner_text()
+        assert anonymous_page.get_by_text("公开信息线索与内容机会PoC", exact=True).is_visible()
+        assert anonymous_page.locator("[data-page='access-keys']").count() == 0
+        assert anonymous_page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
+        assert anonymous_page.evaluate("document.documentElement.scrollHeight > window.innerHeight")
+        anonymous_page.screenshot(path=str(SCREENSHOT_DIR / "anonymous-mobile-conclusion.png"), full_page=True)
         anonymous.close()
         admin = browser.new_context(viewport={"width": 1440, "height": 900})
         admin_page = admin.new_page()
